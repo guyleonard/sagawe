@@ -27,7 +27,15 @@ The script will iterate over each folder one by one...
   * GC/Coverage plots with taxonomy information to look for contamination.
  8. ?
 
-## Workflow Programs Required
+# Downstream Analyses
+
+ 1. Contig Integrator for Sequence Assembly - [CISA](http://sb.nhri.org.tw/CISA/en/CISA)
+ 2. Protocol for fully automated Decontamination of Genomes - [ProDeGe](http://www.nature.com/ismej/journal/v10/n1/full/ismej2015100a.html)
+ 3. "Completeness" - Not convinced on these for SAGs
+  * CEGMA?
+  * BUSCO?
+
+# Workflow Programs Required
  * [pigz](http://zlib.net/pigz/) - Parallel GZIP
 
  1. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
@@ -46,7 +54,9 @@ The script will iterate over each folder one by one...
  7. [blobtools](https://github.com/DRL/blobtools)
  8. ?
 
-## Dependencies
+
+
+# Dependencies
  1. [pigz](http://zlib.net/pigz/) - Parallel GZIP
  2. tee - GNU Core
  3. time - *nix Core
