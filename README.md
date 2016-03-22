@@ -3,7 +3,8 @@
 This is a suggested workflow for the assembly of MDA Single Cell MiSeq Illumina libraries.
 
 ## Workflow in Steps
-
+ 
+ A. PIGZ - Parallel GZIP *.fastq reads
  1. Trimming and Adaptor Sequencing
   * Remove any Illumina Sequencing Adaptors, poly-A tails, sequence quality score <20 etc
  2. Overlapping of Read Libraries
@@ -36,3 +37,8 @@ This is a suggested workflow for the assembly of MDA Single Cell MiSeq Illumina 
   3. [NCBI Taxonomy dump](ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/) - taxdump.tar.gz
  7. [blobtools](https://github.com/DRL/blobtools)
  8. ?
+
+## Dependencies
+ 1. [pigz](http://zlib.net/pigz/) - Parallel GZIP
+ 2. tee - GNU Core
+ 3. time - *nix Core
