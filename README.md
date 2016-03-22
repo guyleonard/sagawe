@@ -1,12 +1,15 @@
 # Single Cell Assembly Workflow
 
-This is a suggested workflow for the assembly of MDA Single Cell MiSeq Illumina libraries.
+This is a suggested workflow for the assembly of MDA Single Cell MiSeq Illumina libraries. It is contained within a bash script that will execute all the program sequentially.
+Directory structure is assumed (read: adapted to our local situaion) to be:
+
+WD/Sample_1/raw_illumina_reads/*.fastq
+WD/Sample_2/raw_illumina_reads/*.fastq
 
 ## Workflow in Steps
- 
- A. PIGZ - Parallel GZIP *.fastq reads
+ * PIGZ - Parallel GZIP *.fastq reads
  1. Trimming and Adaptor Sequencing
-  * Remove any Illumina Sequencing Adaptors, poly-A tails, sequence quality score <20 etc
+  * Remove any Illumina Sequencing Adaptors, poly-A tails, sequence quality score <20, etc
  2. Overlapping of Read Libraries
   * We know our reads are 250bp PE with sequence overlaps, you might want to remove this step if yours are not.
  3. Assembly of Reads
@@ -22,6 +25,7 @@ This is a suggested workflow for the assembly of MDA Single Cell MiSeq Illumina 
  8. ?
 
 ## Workflow Programs Required
+ * [pigz](http://zlib.net/pigz/) - Parallel GZIP
  1. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
   1. [cutadapt](https://cutadapt.readthedocs.org/en/stable/)
   2. [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
