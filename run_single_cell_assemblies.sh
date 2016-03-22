@@ -1,16 +1,19 @@
 #!/bin/bash
-
-#wget -r Project_2299@ftp.sequencing.exeter.ac.uk:HJM5NBCXX/Sample_7A_34A/ --password=phqpkcNsgwMro
+## Guy Leonard MMXVI
+## All programs are assumed to be in PATH, please make sure this is the case ;)
 
 # Number of Cores to Use
 THREADS=8
+
+## Change these to your severs locations
 # NCBI 'nt' Database Location
 NCBI_NT=/storage/ncbi/nt/nt
 # NCBI Taxonomy
 NCBI_TAX=/storage/ncbi/taxdump
-#
+
 WD=`pwd`
 echo "$WD"
+
 # Get filenames for current Single Cell Library
 # Locations of FASTQs = Sample_**_***/raw_illumina_reads/
 for DIRS in */ ; do
@@ -43,7 +46,7 @@ for DIRS in */ ; do
 	mkdir -p SPADES
 	cd SPADES
 	echo "Running SPAdes"
-	time /home/cs02gl/programs/SPAdes-3.7.0-Linux/bin/spades.py --sc --careful -t $THREADS \
+	time spades.py --sc --careful -t $THREADS \
 	--s1 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled.fastq \
 	--pe1-1 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward.fastq \
 	--pe1-2 $WD/$DIRS/raw_illumina_reads//PEAR/pear_overlap.unassembled.reverse.fastq \
@@ -58,7 +61,7 @@ for DIRS in */ ; do
 	mkdir -p QUAST
 	cd QUAST
 	echo "Running QUAST"
-	time python /home/cs02gl/programs/quast-3.2/quast.py -o quast_reports -t $THREADS \
+	time python quast.py -o quast_reports -t $THREADS \
 	--min-contig 100 -f --eukaryote \
 	--glimmer ../SPADES/overlapped_and_paired/contigs.fasta | tee quast.log
 	cd ../
@@ -104,7 +107,7 @@ for DIRS in */ ; do
 	# run blobtools create
 	echo "Running BlobTools CREATE - slow"
 	cd $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/
-	time /home/cs02gl/programs/blobtools/blobtools create -i $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
+	time blobtools create -i $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
 	--nodes $NCBI_TAX/nodes.dmp --names $NCBI_TAX/names.dmp \
 	-t $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/BLAST/scaffolds_vs_nt_1e-10.megablast \
 	-b $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.bam \
@@ -113,25 +116,25 @@ for DIRS in */ ; do
 	# run blobtools view - table output
 	# Standard Output - Phylum
 	echo "Running BlobTools View"
-	time /home/cs02gl/programs/blobtools/blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+	time blobtools/blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
 	--out $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_phylum_table.csv | tee -a blobtools.log
 	# Other Output - Species
-	time /home/cs02gl/programs/blobtools/blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+	time blobtools/blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
 	--out $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_superkingdom_table.csv \
 	--rank superkingdom | tee -a blobtools.log
 
 	# run blobtools plot - image output
 	# Standard Output - Phylum, 7 Taxa
 	echo "Running BlobTools Plots - Standard + SVG"
-	time /home/cs02gl/programs/blobtools/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json
-	time /home/cs02gl/programs/blobtools/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+	time blobtools/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json
+	time blobtools/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
 	--format svg | tee -a blobtools.log
 
 	# Other Output - Species, 15 Taxa
 	echo "Running BlobTools Plots - SuperKingdom + SVG"
-	time /home/cs02gl/programs/blobtools/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+	time blobtools/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
 	-r superkingdom
-	time /home/cs02gl/programs/blobtools/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+	time blobtools/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
 	-r superkingdom \
 	--format svg | tee -a blobtools.log
 
