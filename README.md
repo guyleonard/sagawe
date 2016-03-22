@@ -5,15 +5,22 @@ This is a suggested workflow for the assembly of MDA Single Cell MiSeq Illumina 
 ## Workflow in Steps
 
  1. Trimming and Adaptor Sequencing
+  * Remove any Illumina Sequencing Adaptors, poly-A tails, sequence quality score <20 etc
  2. Overlapping of Read Libraries
+  * We know our reads are 250bp PE with sequence overlaps, you might want to remove this step if yours are not.
  3. Assembly of Reads
+  * We find that SPAdes gives good results, you may also like to try IDBA and Velvet-SC both of which can assemble SC.
  4. Assembly Statistics
+  * Nice assembly statistics
  5. Read Mapping
+  * This can help with coverage information etc, but we will be using it mostly for "blobology" (see step 7)
  6. BLAST Report
+  * Top hits to NCBI's 'nt' database using 'megablast'
  7. BLOBTOOLS
+  * GC/Coverage plots with taxonomy information to look for contamination.
  8. ?
 
-## Workflow Programs
+## Workflow Programs Required
  1. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
   1. [cutadapt](https://cutadapt.readthedocs.org/en/stable/)
   2. [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
