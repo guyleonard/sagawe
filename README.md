@@ -1,10 +1,12 @@
 # Single Cell Assembly Workflow
 
-This is a suggested workflow for the assembly of MDA Single Cell MiSeq Illumina libraries. It is contained within a bash script that will execute all the program sequentially.
-Directory structure is assumed (read: adapted to our local situaion) to be:
+This is a suggested workflow for the assembly of MDA Single Cell MiSeq Illumina libraries. It is contained within a bash script that will execute all the programs sequentially.
+The directory structure is assumed (read: adapted to our local situaion) to be:
 
-WD/Sample_1/raw_illumina_reads/*.fastq
-WD/Sample_2/raw_illumina_reads/*.fastq
+* WD/Sample_1/raw_illumina_reads/*.fastq
+* WD/Sample_2/raw_illumina_reads/*.fastq
+
+The script will iterate over each folder one by one...
 
 ## Workflow in Steps
  * PIGZ - Parallel GZIP *.fastq reads
