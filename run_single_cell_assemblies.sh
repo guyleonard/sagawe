@@ -23,11 +23,23 @@ for DIRS in */ ; do
 
 	# GZIP FASTQs
 	# saving space down the line, all other files will be gzipped
-	#echo "gzipping *.fastqs"
+	#echo "gzipping *.fastq files"
 	time pigz -9 -R *.fastq
 
 	# Get all fastq.gz files
-	FILENAME=(*.fastq.gz)
+	FASTQ=(*.fastq.gz)
+
+	# Run Trim Galore!
+	# minimum length of 150
+	# minimum quality of Q20
+	# run FASTQC on trimmed
+	# GZIP output
+	echo "Running Trimming"
+	time trim_galore -q 20 --fastqc --gzip --length 150 \
+	--paired $WD/$DIRS/raw_illumina_reads/${FASTQ[0]} $WD/$DIRS/raw_illumina_reads/${FASTQ[1]}
+
+        # Get all fq.gz files - these are the default names from Trim Galore!
+        FILENAME=(*.fq.gz)
 
 	# Run PEAR
 	# default settings
