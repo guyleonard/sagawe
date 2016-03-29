@@ -1,16 +1,37 @@
 #!/bin/bash
 ## Guy Leonard MMXVI
-## All programs are assumed to be in PATH, please make sure this is the case ;)
+#
+# All programs are assumed to be in PATH, please make sure this is the case ;)
+# This is just a suggested workflow, it works on our servers...you will have
+# to adapt it to your location.
+
+## This script uses CEGMA - notoriously difficult to install and now unsupported
+# You might not want to use it, you are safe to comment it out
+## It also uses BUSCO
+# I still don't trust BUSCO hence also using CEGMA
 
 # Number of Cores to Use
 THREADS=8
 
-## Change these to your severs locations
+## Change these to your sever's directory locations
 # NCBI 'nt' Database Location
 NCBI_NT=/storage/ncbi/nt/nt
 # NCBI Taxonomy
 NCBI_TAX=/storage/ncbi/taxdump
+# BUSCO Lineage Location
+BUSCO=/storage/databases/BUSCO/eukaryota
+## CEGMA
+# CEGMA DIR
+export CEGMA=/home/cs02gl/programs/CEGMA_v2
+export PERL5LIB=$PERL5LIB:/home/cs02gl/programs/CEGMA_v2/lib
+## BUSCO
+#
+export AUGUSTUS_CONFIG_PATH=~/programs/augustus-3.0.2/config/
+# PATH
+# This needs to have the CEGMA BIN directory added to it
+export PATH=$PATH:/home/cs02gl/programs/CEGMA_v2
 
+# Working Directory
 WD=`pwd`
 echo "$WD"
 
@@ -39,6 +60,7 @@ for DIRS in */ ; do
 	--paired $WD/$DIRS/raw_illumina_reads/${FASTQ[0]} $WD/$DIRS/raw_illumina_reads/${FASTQ[1]}
 
         # Get all fq.gz files - these are the default names from Trim Galore!
+	# Making it nice and easy to distinguish from our original .fastq inputs
         FILENAME=(*.fq.gz)
 
 	# Run PEAR
@@ -54,7 +76,7 @@ for DIRS in */ ; do
 
 	# Run SPAdes
 	# single cell mode - default kmers 21,33,55
-	# careful - runs mismatch corrector
+	# careful mode - runs mismatch corrector
 	mkdir -p SPADES
 	cd SPADES
 	echo "Running SPAdes"
@@ -62,8 +84,8 @@ for DIRS in */ ; do
 	--s1 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled.fastq \
 	--pe1-1 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward.fastq \
 	--pe1-2 $WD/$DIRS/raw_illumina_reads//PEAR/pear_overlap.unassembled.reverse.fastq \
-	--pe2-1 ../${FILENAME[0]} \
-	--pe2-2 ../${FILENAME[1]} \
+	#--pe2-1 ../${FILENAME[0]} \
+	#--pe2-2 ../${FILENAME[1]} \
 	-o overlapped_and_paired | tee spades.log
 	cd ../
 
@@ -74,9 +96,18 @@ for DIRS in */ ; do
 	cd QUAST
 	echo "Running QUAST"
 	time python quast.py -o quast_reports -t $THREADS \
-	--min-contig 100 -f --eukaryote \
-	--glimmer ../SPADES/overlapped_and_paired/contigs.fasta | tee quast.log
+	--min-contig 100 -f --eukaryote --scaffolds \
+	--glimmer $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta | tee quast.log
 	cd ../
+
+	# Run CEGMA
+	mkdir -p CEGMA
+	time cegma -T 8 -g $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta -o testing
+
+	# Run BUSCO
+	mkdir -p BUSCO
+	#python3 ~/programs/BUSCO_v1.1b1/BUSCO_v1.1b1.py -g $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
+	#-c 8 -l /storage/databases/BUSCO/eukaryota/ -o testing
 
 	# Run BlobTools
 	mkdir -p BLOBTOOLS
@@ -150,6 +181,7 @@ for DIRS in */ ; do
 	-r superkingdom \
 	--format svg | tee -a blobtools.log
 
+	# Finish up.
 	cd ../../../
 	echo "`pwd`"
 	echo "Complete Run, Next or Finish."
