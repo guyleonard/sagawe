@@ -4,12 +4,12 @@ This is a suggested workflow for the assembly of MDA Single Cell MiSeq Illumina 
 The directory structure is assumed (read: adapted to our local situation) to be:
 
 * WD/Sample_1/raw_illumina_reads/*.fastq
-* WD/Sample_2/raw_illumina_reads/*.fastq
+* ...
+* WD/Sample_n/raw_illumina_reads/*.fastq
 
 The script will iterate over each folder one by one...
 
 ## Workflow in Steps
- * PIGZ - Parallel GZIP *.fastq reads
 
  1. Trimming and Adaptor Sequencing
   * Remove any Illumina Sequencing Adaptors, poly-A tails, sequence quality score <20, etc
@@ -25,18 +25,17 @@ The script will iterate over each folder one by one...
   * Top hits to NCBI's 'nt' database using 'megablast', beware false hits as with any BLAST search.
  7. BLOBTOOLS
   * GC/Coverage plots with taxonomy information to look for contamination.
- 8. ?
+ 8. Genome 'Completeness' Test
+ 9. Genome 'Completeness' Test
+10. ?
 
 # Downstream Analyses
 
  1. Contig Integrator for Sequence Assembly - [CISA](http://sb.nhri.org.tw/CISA/en/CISA)
  2. Protocol for fully automated Decontamination of Genomes - [ProDeGe](http://www.nature.com/ismej/journal/v10/n1/full/ismej2015100a.html)
- 3. "Completeness" - Not convinced on these for SAGs
-  * CEGMA?
-  * BUSCO?
+ 3.
 
 # Workflow Programs Required
- * [pigz](http://zlib.net/pigz/) - Parallel GZIP
 
  1. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
   1. [cutadapt](https://cutadapt.readthedocs.org/en/stable/)
@@ -52,9 +51,17 @@ The script will iterate over each folder one by one...
   2. [NCBI 'nt' database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/) - nt.*.tar.gz
   3. [NCBI Taxonomy dump](ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/) - taxdump.tar.gz
  7. [blobtools](https://github.com/DRL/blobtools)
- 8. ?
-
-
+ 8. CEGMA
+  1. [geneid](http://genome.imim.es/software/geneid/)
+  2. [genewise](http://www.ebi.ac.uk/~birney/wise2/)
+  3. [hmmer](http://hmmer.org/)
+  4. [BLAST+](http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+ 9.BUSCO
+  1. [Python 3.0](https://www.python.org/download/releases/3.0/)
+  2. [hmmer](http://hmmer.org/)
+  3. [BLAST+](http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+  4. [Augustus 3.0](http://bioinf.uni-greifswald.de/augustus/)
+  5. [EMBOSS](ftp://emboss.open-bio.org/pub/EMBOSS/)
 
 # Dependencies
  1. [pigz](http://zlib.net/pigz/) - Parallel GZIP
