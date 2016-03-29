@@ -30,6 +30,10 @@ NCBI_TAX=/storage/ncbi/taxdump
 # CEGMA DIR
 export CEGMA=/home/cs02gl/programs/CEGMA_v2
 export PERL5LIB=$PERL5LIB:/home/cs02gl/programs/CEGMA_v2/lib
+# This is a pretty important one not to forget
+# else you get this error
+# FATAL ERROR when running local map 6400: "No such file or directory"
+export WISECONFIGDIR=/usr/share/wise/
 
 ## BUSCO
 # BUSCO Lineage Location
