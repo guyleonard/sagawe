@@ -1,35 +1,46 @@
 #!/bin/bash
-## Guy Leonard MMXVI
-#
-# All programs are assumed to be in PATH, please make sure this is the case ;)
+# Guy Leonard MMXVI
+
+## All programs are assumed to be in PATH, please make sure this is the case ;)
 # This is just a suggested workflow, it works on our servers...you will have
 # to adapt it to your location.
 
 ## This script uses CEGMA - notoriously difficult to install and now unsupported
 # You might not want to use it, you are safe to comment it out
+
 ## It also uses BUSCO
 # I still don't trust BUSCO hence also using CEGMA
+# If you see something like this:
+# Error: Sequence file ./run_testing//augustus_proteins/64334.fas is empty or misformatted
+# just ignore it, BUSCO is 'working' it's an error from hmmer and there are no gene predictions
+# for the SCOs
 
 # Number of Cores to Use
 THREADS=8
 
 ## Change these to your sever's directory locations
+
+## NCBI
 # NCBI 'nt' Database Location
 NCBI_NT=/storage/ncbi/nt/nt
 # NCBI Taxonomy
 NCBI_TAX=/storage/ncbi/taxdump
-# BUSCO Lineage Location
-BUSCO=/storage/databases/BUSCO/eukaryota
+
 ## CEGMA
 # CEGMA DIR
 export CEGMA=/home/cs02gl/programs/CEGMA_v2
 export PERL5LIB=$PERL5LIB:/home/cs02gl/programs/CEGMA_v2/lib
+
 ## BUSCO
-#
+# BUSCO Lineage Location
+BUSCO=/storage/databases/BUSCO/eukaryota
 export AUGUSTUS_CONFIG_PATH=~/programs/augustus-3.0.2/config/
-# PATH
+
+## PATH
 # This needs to have the CEGMA BIN directory added to it
 export PATH=$PATH:/home/cs02gl/programs/CEGMA_v2
+
+## Do not change below here...
 
 # Working Directory
 WD=`pwd`
@@ -44,7 +55,7 @@ for DIRS in */ ; do
 
 	# GZIP FASTQs
 	# saving space down the line, all other files will be gzipped
-	#echo "gzipping *.fastq files"
+	echo "gzipping *.fastq files"
 	time pigz -9 -R *.fastq
 
 	# Get all fastq.gz files
@@ -72,6 +83,9 @@ for DIRS in */ ; do
 	time pear -f $WD/$DIRS/raw_illumina_reads/${FILENAME[0]} \
         -r $WD/$DIRS/raw_illumina_reads/${FILENAME[1]} \
         -o pear_overlap -j $THREADS | tee pear.log
+
+	# Lets GZIP these too!
+	pigz -9 -R *.fastq
 	cd ../
 
 	# Run SPAdes
@@ -81,9 +95,9 @@ for DIRS in */ ; do
 	cd SPADES
 	echo "Running SPAdes"
 	time spades.py --sc --careful -t $THREADS \
-	--s1 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled.fastq \
-	--pe1-1 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward.fastq \
-	--pe1-2 $WD/$DIRS/raw_illumina_reads//PEAR/pear_overlap.unassembled.reverse.fastq \
+	--s1 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled.fastq.gz \
+	--pe1-1 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward.fastq.gz \
+	--pe1-2 $WD/$DIRS/raw_illumina_reads//PEAR/pear_overlap.unassembled.reverse.fastq.gz \
 	#--pe2-1 ../${FILENAME[0]} \
 	#--pe2-2 ../${FILENAME[1]} \
 	-o overlapped_and_paired | tee spades.log
@@ -102,11 +116,12 @@ for DIRS in */ ; do
 
 	# Run CEGMA
 	mkdir -p CEGMA
-	time cegma -T 8 -g $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta -o testing
+	#time cegma -T 8 -g $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta -o testing
 
 	# Run BUSCO
 	mkdir -p BUSCO
-	#python3 ~/programs/BUSCO_v1.1b1/BUSCO_v1.1b1.py -g $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
+	#python3 ~/programs/BUSCO_v1.1b1/BUSCO_v1.1b1.py \
+        #-g $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
 	#-c 8 -l /storage/databases/BUSCO/eukaryota/ -o testing
 
 	# Run BlobTools
@@ -120,13 +135,15 @@ for DIRS in */ ; do
 
 	# map original reads to assembly with BWA MEM
 	echo "Mapping reads to Assembly"
-	time bwa mem -t $THREADS $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta $WD/$DIRS/raw_illumina_reads/${FILENAME[0]} $WD/$DIRS/raw_illumina_reads/${FILENAME[1]} > $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.sam | tee -a bwa.log
+	time bwa mem -t $THREADS $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta $WD/$DIRS/raw_illumina_reads/${FILENAME[0]} \
+	$WD/$DIRS/raw_illumina_reads/${FILENAME[1]} > $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.sam | tee -a bwa.log
 
 	# sort and convert sam to bam with SAMTOOLS
 	echo "Sorting Sam File"
-	time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.bam $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.sam | tee -a samtools.log
+	time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.bam \
+	$WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.sam | tee -a samtools.log
 
-	echo "Converting Sam to Bam"	
+	echo "Converting Sam to Bam"
 	time samtools1.3 index $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.bam | tee -a samtools.log
 
 	# delete sam file
