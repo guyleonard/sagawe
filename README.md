@@ -14,15 +14,15 @@ The script will iterate over each folder one by one...
  1. Trimming and Adaptor Sequencing
   * Remove any Illumina Sequencing Adaptors, poly-A tails, sequence quality score <20, etc
  2. Overlapping of Read Libraries
-  * We know our reads are 250bp PE with sequence overlaps, you might want to remove this step if yours are not.
+  * We know our reads are 250bp PE with sequence overlaps, you might want to remove/adapt this step if yours are not.
  3. Assembly of Reads
-  * We find that SPAdes gives good results, you may also like to try IDBA and Velvet-SC both of which can assemble SC.
+  * We find that SPAdes gives good results, you may also like to try [IDBA-UD](http://i.cs.hku.hk/~alse/hkubrg/projects/idba_ud/index.html) and [Velvet-SC](http://bix.ucsd.edu/projects/singlecell/) both of which can assemble SCs.
  4. Assembly Statistics
-  * Nice assembly statistics
+  * Nice assembly statistics, e.g. N50, contig/scaffold lengths, etc.
  5. Read Mapping
   * This can help with coverage information etc, but we will be using it mostly for "blobology" (see step 7)
  6. BLAST Report
-  * Top hits to NCBI's 'nt' database using 'megablast'
+  * Top hits to NCBI's 'nt' database using 'megablast', beware false hits as with any BLAST search.
  7. BLOBTOOLS
   * GC/Coverage plots with taxonomy information to look for contamination.
  8. ?
