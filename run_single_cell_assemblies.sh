@@ -37,15 +37,20 @@ export WISECONFIGDIR=/usr/share/wise/
 
 ## BUSCO
 # BUSCO Lineage Location
-BUSCO=/storage/databases/BUSCO/eukaryota
+BUSCO_DB=/storage/databases/BUSCO/eukaryota
 export AUGUSTUS_CONFIG_PATH=~/programs/augustus-3.0.2/config/
 
 ## PATH
-# This needs to have the CEGMA BIN directory added to it
-export PATH=$PATH:/home/cs02gl/programs/CEGMA_v2
+export PATH=$PATH:/home/cs02gl/programs/CEGMA_v2/bin
 
-## Do not change below here...
+# Locations of exes
+SPADES=/home/cs02gl/programs/SPAdes-3.7.0-Linux/bin/
+QUAST=/home/cs02gl/programs/quast-3.2
+CEGMA_DIR=/home/cs02gl/programs/CEGMA_v2/bin
+BUSCO=/home/cs02gl/programs/BUSCO_v1.1b1
+BLOBTOOLS=/home/cs02gl/programs/blobtools
 
+## Try not change below here...
 # Working Directory
 WD=`pwd`
 echo "$WD"
@@ -57,6 +62,7 @@ for DIRS in */ ; do
 
 	cd $DIRS/raw_illumina_reads
 
+<<COMMENT
 	# GZIP FASTQs
 	# saving space down the line, all other files will be gzipped
 	echo "gzipping *.fastq files"
@@ -73,11 +79,12 @@ for DIRS in */ ; do
 	echo "Running Trimming"
 	time trim_galore -q 20 --fastqc --gzip --length 150 \
 	--paired $WD/$DIRS/raw_illumina_reads/${FASTQ[0]} $WD/$DIRS/raw_illumina_reads/${FASTQ[1]}
-
+COMMENT
         # Get all fq.gz files - these are the default names from Trim Galore!
 	# Making it nice and easy to distinguish from our original .fastq inputs
         FILENAME=(*.fq.gz)
 
+<<COMMENT2
 	# Run PEAR
 	# default settings
 	# output: pear_overlap
@@ -98,12 +105,10 @@ for DIRS in */ ; do
 	mkdir -p SPADES
 	cd SPADES
 	echo "Running SPAdes"
-	time spades.py --sc --careful -t $THREADS \
+	time $SPADES/spades.py --sc --careful -t $THREADS \
 	--s1 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled.fastq.gz \
 	--pe1-1 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward.fastq.gz \
 	--pe1-2 $WD/$DIRS/raw_illumina_reads//PEAR/pear_overlap.unassembled.reverse.fastq.gz \
-	#--pe2-1 ../${FILENAME[0]} \
-	#--pe2-2 ../${FILENAME[1]} \
 	-o overlapped_and_paired | tee spades.log
 	cd ../
 
@@ -113,21 +118,30 @@ for DIRS in */ ; do
 	mkdir -p QUAST
 	cd QUAST
 	echo "Running QUAST"
-	time python quast.py -o quast_reports -t $THREADS \
+	time python $QUAST/quast.py -o quast_reports -t $THREADS \
 	--min-contig 100 -f --eukaryote --scaffolds \
 	--glimmer $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta | tee quast.log
 	cd ../
+COMMENT2
 
 	# Run CEGMA
+	# Genome mode
+	echo "Running CEGMA"
 	mkdir -p CEGMA
-	#time cegma -T 8 -g $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta -o testing
+	cd CEGMA
+	time $CEGMA_DIR/cegma -T $THREADS -g $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta -o cegma
+	cd ../
 
 	# Run BUSCO
+	echo "Running BUSCO"
 	mkdir -p BUSCO
-	#python3 ~/programs/BUSCO_v1.1b1/BUSCO_v1.1b1.py \
-        #-g $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
-	#-c 8 -l /storage/databases/BUSCO/eukaryota/ -o testing
+	cd BUSCO
+	python3 $BUSCO/BUSCO_v1.1b1.py \
+        -g $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
+	-c $THREADS -l $BUSCO_DB -o busco -f
+	cd ../
 
+<<COMMENT3
 	# Run BlobTools
 	mkdir -p BLOBTOOLS
 	cd BLOBTOOLS
@@ -150,7 +164,7 @@ for DIRS in */ ; do
 	echo "Converting Sam to Bam"
 	time samtools1.3 index $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.bam | tee -a samtools.log
 
-	# delete sam file
+	# delete sam file - save some disk space, we have the bam now
 	rm *.sam
 	cd ../
 
@@ -171,7 +185,7 @@ for DIRS in */ ; do
 	# run blobtools create
 	echo "Running BlobTools CREATE - slow"
 	cd $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/
-	time blobtools create -i $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
+	time $BLOBTOOLS/blobtools create -i $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
 	--nodes $NCBI_TAX/nodes.dmp --names $NCBI_TAX/names.dmp \
 	-t $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/BLAST/scaffolds_vs_nt_1e-10.megablast \
 	-b $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.bam \
@@ -180,28 +194,29 @@ for DIRS in */ ; do
 	# run blobtools view - table output
 	# Standard Output - Phylum
 	echo "Running BlobTools View"
-	time blobtools/blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+	time $BLOBTOOLS/blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
 	--out $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_phylum_table.csv | tee -a blobtools.log
 	# Other Output - Species
-	time blobtools/blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+	time $BLOBTOOLS/blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
 	--out $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_superkingdom_table.csv \
 	--rank superkingdom | tee -a blobtools.log
 
 	# run blobtools plot - image output
 	# Standard Output - Phylum, 7 Taxa
 	echo "Running BlobTools Plots - Standard + SVG"
-	time blobtools/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json
-	time blobtools/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+	time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json
+	time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
 	--format svg | tee -a blobtools.log
 
 	# Other Output - Species, 15 Taxa
 	echo "Running BlobTools Plots - SuperKingdom + SVG"
-	time blobtools/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+	time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
 	-r superkingdom
-	time blobtools/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+	time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
 	-r superkingdom \
 	--format svg | tee -a blobtools.log
 
+COMMENT3
 	# Finish up.
 	cd ../../../
 	echo "`pwd`"
