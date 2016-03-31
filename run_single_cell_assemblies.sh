@@ -1,7 +1,7 @@
 #!/bin/bash
 # Guy Leonard MMXVI
 
-## All programs are assumed to be in PATH, please make sure this is the case ;)
+##
 # This is just a suggested workflow, it works on our servers...you will have
 # to adapt it to your location.
 
@@ -18,7 +18,7 @@
 # Number of Cores to Use
 THREADS=8
 
-## Change these to your sever's directory locations
+## Change these to your server's directory locations
 
 ## NCBI
 # NCBI 'nt' Database Location
@@ -38,12 +38,13 @@ export WISECONFIGDIR=/usr/share/wise/
 ## BUSCO
 # BUSCO Lineage Location
 BUSCO_DB=/storage/databases/BUSCO/eukaryota
+# Augustus Config Path
 export AUGUSTUS_CONFIG_PATH=~/programs/augustus-3.0.2/config/
 
-## PATH
+## Ammend PATH for CEGMA bin
 export PATH=$PATH:/home/cs02gl/programs/CEGMA_v2/bin
 
-# Locations of exes
+# Locations of binaries
 SPADES=/home/cs02gl/programs/SPAdes-3.7.0-Linux/bin/
 QUAST=/home/cs02gl/programs/quast-3.2
 CEGMA_DIR=/home/cs02gl/programs/CEGMA_v2/bin
@@ -59,10 +60,8 @@ echo "$WD"
 # Locations of FASTQs = Sample_**_***/raw_illumina_reads/
 for DIRS in */ ; do
 	echo "Working in $DIRS"
-
 	cd $DIRS/raw_illumina_reads
 
-<<COMMENT
 	# GZIP FASTQs
 	# saving space down the line, all other files will be gzipped
 	echo "gzipping *.fastq files"
@@ -79,12 +78,11 @@ for DIRS in */ ; do
 	echo "Running Trimming"
 	time trim_galore -q 20 --fastqc --gzip --length 150 \
 	--paired $WD/$DIRS/raw_illumina_reads/${FASTQ[0]} $WD/$DIRS/raw_illumina_reads/${FASTQ[1]}
-COMMENT
+
         # Get all fq.gz files - these are the default names from Trim Galore!
 	# Making it nice and easy to distinguish from our original .fastq inputs
         FILENAME=(*.fq.gz)
 
-<<COMMENT2
 	# Run PEAR
 	# default settings
 	# output: pear_overlap
@@ -122,7 +120,6 @@ COMMENT
 	--min-contig 100 -f --eukaryote --scaffolds \
 	--glimmer $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta | tee quast.log
 	cd ../
-COMMENT2
 
 	# Run CEGMA
 	# Genome mode
@@ -141,7 +138,6 @@ COMMENT2
 	-c $THREADS -l $BUSCO_DB -o busco -f
 	cd ../
 
-<<COMMENT3
 	# Run BlobTools
 	mkdir -p BLOBTOOLS
 	cd BLOBTOOLS
@@ -216,7 +212,6 @@ COMMENT2
 	-r superkingdom \
 	--format svg | tee -a blobtools.log
 
-COMMENT3
 	# Finish up.
 	cd ../../../
 	echo "`pwd`"
