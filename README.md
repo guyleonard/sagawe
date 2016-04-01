@@ -31,7 +31,7 @@ This description is mostly program agnostic, however, we have included below (an
 9. Genome 'Completeness' Test
 10. ?
 
-# Workflow Programs Required
+## Workflow Programs Required
 
 1. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
   1. [cutadapt](https://cutadapt.readthedocs.org/en/stable/)
@@ -59,7 +59,7 @@ This description is mostly program agnostic, however, we have included below (an
   4. [Augustus 3.0](http://bioinf.uni-greifswald.de/augustus/)
   5. [EMBOSS](ftp://emboss.open-bio.org/pub/EMBOSS/)
 
-# Other Dependencies
+### Other Dependencies
 1. [pigz](http://zlib.net/pigz/) - Parallel GZIP
 2. tee - GNU Core
 3. time - *nix Core
