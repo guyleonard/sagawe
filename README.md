@@ -11,6 +11,8 @@ The script will iterate over each folder one by one...
 
 ## Workflow in Steps
 
+This description is mostly program agnostic, however, we have included below (and in the script) the programs we have found to be useful during our analyses and projects. You are welcome to adapt the workflow to inlude your favourite<sup>TM</sup> programs. 
+
  1. Trimming and Adaptor Sequencing
   * Remove any Illumina Sequencing Adaptors, poly-A tails, sequence quality score <20, etc
  2. Overlapping of Read Libraries
@@ -50,7 +52,6 @@ The script will iterate over each folder one by one...
   2. [genewise](http://www.ebi.ac.uk/~birney/wise2/)
   3. [hmmer](http://hmmer.org/)
   4. [BLAST+](http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
-
  9.BUSCO
   1. [Python 3.0](https://www.python.org/download/releases/3.0/)
   2. [hmmer](http://hmmer.org/)
@@ -58,7 +59,7 @@ The script will iterate over each folder one by one...
   4. [Augustus 3.0](http://bioinf.uni-greifswald.de/augustus/)
   5. [EMBOSS](ftp://emboss.open-bio.org/pub/EMBOSS/)
 
-# Dependencies
+# Other Dependencies
  1. [pigz](http://zlib.net/pigz/) - Parallel GZIP
  2. tee - GNU Core
  3. time - *nix Core
