@@ -52,7 +52,7 @@ This description is mostly program agnostic, however, we have included below (an
   2. [genewise](http://www.ebi.ac.uk/~birney/wise2/)
   3. [hmmer](http://hmmer.org/)
   4. [BLAST+](http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download).
-9.BUSCO
+9. BUSCO
   1. [Python 3.0](https://www.python.org/download/releases/3.0/)
   2. [hmmer](http://hmmer.org/)
   3. [BLAST+](http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
