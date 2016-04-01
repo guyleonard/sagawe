@@ -29,12 +29,6 @@ The script will iterate over each folder one by one...
  9. Genome 'Completeness' Test
 10. ?
 
-# Downstream Analyses
-
- 1. Contig Integrator for Sequence Assembly - [CISA](http://sb.nhri.org.tw/CISA/en/CISA)
- 2. Protocol for fully automated Decontamination of Genomes - [ProDeGe](http://www.nature.com/ismej/journal/v10/n1/full/ismej2015100a.html)
- 3.
-
 # Workflow Programs Required
 
  1. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
@@ -56,6 +50,7 @@ The script will iterate over each folder one by one...
   2. [genewise](http://www.ebi.ac.uk/~birney/wise2/)
   3. [hmmer](http://hmmer.org/)
   4. [BLAST+](http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+
  9.BUSCO
   1. [Python 3.0](https://www.python.org/download/releases/3.0/)
   2. [hmmer](http://hmmer.org/)
@@ -67,3 +62,11 @@ The script will iterate over each folder one by one...
  1. [pigz](http://zlib.net/pigz/) - Parallel GZIP
  2. tee - GNU Core
  3. time - *nix Core
+
+# Downstream/Other Analyses
+
+ 1. Contig Integrator for Sequence Assembly - [CISA](http://sb.nhri.org.tw/CISA/en/CISA)
+ 2. Protocol for fully automated Decontamination of Genomes - [ProDeGe](http://www.nature.com/ismej/journal/v10/n1/full/ismej2015100a.html)
+ 3. ?
+
+
