@@ -94,6 +94,7 @@ for DIRS in */ ; do
         -o pear_overlap -j $THREADS | tee pear.log
 
 	# Lets GZIP these too!
+	echo "gzipping fastq files"
 	pigz -9 -R *.fastq
 	cd ../
 
@@ -153,12 +154,19 @@ for DIRS in */ ; do
 	$WD/$DIRS/raw_illumina_reads/${FILENAME[1]} > $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.sam | tee -a bwa.log
 
 	# sort and convert sam to bam with SAMTOOLS
-	echo "Sorting Sam File"
+	echo "Sorting SAM File and Converting to BAM"
 	time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.bam \
 	$WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.sam | tee -a samtools.log
 
-	echo "Converting Sam to Bam"
+	echo "Indexing Bam"
 	time samtools1.3 index $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.bam | tee -a samtools.log
+
+	if [ ! -f $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.bam.bai]
+	then
+		echo -e "[ERROR]\t[$DIRS]: No index file was created for your BAM file. !?" >> $WD/$DIRS/raw_illumina_reads/errors.txt
+		# blobtools create will crash without this file, so we might as well move on to the next library...
+		break
+	fi
 
 	# delete sam file - save some disk space, we have the bam now
 	rm *.sam
@@ -187,30 +195,35 @@ for DIRS in */ ; do
 	-b $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_reads.bam \
 	-o scaffolds_mapped_reads_nt_1e-10_megablast_blobtools | tee -a $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/blobtools.log
 
-	# run blobtools view - table output
-	# Standard Output - Phylum
-	echo "Running BlobTools View"
-	time $BLOBTOOLS/blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
-	--out $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_phylum_table.csv | tee -a blobtools.log
-	# Other Output - Species
-	time $BLOBTOOLS/blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
-	--out $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_superkingdom_table.csv \
-	--rank superkingdom | tee -a blobtools.log
+	if  [ ! -f $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json]
+	then
+		echo -e "[ERROR]\t[$DIRS]: Missing blobtools JSON, no tables or figures produced." >> $WD/$DIRS/raw_illumina_reads/errors.txt
+	else
+		# run blobtools view - table output
+		# Standard Output - Phylum
+		echo "Running BlobTools View"
+		time $BLOBTOOLS/blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+		--out $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_phylum_table.csv | tee -a blobtools.log
+		# Other Output - Species
+		time $BLOBTOOLS/blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+		--out $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_superkingdom_table.csv \
+		--rank superkingdom | tee -a blobtools.log
 
-	# run blobtools plot - image output
-	# Standard Output - Phylum, 7 Taxa
-	echo "Running BlobTools Plots - Standard + SVG"
-	time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json
-	time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
-	--format svg | tee -a blobtools.log
+		# run blobtools plot - image output
+		# Standard Output - Phylum, 7 Taxa
+		echo "Running BlobTools Plots - Standard + SVG"
+		time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json
+		time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+		--format svg | tee -a blobtools.log
 
-	# Other Output - Species, 15 Taxa
-	echo "Running BlobTools Plots - SuperKingdom + SVG"
-	time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
-	-r superkingdom
-	time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
-	-r superkingdom \
-	--format svg | tee -a blobtools.log
+		# Other Output - Species, 15 Taxa
+		echo "Running BlobTools Plots - SuperKingdom + SVG"
+		time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+		-r superkingdom
+		time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+		-r superkingdom \
+		--format svg | tee -a blobtools.log
+	fi
 
 	# Finish up.
 	cd ../../../
