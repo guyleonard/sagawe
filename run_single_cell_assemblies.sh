@@ -20,13 +20,13 @@ THREADS=8
 
 ## Change these to your server's directory locations
 
-## NCBI
+## NCBI Databases
 # NCBI 'nt' Database Location
 NCBI_NT=/storage/ncbi/nt/nt
 # NCBI Taxonomy
 NCBI_TAX=/storage/ncbi/taxdump
 
-## CEGMA
+## CEGMA Environment Variables
 # CEGMA DIR
 export CEGMA=/home/cs02gl/programs/CEGMA_v2
 export PERL5LIB=$PERL5LIB:/home/cs02gl/programs/CEGMA_v2/lib
@@ -34,22 +34,46 @@ export PERL5LIB=$PERL5LIB:/home/cs02gl/programs/CEGMA_v2/lib
 # else you get this error
 # FATAL ERROR when running local map 6400: "No such file or directory"
 export WISECONFIGDIR=/usr/share/wise/
+## Ammend PATH for CEGMA bin
+export PATH=$PATH:/home/cs02gl/programs/CEGMA_v2/bin
 
-## BUSCO
+## BUSCO Environment Variables
 # BUSCO Lineage Location
 BUSCO_DB=/storage/databases/BUSCO/eukaryota
 # Augustus Config Path
 export AUGUSTUS_CONFIG_PATH=~/programs/augustus-3.0.2/config/
 
-## Ammend PATH for CEGMA bin
-export PATH=$PATH:/home/cs02gl/programs/CEGMA_v2/bin
-
-# Locations of binaries
+## Locations of binaries, if not in path
+# and tests to make sure they can be called
+#PIGz
+command -v pigz >/dev/null 2>&1 || { echo "I require pigz but it's not installed.  Aborting." >&2; exit 1;}
+#TRIM_GALORE
+command -v trim_galore >/dev/null 2>&1 || { echo "I require Trim Galore! but it's not installed.  Aborting." >&2; exit 1;}
+#PEAR
+command -v pear >/dev/null 2>&1 || { echo "I require PEAR but it's not installed.  Aborting." >&2; exit 1;}
+#SPAdes
 SPADES=/home/cs02gl/programs/SPAdes-3.7.0-Linux/bin/
+command -v $SPADES/spades.py >/dev/null 2>&1 || { echo "I require SPAdes but it's not installed.  Aborting." >&2; exit 1;}
+#QUAST
 QUAST=/home/cs02gl/programs/quast-3.2
+command -v $QUAST/quast.py >/dev/null 2>&1 || { echo "I require QUAST but it's not installed.  Aborting." >&2; exit 1;}
+#CEGMA
 CEGMA_DIR=/home/cs02gl/programs/CEGMA_v2/bin
+command -v $CEGMA_DIR/cegma >/dev/null 2>&1 || { echo "I require CEGMA but it's not installed.  Aborting." >&2; exit 1;}
+#BUSCO
 BUSCO=/home/cs02gl/programs/BUSCO_v1.1b1
+command -v $BUSCO/BUSCO_v1.1b1.py >/dev/null 2>&1 || { echo "I require BUSCO but it's not installed.  Aborting." >&2; exit 1;}
+#BWA
+command -v bwa >/dev/null 2>&1 || { echo "I require bwa but it's not installed.  Aborting." >&2; exit 1;}
+#SAMTOOLS1.3
+command -v samtools1.3 >/dev/null 2>&1 || { echo "I require Samtools 1.3 but it's not installed.  Aborting." >&2; exit 1;}
+#BLASTN
+command -v blastn >/dev/null 2>&1 || { echo "I require BLASTn but it's not installed.  Aborting." >&2; exit 1;}
+#BLOBTOOLS
 BLOBTOOLS=/home/cs02gl/programs/blobtools
+command -v $BLOBTOOLS/blobtools >/dev/null 2>&1 || { echo "I require BLOBTOOLS but it's not installed.  Aborting." >&2; exit 1;}
+#MultiQC
+command -v multiqc >/dev/null 2>&1 || { echo "I require MultiQC but it's not installed.  Aborting." >&2; exit 1;}
 
 ## Try not change below here...
 # Working Directory
@@ -225,8 +249,12 @@ for DIRS in */ ; do
 		--format svg | tee -a blobtools.log
 	fi
 
+	# Run MultiQC for some extra, nice stats reports on QC etc
+	cd ../
+        multiqc $WD/$DIRS/raw_illumina_reads/
+
 	# Finish up.
-	cd ../../../
+	cd ../../
 	echo "`pwd`"
 	echo "Complete Run, Next or Finish."
 done
