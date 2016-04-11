@@ -29,7 +29,8 @@ This description is mostly program agnostic, however, we have included below (an
   * GC/Coverage plots with taxonomy information to look for contamination.
 8. Genome 'Completeness' Test
 9. Genome 'Completeness' Test
-10. ?
+10. MultiQC - Aggregate results from bioinformatics analyses across many samples into a single report
+11. ?
 
 ## Workflow Programs Required
 
@@ -58,6 +59,8 @@ This description is mostly program agnostic, however, we have included below (an
   3. [BLAST+](http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
   4. [Augustus 3.0](http://bioinf.uni-greifswald.de/augustus/)
   5. [EMBOSS](ftp://emboss.open-bio.org/pub/EMBOSS/)
+10. [MultiQC](http://multiqc.info/)
+11. ??
 
 ### Other Dependencies
 1. [pigz](http://zlib.net/pigz/) - Parallel GZIP
