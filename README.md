@@ -13,10 +13,10 @@ The script will iterate over each folder one by one...
 
 This description is mostly program agnostic, however, we have included below (and in the script) the programs we have found to be useful during our analyses and projects. You are welcome to adapt the workflow to inlude your favourite<sup>TM</sup> programs. 
 
-1. Trimming and Adaptor Sequencing
-  * Remove any Illumina Sequencing Adaptors, poly-A tails, sequence quality score <20, etc
-2. Overlapping of Read Libraries
+1. Overlapping of Read Libraries<sup>[1](#footnote1)</sup>
   * We know our reads are 250bp PE with sequence overlaps, you might want to remove/adapt this step if yours are not.
+2. Trimming and Adaptor Sequencing
+  * Remove any Illumina Sequencing Adaptors, poly-A tails, sequence quality score <20, etc
 3. Assembly of Reads
   * We find that SPAdes gives good results, you may also like to try [IDBA-UD](http://i.cs.hku.hk/~alse/hkubrg/projects/idba_ud/index.html) and [Velvet-SC](http://bix.ucsd.edu/projects/singlecell/) both of which can assemble SCs.
 4. Assembly Statistics
@@ -34,10 +34,10 @@ This description is mostly program agnostic, however, we have included below (an
 
 ## Workflow Programs Required
 
-1. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
+1. [PEAR](http://sco.h-its.org/exelixis/web/software/pear/doc.html)
+2. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
   1. [cutadapt](https://cutadapt.readthedocs.org/en/stable/)
   2. [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
-2. [PEAR](http://sco.h-its.org/exelixis/web/software/pear/doc.html)
 3. [SPAdes](http://bioinf.spbau.ru/en/spades)
 4. [QUAST](http://bioinf.spbau.ru/quast)
 5. Mapping
@@ -74,4 +74,6 @@ This description is mostly program agnostic, however, we have included below (an
 3. Protocol for fully automated Decontamination of Genomes - [ProDeGe](http://www.nature.com/ismej/journal/v10/n1/full/ismej2015100a.html)
 4. ?
 
-
+# Footnotes
+<a name="footnote1">1</a>: Originally I had steps 1 and 2 in the reverse order (trimming and then overlapping), on some read libraries this caused issues (I think where paired reads would become unordered and so overlapping would not run), however I don't think this is the problem with the order. Reads should be overlapped first, prior to trimming, as we should end up with a set of longer reads - due to the better quality scores over-riding the lower qualities within the overlapped areas, where this would not have happened if the lower quality reads were already trimmed.
+ 
