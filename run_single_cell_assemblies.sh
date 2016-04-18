@@ -112,10 +112,6 @@ for DIRS in */ ; do
 
 COMMENT
 
-        # Get all fq.gz files - these are the default names from Trim Galore!
-	# Making it nice and easy to distinguish from our original .fastq inputs
-        FILENAME=($WD/$DIRS/raw_illumina_reads/PEAR/*.fq.gz)
-
 	# Run SPAdes
 	# single cell mode - default kmers 21,33,55
 	# careful mode - runs mismatch corrector
