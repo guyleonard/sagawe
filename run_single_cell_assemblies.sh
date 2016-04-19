@@ -36,7 +36,7 @@ export AUGUSTUS_CONFIG_PATH=~/programs/augustus-3.0.2/config/
 #SPADES
 SPADES=/home/cs02gl/programs/SPAdes-3.7.0-Linux/bin/
 #QUAST
-QUAST=/home/cs02gl/programs/quast-3.2
+QUAST=/home/cs02gl/programs/quast-4.0
 #CEGMA
 CEGMA_DIR=/home/cs02gl/programs/CEGMA_v2/bin
 #BUSCO
