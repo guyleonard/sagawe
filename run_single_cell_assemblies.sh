@@ -77,7 +77,6 @@ for DIRS in */ ; do
 	# Get all fastq.gz files
 	FASTQ=(*.fastq.gz)
 
-<<COMMENT
         # Run PEAR
         # default settings
         # output: pear_overlap
@@ -109,8 +108,6 @@ for DIRS in */ ; do
         $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward.fastq.gz pear_overlap.unassembled.reverse.fastq.gz
 
 	cd ../
-
-COMMENT
 
 	# Run SPAdes
 	# single cell mode - default kmers 21,33,55
@@ -172,7 +169,7 @@ COMMENT
 	# we will have to do this for all 5 sets of reads and then merge
 	echo "Mapping Assembled reads to Assembly"
 	time bwa mem -t $THREADS $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
-	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled_trimmed.fastq.gz \
+	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled_trimmed.fq.gz \
 	> $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_assembled_reads.sam | tee -a bwa.log
 
         echo "Mapping Un-assembled reads to Assembly"
@@ -183,8 +180,8 @@ COMMENT
 
         echo "Mapping Un-paired reads to Assembly"
         time bwa mem -t $THREADS $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
-	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward_val_1.fastq.gz \
-	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.reverse_val_2.fastq.gz \
+	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward_val_1.fq.gz \
+	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.reverse_val_2.fq.gz \
         > $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unpaired_reads.sam | tee -a bwa.log
 
         # sort and convert sam to bam with SAMTOOLS
