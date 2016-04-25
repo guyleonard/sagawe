@@ -68,7 +68,7 @@ echo "$WD"
 for DIRS in */ ; do
 	echo "Working in $DIRS"
 	cd $DIRS/raw_illumina_reads
-
+<<COMMENT
 	# GZIP FASTQs
 	# saving space down the line, all other files will be gzipped
 	echo "gzipping *.fastq files"
@@ -164,7 +164,7 @@ for DIRS in */ ; do
 	# index assembly (scaffolds.fa) with BWA
 	echo "Indexing Assembly"
 	time bwa index -a bwtsw $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta | tee bwa.log
-
+COMMENT
 	# map reads to assembly with BWA MEM
 	# we will have to do this for all 5 sets of reads and then merge
 	echo "Mapping Assembled reads to Assembly"
@@ -172,41 +172,53 @@ for DIRS in */ ; do
 	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled_trimmed.fq.gz \
 	> $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_assembled_reads.sam | tee -a bwa.log
 
-        echo "Mapping Un-assembled reads to Assembly"
+        echo "Mapping Un-assembled & Un-Paired reads to Assembly - Forward"
         time bwa mem -t $THREADS $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
 	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward_unpaired_1.fq.gz \
-	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.reverse_unpaired_2.fq.gz \
-        > $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_reads.sam | tee -a bwa.log
+        > $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_forward_reads.sam | tee -a bwa.log
 
-        echo "Mapping Un-paired reads to Assembly"
+	echo "Mapping Un-assembled & Un-Paired reads to Assembly - Reverse"
+        time bwa mem -t $THREADS $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
+	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.reverse_unpaired_2.fq.gz \
+        > $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_reverse_reads.sam | tee -a bwa.log
+
+        echo "Mapping Un-assembled but still Paired reads to Assembly"
         time bwa mem -t $THREADS $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
 	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward_val_1.fq.gz \
 	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.reverse_val_2.fq.gz \
-        > $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unpaired_reads.sam | tee -a bwa.log
+        > $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_paired_reads.sam | tee -a bwa.log
 
         # sort and convert sam to bam with SAMTOOLS
-        #echo "Sorting Assembled SAM File and Converting to BAM"
+        echo "Sorting Assembled SAM File and Converting to BAM"
         time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_assembled_reads.bam \
         $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_assembled_reads.sam | tee -a samtools.log
 
         # sort and convert sam to bam with SAMTOOLS
-        #echo "Sorting Un-assembled SAM File and Converting to BAM"
+        echo "Sorting Un-assembled & Un-Paired SAM Files and Converting to BAM - Forward"
         time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_reads.bam \
-        $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_reads.sam | tee -a samtools.log
+        $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_forward_reads.sam | tee -a samtools.log
+
+        echo "Sorting Un-assembled & Un-Paired SAM Files and Converting to BAM - Reverse"
+        time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_reads.bam \
+        $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_reverse_reads.sam | tee -a samtools.log
 
         # sort and convert sam to bam with SAMTOOLS
-        #echo "Sorting Un-paired SAM File and Converting to BAM"
+        echo "Sorting Un-assembled but still Paired SAM File and Converting to BAM"
         time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unpaired_reads.bam \
-        $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unpaired_reads.sam | tee -a samtools.log
+        $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_paired_reads.sam | tee -a samtools.log
 
 	# Merge SAM files
-	echo "Merging 3 BAM files"
-	time samtools1.3 merge -n -@ $THREADS $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam *.bam
+	echo "Merging 4 BAM files"
+	time samtools1.3 merge -@ $THREADS -f $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam \
+	$WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_assembled_reads.bam \
+	$WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_paired_reads.bam \
+	$WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_forward_reads.bam \
+	$WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_reverse_reads.bam | tee -a samtools.log
 
 	echo "Indexing Bam"
 	time samtools1.3 index $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam | tee -a samtools.log
 
-	if [ ! -f $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam.bai]
+	if [ ! -f $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam.bai ]
 	then
 		echo -e "[ERROR]\t[$DIRS]: No index file was created for your BAM file. !?" >> $WD/$DIRS/raw_illumina_reads/errors.txt
 		# blobtools create will crash without this file, so we might as well move on to the next library...
@@ -214,7 +226,7 @@ for DIRS in */ ; do
 	fi
 
 	# delete sam file - save some disk space, we have the bam now
-	rm *.sam
+	rm $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/*.sam
 	cd ../
 
 	# run blast against NCBI 'nt'
@@ -240,8 +252,8 @@ for DIRS in */ ; do
 	-b $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam \
 	-o scaffolds_mapped_reads_nt_1e-10_megablast_blobtools | tee -a $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/blobtools.log
 
-	if  [ ! -f $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json]
-	then
+	if  [ ! -f $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json ]
+	  then
 		echo -e "[ERROR]\t[$DIRS]: Missing blobtools JSON, no tables or figures produced." >> $WD/$DIRS/raw_illumina_reads/errors.txt
 	else
 		# run blobtools view - table output
