@@ -150,12 +150,12 @@ echo "blobtools: Cloning github repository"
 git clone https://github.com/DRL/blobtools.git
 cd blobtools
 blobtools_dir=$(pwd)
-echo "blobtools: installing matplotlib"
+#echo "blobtools: installing matplotlib"
 #sudo pip install --upgrade matplotlib
 # already required by QUAST
 echo "blobtools: installing docopt"
-sudo pip install docopt
-update_bath blobtools_dir
+sudo pip install --upgrade docopt
+update_path blobtools_dir
 cd $build_dir
 
 
