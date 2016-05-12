@@ -4,6 +4,15 @@ set -e
 
 start_dir=$(pwd)
 
+# Setup environment variables
+update_path () {
+  new_dir=$1
+  export PATH=${PATH:-$new_dir}
+  if [[ ! "$PATH" =~ (^|:)"${new_dir}"(:|$) ]]; then
+    export PATH=${new_dir}:${PATH}
+  fi 
+}
+
 # Update Dependencies
 sudo apt-get update -q
 sudo apt-get install -y -q build-essential autoconf automake libtool python-setuptools python-dev python-pip pigz unzip
@@ -227,15 +236,6 @@ sudo pip install multiqc
 sudo ldconfig
 
 echo "Done!"
-
-# Setup environment variables
-update_path () {
-  new_dir=$1
-  export PATH=${PATH:-$new_dir}
-  if [[ ! "$PATH" =~ (^|:)"${new_dir}"(:|$) ]]; then
-    export PATH=${new_dir}:${PATH}
-  fi 
-}
 
 set +x
 set +e
