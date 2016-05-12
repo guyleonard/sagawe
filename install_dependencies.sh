@@ -44,7 +44,7 @@ wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip
 unzip fastqc_v0.11.5.zip
 cd FastQC
 fastqc_dir=$(pwd)
-cchmod 755 fastqc
+chmod 755 fastqc
 echo "Trim Galore: Linking FastQC"
 sudo ln -s $fastqc_dir/fastqc /usr/local/bin/fastqc
 cd $build_dir
