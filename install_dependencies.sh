@@ -210,6 +210,9 @@ make
 sudo make install
 cd $build_dir
 
+# temp needed for Ubuntu Trusty
+sudo ln -s /home/ubuntu/single_cell_workflow/build/bamtools/src /usr/include/bamtools
+
 ## Augustus
 echo "BUSCO: downloading Augustus"
 wget http://bioinf.uni-greifswald.de/augustus/binaries/augustus.current.tar.gz
