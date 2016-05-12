@@ -170,7 +170,7 @@ sudo ln -f -s $geneid_dir/geneid /usr/local/bin/geneid
 
 ## genewise
 echo "CEGMA: installing genewise"
-sudo apt-get install wise
+sudo apt-get -y -q install wise
 
 ## hmmer
 cd $build_dir
@@ -183,7 +183,6 @@ hmmer_dir=$(pwd)
 make
 sudo make install
 cd $build_dir
-
 
 ## CEGMA
 echo "CEGMA: Downloading CEGMA v2.5
@@ -202,7 +201,7 @@ tar zxvf augustus.current.tar.gz
 cd augustus-3.2.2
 augustus_dir=$(pwd)
 echo "BUSCO: AUGUSTUS: Boost C++ & zlib & bamtools"
-sudo apt-get install libboost-iostreams-dev libboost-graph-dev zlib1g-dev libgsl0-dev bamtools libbamtools-dev
+sudo apt-get -y -q install libboost-iostreams-dev libboost-graph-dev zlib1g-dev libgsl0-dev bamtools libbamtools-dev
 echo "BUSCO: AUGUSTUS: Installing"
 make
 sudo make install
@@ -210,7 +209,7 @@ cd $build_dir
 
 ## Emboss Tools
 echo "BUSCO: Installing EMBOSS Tools"
-sudo apt-get install emboss
+sudo apt-get -y -q install emboss
 
 ## BUSCO
 echo "BUSCO: Downloading BUSCO"
@@ -223,7 +222,7 @@ cd $build_dir
 ## BUSCO DB
 echo "BUSCO: Downloading Eukaryota DB"
 cd
-mkdir busco && cd busco
+mkdir -p busco && cd busco
 busco_db_dir=$(pwd)
 wget http://busco.ezlab.org/files/eukaryota_buscos.tar.gz
 tar zxvf eukaryota_buscos.tar.gz
@@ -232,7 +231,7 @@ cd $build_dir
 
 # MultiQC
 echo "MultiQC: Installing"
-sudo pip install multiqc
+sudo pip install --upgrade multiqc
 
 
 # sometimes ld libraries are not linked, update them now
