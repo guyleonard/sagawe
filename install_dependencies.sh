@@ -199,17 +199,6 @@ cd $build_dir
 echo "BUSCO: AUGUSTUS: Boost C++ & zlib && cmake"
 sudo apt-get -y -q install libboost-iostreams-dev libboost-graph-dev zlib1g-dev libgsl0-dev cmake
 
-## Augustus
-echo "BUSCO: downloading Augustus"
-wget http://bioinf.uni-greifswald.de/augustus/binaries/augustus.current.tar.gz
-tar zxvf augustus.current.tar.gz
-cd augustus-3.2.2
-augustus_dir=$(pwd)
-echo "BUSCO: AUGUSTUS: Installing"
-make
-sudo make install
-cd $build_dir
-
 ## bamtools
 echo "BUSCO: bamtools"
 git clone git://github.com/pezmaster31/bamtools.git
@@ -217,6 +206,17 @@ cd bamtools
 mkdir -p build
 cd build
 cmake ..
+make
+sudo make install
+cd $build_dir
+
+## Augustus
+echo "BUSCO: downloading Augustus"
+wget http://bioinf.uni-greifswald.de/augustus/binaries/augustus.current.tar.gz
+tar zxvf augustus.current.tar.gz
+cd augustus-3.2.2
+augustus_dir=$(pwd)
+echo "BUSCO: AUGUSTUS: Installing"
 make
 sudo make install
 cd $build_dir
