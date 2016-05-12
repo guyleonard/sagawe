@@ -46,7 +46,7 @@ cd FastQC
 fastqc_dir=$(pwd)
 chmod 755 fastqc
 echo "Trim Galore: Linking FastQC"
-sudo ln -s $fastqc_dir/fastqc /usr/local/bin/fastqc
+sudo ln -f -s $fastqc_dir/fastqc /usr/local/bin/fastqc
 cd $build_dir
 
 ## Trim Galore
@@ -57,7 +57,7 @@ cd trim_galore_zip
 trim_galore_dir=$(pwd)
 chmod 755  trim_galore
 echo "Trim Galore: Linking FastQC"
-sudo ln -s $trim_galore_dir/trim_galore /usr/local/bin/trim_galore
+sudo ln -f -s $trim_galore_dir/trim_galore /usr/local/bin/trim_galore
 cd $build_dir
 
 
@@ -92,7 +92,7 @@ bwa_dir=$(pwd)
 echo "BWA: Make"
 make
 echo "BWA: Installing"
-sudo ln -s $bwa_dir/bwa /usr/local/bin/bwa_galore
+sudo ln -s -f $bwa_dir/bwa /usr/local/bin/bwa_galore
 cd $build_dir
 
 
@@ -154,7 +154,7 @@ echo "CEGMA: downloading geneid"
 wget ftp://genome.crg.es/pub/software/geneid/geneid_v1.4.4.Jan_13_2011.tar.gz
 cd geneid
 geneid_dir=$(pwd)
-sudo ln -s $geneid_dir/geneid /usr/local/bin/geneid
+sudo ln -f -s $geneid_dir/geneid /usr/local/bin/geneid
 
 ## genewise
 echo "CEGMA: installing genewise"
