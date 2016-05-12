@@ -123,7 +123,7 @@ cd $build_dir
 
 # blast
 ## blast+ executables
-sudo "blast: blast+"
+echo "blast: blast+"
 sudo apt-get install ncbi-blast+
 
 ## 'nt' database
