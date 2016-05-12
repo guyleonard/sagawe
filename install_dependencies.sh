@@ -15,7 +15,7 @@ update_path () {
 
 # Update Dependencies
 sudo apt-get update -q
-sudo apt-get install -y -q build-essential autoconf automake libtool python-setuptools python-dev python-pip pigz unzip default-jdk default-jre libfreetype6-dev libpng-dev
+sudo apt-get install -y -q build-essential autoconf automake libtool python-setuptools python-dev python-pip pigz unzip default-jdk default-jre libfreetype6-dev libpng-dev pkg-config
 
 # Make an install location
 if [ ! -d 'build' ]; then
