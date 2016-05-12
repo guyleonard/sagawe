@@ -124,13 +124,13 @@ cd $build_dir
 # blast
 ## blast+ executables
 echo "blast: blast+"
-sudo apt-get install ncbi-blast+
+sudo apt-get -y -q install ncbi-blast+
 
 ## 'nt' database
 #echo "blast: downloading 'nt' database"
 #cd
-#mkdir blast
-#mkdir blast/nt
+#mkdir -p blast
+#mkdir -p blast/nt
 #cd blast/nt
 #wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/nt.*
 #gunzip *.gz
@@ -138,7 +138,7 @@ sudo apt-get install ncbi-blast+
 ## taxonomy db
 echo "blast: downloading taxdump db"
 cd
-mkdir blast/taxonomy
+mkdir -p blast/taxonomy
 cd blast/taxonomy
 wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
 tar zxvf taxdump.tar.gz
