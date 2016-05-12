@@ -185,7 +185,7 @@ sudo make install
 cd $build_dir
 
 ## CEGMA
-echo "CEGMA: Downloading CEGMA v2.5
+echo "CEGMA: Downloading CEGMA v2.5"
 wget http://korflab.ucdavis.edu/datasets/cegma/CEGMA_v2.5.tar.gz
 cd CEGMA_v2.5
 cegma_dir=$(pwd)
