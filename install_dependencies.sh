@@ -65,7 +65,7 @@ cd $build_dir
 echo "SPAdes: Downloading SPAdes"
 wget http://spades.bioinf.spbau.ru/release3.7.1/SPAdes-3.7.1-Linux.tar.gz
 tar zxvf SPAdes-3.7.1-Linux.tar.gz
-cd cd SPAdes-3.7.1-Linux/bin/
+cd SPAdes-3.7.1-Linux/bin/
 spades_dir=$(pwd)
 echo "SPAdes: Updating PATH with SPAdes binary location"
 update_path ${spades_dir}
