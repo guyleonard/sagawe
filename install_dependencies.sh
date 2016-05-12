@@ -15,7 +15,7 @@ update_path () {
 
 # Update Dependencies
 sudo apt-get update -q
-sudo apt-get install -y -q build-essential autoconf automake libtool python-setuptools python-dev python-pip pigz unzip
+sudo apt-get install -y -q build-essential autoconf automake libtool python-setuptools python-dev python-pip pigz unzip openjdk-8-jdk openjdk-8-jre
 
 # Make an install location
 if [ ! -d 'build' ]; then
@@ -87,6 +87,8 @@ wget https://sourceforge.net/projects/quast/files/quast-4.0.tar.gz
 tar zxvf quast-4.0.tar.gz
 cd quast-4.0
 quast_galore_dir=$(pwd)
+echo "QUAST: installing matplotlib"
+sudo pip install --upgrade matplotlib
 echo "QUAST: Testing to pre-compile"
 python quast.py --test
 update_path ${quast_dir}
@@ -120,19 +122,18 @@ cd $build_dir
 
 
 # blast
-
 ## blast+ executables
 sudo "blast: blast+"
 sudo apt-get install ncbi-blast+
 
 ## 'nt' database
-echo "blast: downloading 'nt' database"
-cd
-mkdir blast
-mkdir blast/nt
-cd blast/nt
-wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/nt.*
-gunzip *.gz
+#echo "blast: downloading 'nt' database"
+#cd
+#mkdir blast
+#mkdir blast/nt
+#cd blast/nt
+#wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/nt.*
+#gunzip *.gz
 
 ## taxonomy db
 echo "blast: downloading taxdump db"
@@ -150,7 +151,8 @@ git clone https://github.com/DRL/blobtools.git
 cd blobtools
 blobtools_dir=$(pwd)
 echo "blobtools: installing matplotlib"
-sudo pip install --upgrade matplotlib
+#sudo pip install --upgrade matplotlib
+# already required by QUAST
 echo "blobtools: installing docopt"
 sudo pip install docopt
 update_bath blobtools_dir
