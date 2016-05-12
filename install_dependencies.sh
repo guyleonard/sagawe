@@ -6,7 +6,7 @@ start_dir=$(pwd)
 
 # Update Dependencies
 sudo apt-get update -q
-sudo apt-get install -y -q build-essential autoconf automake libtool python-setuptools python-dev python-pip pigz
+sudo apt-get install -y -q build-essential autoconf automake libtool python-setuptools python-dev python-pip pigz unzip
 
 # Make an install location
 if [ ! -d 'build' ]; then
@@ -44,7 +44,7 @@ wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip
 unzip fastqc_v0.11.5.zip
 cd FastQC
 fastqc_dir=$(pwd)
-chmod 755 fastqc
+cchmod 755 fastqc
 echo "Trim Galore: Linking FastQC"
 sudo ln -s $fastqc_dir/fastqc /usr/local/bin/fastqc
 cd $build_dir
