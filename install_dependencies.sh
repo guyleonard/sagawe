@@ -201,8 +201,12 @@ wget http://bioinf.uni-greifswald.de/augustus/binaries/augustus.current.tar.gz
 tar zxvf augustus.current.tar.gz
 cd augustus-3.2.2
 augustus_dir=$(pwd)
-echo "BUSCO: AUGUSTUS: Boost C++ & zlib & bamtools"
-sudo apt-get -y -q install libboost-iostreams-dev libboost-graph-dev zlib1g-dev libgsl0-dev bamtools libbamtools-dev
+echo "BUSCO: AUGUSTUS: Boost C++ & zlib && cmake"
+sudo apt-get -y -q install libboost-iostreams-dev libboost-graph-dev zlib1g-dev libgsl0-dev cmake
+cd $build_dir
+echo "BUSCO: bamtools"
+git clone git://github.com/pezmaster31/bamtools.git
+
 echo "BUSCO: AUGUSTUS: Installing"
 make
 sudo make install
