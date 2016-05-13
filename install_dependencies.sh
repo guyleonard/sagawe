@@ -201,7 +201,7 @@ sudo apt-get -y -q install libboost-iostreams-dev libboost-graph-dev zlib1g-dev 
 
 ## bamtools
 echo "BUSCO: bamtools"
-sudo apt-get -y -q bamtools libbamtools-dev
+sudo apt-get install -y -q bamtools libbamtools-dev
 cd $build_dir
 
 ## Augustus
