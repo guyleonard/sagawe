@@ -201,17 +201,8 @@ sudo apt-get -y -q install libboost-iostreams-dev libboost-graph-dev zlib1g-dev 
 
 ## bamtools
 echo "BUSCO: bamtools"
-git clone git://github.com/pezmaster31/bamtools.git
-cd bamtools
-mkdir -p build
-cd build
-cmake ..
-make
-sudo make install
+sudo apt-get -y -q bamtools libbamtools-dev
 cd $build_dir
-
-# temp needed for Ubuntu Trusty
-sudo ln -s /home/ubuntu/single_cell_workflow/build/bamtools/src /usr/include/bamtools
 
 ## Augustus
 echo "BUSCO: downloading Augustus"
