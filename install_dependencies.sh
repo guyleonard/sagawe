@@ -103,7 +103,7 @@ bwa_dir=$(pwd)
 echo "BWA: Make"
 make
 echo "BWA: Installing"
-sudo ln -s -f $bwa_dir/bwa /usr/local/bin/bwa_galore
+sudo ln -s -f $bwa_dir/bwa /usr/local/bin/bwa
 cd $build_dir
 
 
