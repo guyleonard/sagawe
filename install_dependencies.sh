@@ -227,7 +227,8 @@ wget http://busco.ezlab.org/files/BUSCO_v1.2.tar.gz
 tar zxvf BUSCO_v1.2.tar.gz
 cd BUSCO_v1.2
 busco_dir=$(pwd)
-cd $build_dir
+# BUSCO require Python3 - so let's give it a little sed fix ;)
+sed -i 's/\#\!\/bin\/python/\#\!\/usr\/bin\/python3\.5/'BUSCO_v1.2.py
 chmod +x BUSCO_v1.2.py
 update_path busco_dir
 
