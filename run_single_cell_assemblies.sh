@@ -2,7 +2,8 @@
 # Guy Leonard MMXVI
 
 ##
-# This is a suggested workflow, it works on our servers/data...YMMV
+# This is a suggested workflow, this will work on a new Amazon AMI of Ubuntu Xenial
+# after using the bundles install_dependancies.sh script.
 ##
 
 ##
@@ -13,49 +14,37 @@
 THREADS=8
 
 ## NCBI Databases
-# NCBI 'nt' Database Location
-NCBI_NT=/storage/ncbi/nt/nt
+# NCBI 'nt' Database Location and name (no extension)
+NCBI_NT=/home/ubuntu/blast/nt/nt
 # NCBI Taxonomy Location
-NCBI_TAX=/storage/ncbi/taxdump
+NCBI_TAX=/home/ubuntu/blast/taxonomy
 
 ## CEGMA Environment Variables
 # CEGMA DIR
-export CEGMA=/home/cs02gl/programs/CEGMA_v2
-export PERL5LIB=$PERL5LIB:/home/cs02gl/programs/CEGMA_v2/lib
+export CEGMA=/home/ubuntu/single_cell_workflow/build/CEGMA_v2.5
+export PERL5LIB=$PERL5LIB:/home/ubuntu/single_cell_workflow/build/CEGMA_v2.5/lib
 export WISECONFIGDIR=/usr/share/wise/
 # Ammend PATH for CEGMA bin
-export PATH=$PATH:/home/cs02gl/programs/CEGMA_v2/bin
+export PATH=$PATH:/home/ubuntu/single_cell_workflow/build/CEGMA_v2.5/bin
 
 ## BUSCO Environment Variables
 # BUSCO Lineage Location
-BUSCO_DB=/storage/databases/BUSCO/eukaryota
+BUSCO_DB=/home/ubuntu/busco/eukaryota
 # Augustus Config Path
-export AUGUSTUS_CONFIG_PATH=~/programs/augustus-3.0.2/config/
-
-## Locations of binaries if not in path
-#SPADES
-SPADES=/home/cs02gl/programs/SPAdes-3.7.0-Linux/bin/
-#QUAST
-QUAST=/home/cs02gl/programs/quast-4.0
-#CEGMA
-CEGMA_DIR=/home/cs02gl/programs/CEGMA_v2/bin
-#BUSCO
-BUSCO=/home/cs02gl/programs/BUSCO_v1.1b1
-#BLOBTOOLS
-BLOBTOOLS=/home/cs02gl/programs/blobtools
+export AUGUSTUS_CONFIG_PATH=/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/config
 
 ## Check programs are executable
 command -v pigz >/dev/null 2>&1 || { echo "I require pigz but it's not installed.  Aborting." >&2; exit 1;}
 command -v trim_galore >/dev/null 2>&1 || { echo "I require Trim Galore! but it's not installed.  Aborting." >&2; exit 1;}
 command -v pear >/dev/null 2>&1 || { echo "I require PEAR but it's not installed.  Aborting." >&2; exit 1;}
-command -v $SPADES/spades.py >/dev/null 2>&1 || { echo "I require SPAdes but it's not installed.  Aborting." >&2; exit 1;}
-command -v $QUAST/quast.py >/dev/null 2>&1 || { echo "I require QUAST but it's not installed.  Aborting." >&2; exit 1;}
-command -v $CEGMA_DIR/cegma >/dev/null 2>&1 || { echo "I require CEGMA but it's not installed.  Aborting." >&2; exit 1;}
-command -v $BUSCO/BUSCO_v1.1b1.py >/dev/null 2>&1 || { echo "I require BUSCO but it's not installed.  Aborting." >&2; exit 1;}
+command -v spades.py >/dev/null 2>&1 || { echo "I require SPAdes but it's not installed.  Aborting." >&2; exit 1;}
+command -v quast.py >/dev/null 2>&1 || { echo "I require QUAST but it's not installed.  Aborting." >&2; exit 1;}
+command -v cegma >/dev/null 2>&1 || { echo "I require CEGMA but it's not installed.  Aborting." >&2; exit 1;}
+command -v BUSCO_v1.1b1.py >/dev/null 2>&1 || { echo "I require BUSCO but it's not installed.  Aborting." >&2; exit 1;}
 command -v bwa >/dev/null 2>&1 || { echo "I require bwa but it's not installed.  Aborting." >&2; exit 1;}
 command -v samtools1.3 >/dev/null 2>&1 || { echo "I require Samtools 1.3 but it's not installed.  Aborting." >&2; exit 1;}
 command -v blastn >/dev/null 2>&1 || { echo "I require BLASTn but it's not installed.  Aborting." >&2; exit 1;}
-command -v $BLOBTOOLS/blobtools >/dev/null 2>&1 || { echo "I require BLOBTOOLS but it's not installed.  Aborting." >&2; exit 1;}
+command -v blobtools >/dev/null 2>&1 || { echo "I require BLOBTOOLS but it's not installed.  Aborting." >&2; exit 1;}
 command -v multiqc >/dev/null 2>&1 || { echo "I require MultiQC but it's not installed.  Aborting." >&2; exit 1;}
 
 ## Try not to change code below here...
@@ -68,11 +57,11 @@ echo "$WD"
 for DIRS in */ ; do
 	echo "Working in $DIRS"
 	cd $DIRS/raw_illumina_reads
-<<COMMENT
+
 	# GZIP FASTQs
 	# saving space down the line, all other files will be gzipped
-	echo "gzipping *.fastq files"
-	time pigz -9 -R *.fastq
+	#echo "gzipping *.fastq files"
+	#time pigz -9 -R *.fastq
 
 	# Get all fastq.gz files
 	FASTQ=(*.fastq.gz)
@@ -83,11 +72,11 @@ for DIRS in */ ; do
         mkdir -p PEAR
         cd PEAR
         echo "Running PEAR"
-        time pear -f $WD/$DIRS/raw_illumina_reads/${FASTQ[0]} \
+        pear -f $WD/$DIRS/raw_illumina_reads/${FASTQ[0]} \
         -r $WD/$DIRS/raw_illumina_reads/${FASTQ[1]} \
         -o pear_overlap -j $THREADS | tee pear.log
 
-        # Lets GZIP these too!
+        # Lets GZIP these!
         echo "gzipping fastq files"
         pigz -9 -R $WD/$DIRS/raw_illumina_reads/PEAR/*.fastq
 
@@ -164,7 +153,7 @@ for DIRS in */ ; do
 	# index assembly (scaffolds.fa) with BWA
 	echo "Indexing Assembly"
 	time bwa index -a bwtsw $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta | tee bwa.log
-COMMENT
+
 	# map reads to assembly with BWA MEM
 	# we will have to do this for all 5 sets of reads and then merge
 	echo "Mapping Assembled reads to Assembly"
@@ -195,16 +184,16 @@ COMMENT
 
         # sort and convert sam to bam with SAMTOOLS
         echo "Sorting Un-assembled & Un-Paired SAM Files and Converting to BAM - Forward"
-        time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_reads.bam \
+        time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_forward_reads.bam \
         $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_forward_reads.sam | tee -a samtools.log
 
         echo "Sorting Un-assembled & Un-Paired SAM Files and Converting to BAM - Reverse"
-        time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_reads.bam \
+        time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_reverse_reads.bam \
         $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_reverse_reads.sam | tee -a samtools.log
 
         # sort and convert sam to bam with SAMTOOLS
         echo "Sorting Un-assembled but still Paired SAM File and Converting to BAM"
-        time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unpaired_reads.bam \
+        time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_paired_reads.bam \
         $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_paired_reads.sam | tee -a samtools.log
 
 	# Merge SAM files
@@ -222,7 +211,8 @@ COMMENT
 	then
 		echo -e "[ERROR]\t[$DIRS]: No index file was created for your BAM file. !?" >> $WD/$DIRS/raw_illumina_reads/errors.txt
 		# blobtools create will crash without this file, so we might as well move on to the next library...
-		break
+		#break
+		#continue
 	fi
 
 	# delete sam file - save some disk space, we have the bam now
