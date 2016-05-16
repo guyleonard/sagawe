@@ -40,7 +40,7 @@ command -v pear >/dev/null 2>&1 || { echo "I require PEAR but it's not installed
 command -v spades.py >/dev/null 2>&1 || { echo "I require SPAdes but it's not installed.  Aborting." >&2; exit 1;}
 command -v quast.py >/dev/null 2>&1 || { echo "I require QUAST but it's not installed.  Aborting." >&2; exit 1;}
 command -v cegma >/dev/null 2>&1 || { echo "I require CEGMA but it's not installed.  Aborting." >&2; exit 1;}
-command -v BUSCO_v1.1b1.py >/dev/null 2>&1 || { echo "I require BUSCO but it's not installed.  Aborting." >&2; exit 1;}
+command -v BUSCO_v1.2.py >/dev/null 2>&1 || { echo "I require BUSCO but it's not installed.  Aborting." >&2; exit 1;}
 command -v bwa >/dev/null 2>&1 || { echo "I require bwa but it's not installed.  Aborting." >&2; exit 1;}
 command -v samtools1.3 >/dev/null 2>&1 || { echo "I require Samtools 1.3 but it's not installed.  Aborting." >&2; exit 1;}
 command -v blastn >/dev/null 2>&1 || { echo "I require BLASTn but it's not installed.  Aborting." >&2; exit 1;}
