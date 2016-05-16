@@ -172,6 +172,7 @@ sudo ln -f -s $geneid_dir/bin/geneid /usr/local/bin/geneid
 ## genewise
 echo "CEGMA: installing genewise"
 sudo apt-get -y -q install wise
+export WISECONFIGDIR=/usr/share/wise
 
 ## hmmer
 cd $build_dir
@@ -193,6 +194,10 @@ cd CEGMA_v2.5
 cegma_dir=$(pwd)
 make
 cd $build_dir
+update_path ${cegma_dir}/bin
+
+export CEGMA=${cegma_dir}
+export PERL5LIB=$PERL5LIB:${cegma_dir}/lib
 
 
 #BUSCO
