@@ -166,7 +166,8 @@ wget ftp://genome.crg.es/pub/software/geneid/geneid_v1.4.4.Jan_13_2011.tar.gz
 tar zxvf geneid_v1.4.4.Jan_13_2011.tar.gz
 cd geneid
 geneid_dir=$(pwd)
-sudo ln -f -s $geneid_dir/geneid /usr/local/bin/geneid
+make
+sudo ln -f -s $geneid_dir/bin/geneid /usr/local/bin/geneid
 
 ## genewise
 echo "CEGMA: installing genewise"
