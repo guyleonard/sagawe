@@ -228,6 +228,8 @@ tar zxvf BUSCO_v1.2.tar.gz
 cd BUSCO_v1.2
 busco_dir=$(pwd)
 cd $build_dir
+chmod +x BUSCO_v1.2.py
+update_path busco_dir
 
 ## BUSCO DB
 echo "BUSCO: Downloading Eukaryota DB"
