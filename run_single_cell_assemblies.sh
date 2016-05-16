@@ -89,11 +89,11 @@ for DIRS in */ ; do
 	# run FASTQC on trimmed
 	# GZIP output
 	echo "Running Trimming on Untrimmed Assembled Reads"
-	time trim_galore -q 20 --fastqc --gzip --length 150 \
+	trim_galore -q 20 --fastqc --gzip --length 150 \
 	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled.fastq.gz
 
         echo "Running Trimming on Untrimmed Un-assembled Reads"
-        time trim_galore -q 20 --fastqc --gzip --length 150 --paired --retain_unpaired \
+        trim_galore -q 20 --fastqc --gzip --length 150 --paired --retain_unpaired \
         $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward.fastq.gz pear_overlap.unassembled.reverse.fastq.gz
 
 	cd ../
@@ -108,7 +108,7 @@ for DIRS in */ ; do
 	mkdir -p SPADES
 	cd SPADES
 	echo "Running SPAdes"
-	time $SPADES/spades.py --sc --careful -t $THREADS \
+	spades.py --sc --careful -t $THREADS \
 	--s1 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled_trimmed.fq.gz \
         --s2 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward_unpaired_1.fq.gz \
         --s3 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.reverse_unpaired_2.fq.gz \
@@ -123,7 +123,7 @@ for DIRS in */ ; do
 	mkdir -p QUAST
 	cd QUAST
 	echo "Running QUAST"
-	time python $QUAST/quast.py -o quast_reports -t $THREADS \
+	quast.py -o quast_reports -t $THREADS \
 	--min-contig 100 -f --eukaryote --scaffolds \
 	--glimmer $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta | tee quast.log
 	cd ../
@@ -133,14 +133,14 @@ for DIRS in */ ; do
 	echo "Running CEGMA"
 	mkdir -p CEGMA
 	cd CEGMA
-	time $CEGMA_DIR/cegma -T $THREADS -g $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta -o cegma
+	cegma -T $THREADS -g $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta -o cegma
 	cd ../
 
 	# Run BUSCO
 	echo "Running BUSCO"
 	mkdir -p BUSCO
 	cd BUSCO
-	python3 $BUSCO/BUSCO_v1.1b1.py \
+	BUSCO_v1.2.py \
         -g $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
 	-c $THREADS -l $BUSCO_DB -o busco -f
 	cd ../
@@ -152,60 +152,60 @@ for DIRS in */ ; do
 	cd MAPPING
 	# index assembly (scaffolds.fa) with BWA
 	echo "Indexing Assembly"
-	time bwa index -a bwtsw $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta | tee bwa.log
+	bwa index -a bwtsw $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta | tee bwa.log
 
 	# map reads to assembly with BWA MEM
 	# we will have to do this for all 5 sets of reads and then merge
 	echo "Mapping Assembled reads to Assembly"
-	time bwa mem -t $THREADS $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
+	bwa mem -t $THREADS $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
 	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled_trimmed.fq.gz \
 	> $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_assembled_reads.sam | tee -a bwa.log
 
         echo "Mapping Un-assembled & Un-Paired reads to Assembly - Forward"
-        time bwa mem -t $THREADS $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
+        bwa mem -t $THREADS $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
 	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward_unpaired_1.fq.gz \
         > $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_forward_reads.sam | tee -a bwa.log
 
 	echo "Mapping Un-assembled & Un-Paired reads to Assembly - Reverse"
-        time bwa mem -t $THREADS $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
+        bwa mem -t $THREADS $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
 	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.reverse_unpaired_2.fq.gz \
         > $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_reverse_reads.sam | tee -a bwa.log
 
         echo "Mapping Un-assembled but still Paired reads to Assembly"
-        time bwa mem -t $THREADS $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
+        bwa mem -t $THREADS $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
 	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward_val_1.fq.gz \
 	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.reverse_val_2.fq.gz \
         > $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_paired_reads.sam | tee -a bwa.log
 
         # sort and convert sam to bam with SAMTOOLS
         echo "Sorting Assembled SAM File and Converting to BAM"
-        time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_assembled_reads.bam \
+        samtools sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_assembled_reads.bam \
         $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_assembled_reads.sam | tee -a samtools.log
 
         # sort and convert sam to bam with SAMTOOLS
         echo "Sorting Un-assembled & Un-Paired SAM Files and Converting to BAM - Forward"
-        time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_forward_reads.bam \
+        samtools sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_forward_reads.bam \
         $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_forward_reads.sam | tee -a samtools.log
 
         echo "Sorting Un-assembled & Un-Paired SAM Files and Converting to BAM - Reverse"
-        time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_reverse_reads.bam \
+        samtools sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_reverse_reads.bam \
         $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_reverse_reads.sam | tee -a samtools.log
 
         # sort and convert sam to bam with SAMTOOLS
         echo "Sorting Un-assembled but still Paired SAM File and Converting to BAM"
-        time samtools1.3 sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_paired_reads.bam \
+        samtools sort -@ $THREADS -o $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_paired_reads.bam \
         $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_paired_reads.sam | tee -a samtools.log
 
 	# Merge SAM files
 	echo "Merging 4 BAM files"
-	time samtools1.3 merge -@ $THREADS -f $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam \
+	samtools merge -@ $THREADS -f $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam \
 	$WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_assembled_reads.bam \
 	$WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_paired_reads.bam \
 	$WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_forward_reads.bam \
 	$WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_unassembled_unpaired_reverse_reads.bam | tee -a samtools.log
 
 	echo "Indexing Bam"
-	time samtools1.3 index $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam | tee -a samtools.log
+	samtools index $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam | tee -a samtools.log
 
 	if [ ! -f $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam.bai ]
 	then
@@ -223,7 +223,7 @@ for DIRS in */ ; do
 	mkdir -p BLAST
 	cd BLAST
 	echo "Running BLAST"
-	time blastn -task megablast \
+	blastn -task megablast \
 	-query $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
 	-db $NCBI_NT \
 	-evalue 1e-10 \
@@ -236,7 +236,7 @@ for DIRS in */ ; do
 	# run blobtools create
 	echo "Running BlobTools CREATE - slow"
 	cd $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/
-	time $BLOBTOOLS/blobtools create -i $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
+	blobtools create -i $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
 	--nodes $NCBI_TAX/nodes.dmp --names $NCBI_TAX/names.dmp \
 	-t $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/BLAST/scaffolds_vs_nt_1e-10.megablast \
 	-b $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam \
@@ -249,25 +249,25 @@ for DIRS in */ ; do
 		# run blobtools view - table output
 		# Standard Output - Phylum
 		echo "Running BlobTools View"
-		time $BLOBTOOLS/blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+		blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
 		--out $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_phylum_table.csv | tee -a blobtools.log
 		# Other Output - Species
-		time $BLOBTOOLS/blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+		blobtools view -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
 		--out $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_superkingdom_table.csv \
 		--rank superkingdom | tee -a blobtools.log
 
 		# run blobtools plot - image output
 		# Standard Output - Phylum, 7 Taxa
 		echo "Running BlobTools Plots - Standard + SVG"
-		time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json
-		time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+		blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json
+		blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
 		--format svg | tee -a blobtools.log
 
 		# Other Output - Species, 15 Taxa
 		echo "Running BlobTools Plots - SuperKingdom + SVG"
-		time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+		blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
 		-r superkingdom
-		time $BLOBTOOLS/blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
+		blobtools plot -i $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json \
 		-r superkingdom \
 		--format svg | tee -a blobtools.log
 	fi
