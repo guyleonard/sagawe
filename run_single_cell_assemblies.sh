@@ -69,16 +69,16 @@ for DIRS in */ ; do
         # Run PEAR
         # default settings
         # output: pear_overlap
-        mkdir -p PEAR
-        cd PEAR
-        echo "Running PEAR"
-        pear -f $WD/$DIRS/raw_illumina_reads/${FASTQ[0]} \
-        -r $WD/$DIRS/raw_illumina_reads/${FASTQ[1]} \
-        -o pear_overlap -j $THREADS | tee pear.log
+        #mkdir -p PEAR
+        #cd PEAR
+        #echo "Running PEAR"
+        #pear -f $WD/$DIRS/raw_illumina_reads/${FASTQ[0]} \
+        #-r $WD/$DIRS/raw_illumina_reads/${FASTQ[1]} \
+        #-o pear_overlap -j $THREADS | tee pear.log
 
         # Lets GZIP these!
-        echo "gzipping fastq files"
-        pigz -9 -R $WD/$DIRS/raw_illumina_reads/PEAR/*.fastq
+        #echo "gzipping fastq files"
+        #pigz -9 -R $WD/$DIRS/raw_illumina_reads/PEAR/*.fastq
 
 	# Run Trim Galore!
 	# We need to do two sets of trimming:
@@ -88,15 +88,15 @@ for DIRS in */ ; do
 	# minimum quality of Q20
 	# run FASTQC on trimmed
 	# GZIP output
-	echo "Running Trimming on Untrimmed Assembled Reads"
-	trim_galore -q 20 --fastqc --gzip --length 150 \
-	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled.fastq.gz
+	#echo "Running Trimming on Untrimmed Assembled Reads"
+	#trim_galore -q 20 --fastqc --gzip --length 150 \
+	#$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled.fastq.gz
 
-        echo "Running Trimming on Untrimmed Un-assembled Reads"
-        trim_galore -q 20 --fastqc --gzip --length 150 --paired --retain_unpaired \
-        $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward.fastq.gz pear_overlap.unassembled.reverse.fastq.gz
+        #echo "Running Trimming on Untrimmed Un-assembled Reads"
+        #trim_galore -q 20 --fastqc --gzip --length 150 --paired --retain_unpaired \
+        #$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward.fastq.gz pear_overlap.unassembled.reverse.fastq.gz
 
-	cd ../
+	#cd ../
 
 	# Run SPAdes
 	# single cell mode - default kmers 21,33,55
@@ -116,6 +116,13 @@ for DIRS in */ ; do
 	--pe1-2 $WD/$DIRS/raw_illumina_reads//PEAR/pear_overlap.unassembled.reverse_val_2.fq.gz \
 	-o overlapped_and_paired | tee spades.log
 	cd ../
+
+	# on occasion SPAdes, even though it is aware of the memory limits, will request more memory than is available
+        # and then crash, we don't want the rest of the workflow to run through, and it would be nice to have an error message
+	if [ ! -f $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta ]
+	    then
+		echo -e "[ERROR]\t[$DIRS]: SPAdes did not build scaffolds. This is possibly a memory error. This will need re-running" >> $WD/$DIRS/raw_illumina_reads/errors.txt
+	else
 
 	# Run QUAST
 	# eukaryote mode
@@ -280,4 +287,7 @@ for DIRS in */ ; do
 	cd ../../
 	echo "`pwd`"
 	echo "Complete Run, Next or Finish."
+
+	# end if from scaffolds.fasta check
+	fi
 done
