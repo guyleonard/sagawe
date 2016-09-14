@@ -9,7 +9,7 @@ The directory structure is assumed (read: adapted to our local situation) to be:
 
 The script will iterate over each folder one by one...
 
-## Workflow in Steps
+## SAG Assembly Workflow in Steps
 
 This description is mostly program agnostic, however, we have included below (and in the script) the programs we have found to be useful during our analyses and projects. You are welcome to adapt the workflow to inlude your favourite<sup>TM</sup> programs. 
 
@@ -32,7 +32,7 @@ This description is mostly program agnostic, however, we have included below (an
 10. MultiQC - Aggregate results from bioinformatics analyses across many samples into a single report
 11. ?
 
-## Workflow Programs Required
+### SAG Aseembly Workflow Programs Required
 
 1. [PEAR](http://sco.h-its.org/exelixis/web/software/pear/doc.html)
 2. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
@@ -62,12 +62,12 @@ This description is mostly program agnostic, however, we have included below (an
 10. [MultiQC](http://multiqc.info/)
 11. ??
 
-### Other Dependencies
+#### Other Dependencies
 1. [pigz](http://zlib.net/pigz/) - Parallel GZIP
 2. tee - GNU Core
 3. time - *nix Core
 
-# Downstream/Other Analyses
+## Assembly Downstream/Other Analyses
 
 1. ESOM?
 2. Contig Integrator for Sequence Assembly - [CISA](http://sb.nhri.org.tw/CISA/en/CISA)
@@ -75,6 +75,21 @@ This description is mostly program agnostic, however, we have included below (an
 4. [CheckM](https://ecogenomics.github.io/CheckM/) - CheckM provides a set of tools for assessing the quality of genomes recovered from isolates, single cells, or metagenomes.
   * Looks like a nice tool, huge selection of options though and bac/arch oriented but can do ~euk.   
 5. 
+
+## Gene Prediction Workflow
+
+I have used ansible to install the dependencies for this workflow. I have also included a method to download the repbase libraries using my password - however it is encrypted within the playbook, so it won't work for you. You will have to create your own ansible vault with this format
+
+    ---
+    repbase_password: password
+
+You can call the playbook to install like this:
+
+    ansible-playbook install_gene_prediction_dependencies.yaml --sudo -K -c local -i "localhost," --ask-vault-pass
+
+There are also tags so you can install one or many components in a go:
+
+    ansible-playbook install_gene_prediction_dependencies.yaml --sudo -K -c local -i "localhost," --ask-vault-pass --tags repbase,hmmer
 
 # Footnotes
 <a name="footnote1">1</a>: Originally I had steps 1 and 2 in the reverse order (trimming and then overlapping), on some read libraries this caused issues (I think where paired reads would become unordered and so overlapping would not run), however I don't think this is the problem with the order. Reads should be overlapped first, prior to trimming, as we should end up with a set of longer reads - due to the better quality scores over-riding the lower qualities within the overlapped areas, where this would not have happened if the lower quality reads were already trimmed.
