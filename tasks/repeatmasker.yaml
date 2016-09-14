@@ -5,4 +5,5 @@
     url: "http://www.girinst.org/server/RepBase/protected/repeatmaskerlibraries/repeatmaskerlibraries-20160829.tar.gz"
     url_username: guyleonard
     url_password: "{{repbase_password}}"
+    force_basic_auth: yes
     dest: "{{source_dir}}/repeatmaskerlibraries-20160829.tar.gz"
