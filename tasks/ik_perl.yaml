@@ -1,5 +1,5 @@
 - name: Cloning KorfLab Perl_utils
-  git: repo=https://github.com/KorfLab/Perl_utils.git dest="{{source_dir}}Perl_utils" clone=yes update=yes
+  git: repo=https://github.com/KorfLab/Perl_utils.git dest="{{source_dir}}/Perl_utils" clone=yes update=yes
 
 - name: Installing Perl Modules
   copy:
