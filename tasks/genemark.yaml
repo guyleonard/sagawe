@@ -20,7 +20,7 @@
     creates="{{software_dir}}/gm_et_linux_64/gmes_petap/INSTALL"
 
 - name: Uncompress GeneMark License
-  shell:"gunzip gm_key_64.gz"
+  shell: gunzip gm_key_64.gz
   args:
     chdir: "{{source_dir}}"
 
