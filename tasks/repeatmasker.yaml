@@ -7,3 +7,36 @@
     url_password: "{{repbase_password}}"
     force_basic_auth: yes
     dest: "{{source_dir}}/repeatmaskerlibraries-20160829.tar.gz"
+
+- name: Download RepeatMasker {{version}}
+  get_url:
+    url="http://www.repeatmasker.org/RepeatMasker-open-{{version}}.tar.gz"
+    dest="{{source_dir}}/RepeatMasker-open-{{version}}.tar.gz"
+  register: get_url_result
+  until: "'OK' in get_url_result.msg or 'file already exists' in get_url_result.msg"
+  retries: 5
+  delay: 10
+
+- name: Uncompress RepeatMasker {{version}}
+  unarchive:
+    src="{{source_dir}}/RepeatMasker-open-{{version}}.tar.gz"
+    dest="{{software_dir}}"
+    copy=no
+    creates="{{software_dir}}/RepeatMasker/INSTALL"
+
+- name: Uncompress Repbase Libraries
+  unarchive:
+    src="{{source_dir}}/repeatmaskerlibraries-20160829.tar.gz"
+    dest="{{software_dir}}/RepeatMasker"
+    copy=no
+    creates="{{software_dir}}/RepeatMasker/Libraries/README"
+
+- name: Configure RepeatMasker
+  shell: perl ./configure
+  args:
+    chdir: "{{software_dir}}/RepeatMasker/"
+
+# This program is included for my own use, they hide it behind a web-download CGI button
+# and some non-standard "licence" terms. Super annoying in 2016. Super annoying in 1999.
+- name: Copy TRF to /usr/loca/bin
+  copy: src="{{playbook_dir}}/external_programs/trf409.linux64" dest=/usr/local/bin/trf mode=0755

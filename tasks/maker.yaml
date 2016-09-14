@@ -28,11 +28,6 @@
     - ncbi-blast+
     - ncbi-blast+-legacy
 
-# This program is included for my own use, they hide it behind a web-download CGI button
-# and some non-standard "licence" terms. Super annoying in 2016. Super annoying in 1999.
-- name: Copy TRF to /usr/loca/bin
-  copy: src="{{playbook_dir}}/external_programs/trf409.linux64" dest=/usr/local/bin/trf mode=0755
-
 
 
 #http://yandell.topaz.genetics.utah.edu/maker_downloads/8AB0/DB9A/F7F4/3DE5C1FC9204F76F8491CC138C45/maker-2.31.8.tgz
