@@ -1,9 +1,7 @@
 - name: Download RMBlast
-  get_url: url="ftp://ftp.ncbi.nlm.nih.gov/blast/executables/rmblast/2.2.28/ncbi-rmblastn-2.2.28-x64-linux.tar.gz" dest="{{source_dir}}/ncbi-rmblastn-2.2.28-x64-linux.tar.gz" force_basic_auth=yes
-  register: get_url_result
-  until: "'OK' in get_url_result.msg or 'file already exists' in get_url_result.msg"
-  retries: 5
-  delay: 10
+  shell: curl -O ftp://ftp.ncbi.nlm.nih.gov/blast/executables/rmblast/LATEST/ncbi-rmblastn-2.2.28-x64-linux.tar.gz"
+  args:
+    chdir="{{source_dir}}"
 
 - name: Uncompress RMBlast
   unarchive:
