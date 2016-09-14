@@ -1,4 +1,4 @@
-- name: Install Perl Dependencies
+- name: Install Dependencies from CPAN
   cpanm: name={{item}}
   with_items:
     - Bio::Perl
