@@ -23,6 +23,7 @@
   shell: gunzip gm_key_64.gz
   args:
     chdir: "{{source_dir}}"
+  ignore_errors: yes
 
 - name: Copy License to User
   copy: src="{{source_dir}}/gm_key_64" dest=/home/cs02gl/.gm_key owner=cs02gl group=cs02gl
