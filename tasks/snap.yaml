@@ -13,5 +13,5 @@
     creates="{{software_dir}}/snap/LICENSE"
 
 - name: SNAP - Running make
-  make: chdir="{{softwae_dir}}/snap"
+  make: chdir="{{software_dir}}/snap"
 
