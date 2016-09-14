@@ -7,3 +7,12 @@
     dest="{{software_dir}}"
     copy=no
     creates="{{software_dir}}/hmmer-{{version}}-linux-intel-x86_64/binaries/hmmer"
+
+- name: Installing HMMER
+  copy:
+    src: "{{item}}"
+    dest: /usr/local/bin
+    mode: 0755
+  with_fileglob:
+    - "{{software_dir}}/hmmer-{{version}}-linux-intel-x86_64/binaries/*"
+
