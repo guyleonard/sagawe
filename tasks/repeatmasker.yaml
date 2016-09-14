@@ -1,0 +1,8 @@
+- include_vars: "{{playbook_dir}}/repbase_password.yaml"
+
+- name: Download RepeatMasker Repbase Library
+  get_url:
+    url: "http://www.girinst.org/server/RepBase/protected/repeatmaskerlibraries/repeatmaskerlibraries-20160829.tar.gz"
+    url_username: guyleonard
+    url_password: {{repbase_password}}
+    dest: "{{source_dir}}/repeatmaskerlibraries-20160829.tar.gz"
