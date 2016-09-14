@@ -14,10 +14,10 @@ THREADS=8
 
 # Working Directory
 WD=$1
-echo "$WD"
+echo "Working Directory: $WD"
 
 # Get filenames for current Single Cell Library
 # Locations of FASTQs = Sample_**_***/raw_illumina_reads/
 for DIRS in $WD ; do
-        echo "Working in $DIRS"
+        echo "Working in ${DIRS}"
 done
