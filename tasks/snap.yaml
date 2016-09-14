@@ -15,3 +15,26 @@
 - name: SNAP - Running make
   make: chdir="{{software_dir}}/snap"
 
+- name: Linking snap
+  file: src="{{software_dir}}/snap/snap" dest=/usr/local/bin/snap state=link
+
+- name: Linking fathom
+  file: src="{{software_dir}}/snap/fathom" dest=/usr/local/bin/fathom state=link
+
+- name: Linking forge
+  file: src="{{software_dir}}/snap/forge" dest=/usr/local/bin/forge state=link
+
+- name: Linking hmm-info
+  file: src="{{software_dir}}/snap/hmm-info" dest=/usr/local/bin/hmm-info state=link
+
+- name: Linking exonpairs
+  file: src="{{software_dir}}/snap/exonpairs" dest=/usr/local/bin/exonpairs state=link
+
+- name: Installing Scripts
+  copy:
+    src: "{{item}}"
+    dest: /usr/local/bin
+    mode: 0755
+  with_fileglob:
+    - "{{software_dir}}/snap/*.pl"
+
