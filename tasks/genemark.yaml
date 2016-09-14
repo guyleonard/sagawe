@@ -31,6 +31,9 @@
 - name: Changing root user:group to cs02gl:cs02gl
   file: path="{{software_dir}}/gm_et_linux_64/" owner=cs02gl group=cs02gl recurse=yes
 
+- name: Making Sure cpanminus is Installed
+  apt: name=cpanminus state=present
+
 - name: Installing Perl Dependencies
   cpanm: name={{item}}
   with_items:
