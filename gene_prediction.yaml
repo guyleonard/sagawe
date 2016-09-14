@@ -16,7 +16,21 @@
     - include: tasks/ik_perl.yaml
       tags: perl
 
+
     # GENEMARK
     - include: tasks/genemark.yaml
       tags: genemark
+
+
+    # REPEATMASKER
+    - include: tasks/repeatmasker.yaml
+      tags: repeatmasker, rmblast, maker
+
+    # HMMER
+    - include: tasks/hmmer.yaml
+      tags: hmmer, maker
+
+    # MAKER
+    - include: tasks/maker.yaml
+      tags: maker
 
