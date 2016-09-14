@@ -20,7 +20,9 @@
     creates="{{software_dir}}/gm_et_linux_64/gmes_petap/INSTALL"
 
 - name: Uncompress GeneMark License
-  shell:"gunzip {{source_dir}}/gm_key_64.gz"
+  shell:"gunzip gm_key_64.gz"
+  args:
+    chdir: "{{source_dir}}"
 
 - name: Copy License to User
   copy: src="{{source_dir}}/gm_key_64" dest=/home/cs02gl/.gm_key owner=cs02gl group=cs02gl
