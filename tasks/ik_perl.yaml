@@ -1,0 +1,18 @@
+- name: Cloning KorfLab Perl_utils
+  git: repo=https://github.com/KorfLab/Perl_utils.git dest="{{source_dir}}Perl_utils" clone=yes update=yes
+
+- name: Installing Perl Modules
+  copy:
+    src: "{{item}}"
+    dest: /usr/share/perl5
+    mode: 0755
+  with_fileglob:
+    - "{{source_dir}}/Perl_utils/*.pm"
+
+- name: Installing Perl Scripts
+  copy:
+    src: "{{item}}"
+    dest: /usr/local/bin
+    mode: 0755
+  with_fileglob:
+    - "{{source_dir}}/Perl_utils/*.pl"
