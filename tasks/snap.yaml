@@ -1,7 +1,17 @@
 - name: Downloading SNAP v{{version}}
-  get_url: url="http://korflab.ucdavis.edu/Software/snap-2013-11-29.tar.gz" dest="{{source_dir}}/snap-2013-11-29.tar.gz"
+  get_url: url="http://korflab.ucdavis.edu/Software/snap-{{version}}.tar.gz" dest="{{source_dir}}/snap-{{version}}.tar.gz"
   register: get_url_result
   until: "'OK' in get_url_result.msg or 'file already exists' in get_url_result.msg"
   retries: 5
   delay: 10
+
+- name: Uncompress SNAP v{{version}}
+  unarchive:
+    src="{{source_dir}}/snap-{{version}}.tar.gz"
+    dest="{{software_dir}}"
+    copy=no
+    creates="{{software_dir}}/snap/LICENSE"
+
+- name: SNAP - Running make
+  make: chdir="{{softwae_dir}}/snap"
 
