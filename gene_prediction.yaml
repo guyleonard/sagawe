@@ -17,5 +17,6 @@
       tags: perl
 
     # GENEMARK
-    - include: tasks/genemark.yaml 
+    - include: tasks/genemark.yaml
+      tags: genemark
 
