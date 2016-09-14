@@ -26,10 +26,10 @@
 
     # REPEATMASKER
     #- include: tasks/rmblast.yaml
-    #  tags: repeatmasker, maker
+    #  tags: repeatmasker, rmblast, maker
 
     - include: tasks/repeatmasker.yaml
-      tags: repeatmasker, rmblast, maker
+      tags: repeatmasker, maker
 
     # HMMER
     - include: tasks/hmmer.yaml version=3.1b2
