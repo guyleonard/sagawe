@@ -4,7 +4,7 @@
 - name: Installing Perl Modules
   copy:
     src: "{{item}}"
-    dest: /usr/share/perl5
+    dest: /usr/lib/perl5
     mode: 0644
   with_fileglob:
     - "{{source_dir}}/Perl_utils/*.pm"
