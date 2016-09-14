@@ -18,6 +18,10 @@ echo "Working Directory: $WD"
 
 # Get filenames for current Single Cell Library
 # Locations of FASTQs = Sample_**_***/raw_illumina_reads/
-for DIRS in $WD/* ; do
-        echo "Working in ${DIRS}"
+for DIRS in $WD/*; do
+
+  if [ -d ${DIRS} ]; then
+    echo "Working in ${DIRS}"
+  fi
+
 done
