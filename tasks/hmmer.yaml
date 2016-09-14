@@ -17,5 +17,5 @@
     - "{{software_dir}}/hmmer-{{version}}-linux-intel-x86_64/binaries/*"
 
 - name: Changing root user:group to cs02gl:cs02gl
-  file: path="{{source_dir}}/hmmer-{{version}}-linux-intel-x86_64" owner=cs02gl group=cs02gl recurse=yes
+  file: path="{{software_dir}}/hmmer-{{version}}-linux-intel-x86_64" owner=cs02gl group=cs02gl recurse=yes
 
