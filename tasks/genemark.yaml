@@ -17,14 +17,14 @@
     src="{{source_dir}}/gm_et_linux_64.tar.gz"
     dest="{{software_dir}}"
     copy=no
-    creates="{{software_dir}}/gm_et_linux/gmes_petap/INSTALL"
+    creates="{{software_dir}}/gm_et_linux_64/gmes_petap/INSTALL"
 
 - name: Uncompress GeneMark License
   unarchive:
     src="{{source_dir}}/gm_key_64.gz"
-    dest="{{software_dir}}/gm_et_linux/gmes_petap/"
+    dest="{{software_dir}}/gm_et_linux_64/gmes_petap"
     copy=no
-    creates="{{software_dir}}/gm_et_linux/gmes_petap/gm_key_64"
+    creates="{{software_dir}}/gm_et_linux_64/gmes_petap/gm_key_64"
 
 - name: Copy License to User
-  copy: src="{{software_dir}}/gm_et_linux/gmes_petap/gm_key_64" dest=/home/cs02gl/.gm_key
+  copy: src="{{software_dir}}/gm_et_linux_64/gmes_petap/gm_key_64" dest=/home/cs02gl/.gm_key
