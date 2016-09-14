@@ -22,12 +22,14 @@
       tags: genemark
 
 
+    ## MAKER
+
     # REPEATMASKER
     - include: tasks/repeatmasker.yaml
       tags: repeatmasker, rmblast, maker
 
     # HMMER
-    - include: tasks/hmmer.yaml
+    - include: tasks/hmmer.yaml version=3.1b2
       tags: hmmer, maker
 
     # MAKER

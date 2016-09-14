@@ -1,0 +1,9 @@
+- name: Downloading HMMER v{{version}}
+  get_url: url="http://eddylab.org/software/hmmer3/{{version}}/hmmer-{{version}}-linux-intel-x86_64.tar.gz" dest="{{source_dir}}/hmmer-{{version}}-linux-intel-x86_64.tar.gz"
+
+- name: Uncompress HMMER
+  unarchive: 
+    src="{{source_dir}}/hmmer-{{version}}-linux-intel-x86_64.tar.gz"
+    dest="{{software_dir}}"
+    copy=no
+    creates="{{software_dir}}/hmmer-{{version}}-linux-intel-x86_64/binaries/hmmer"
