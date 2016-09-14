@@ -25,6 +25,9 @@
     ## MAKER
 
     # REPEATMASKER
+    #- include: tasks/rmblast.yaml
+    #  tags: repeatmasker, maker
+
     - include: tasks/repeatmasker.yaml
       tags: repeatmasker, rmblast, maker
 
