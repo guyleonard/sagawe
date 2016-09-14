@@ -39,4 +39,4 @@
   with_items:
     - Logger::Simple
     - Hash::Merge
-    - Parallell:ForkManager
+    - Parallel:ForkManager
