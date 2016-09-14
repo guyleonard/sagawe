@@ -31,10 +31,14 @@
     copy=no
     creates="{{software_dir}}/RepeatMasker/Libraries/README"
 
-- name: Configure RepeatMasker
-  shell: perl ./configure
-  args:
-    chdir: "{{software_dir}}/RepeatMasker/"
+- name: Changing root user:group to cs02gl:cs02gl
+  file: path="{{software_dir}}/RepeatMasker" owner=cs02gl group=cs02gl recurse=yes
+
+# needs command input - got to do this one yourself for now
+#- name: Configure RepeatMasker
+#  shell: perl ./configure
+#  args:
+#    chdir: "{{software_dir}}/RepeatMasker/"
 
 # This program is included for my own use, they hide it behind a web-download CGI button
 # and some non-standard "licence" terms. Super annoying in 2016. Super annoying in 1999.
