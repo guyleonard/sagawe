@@ -38,3 +38,5 @@
   with_fileglob:
     - "{{software_dir}}/snap/*.pl"
 
+- name: Changing root user:group to cs02gl:cs02gl
+  file: path="{{software_dir}}/snap" owner=cs02gl group=cs02gl recurse=yes

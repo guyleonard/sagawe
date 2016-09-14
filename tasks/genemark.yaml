@@ -28,4 +28,4 @@
   copy: src="{{source_dir}}/gm_key_64" dest=/home/cs02gl/.gm_key owner=cs02gl group=cs02gl
 
 - name: Changing root user:group to cs02gl:cs02gl
-  file: path="{{software_dir}}/gm_et_linux_64/gmes_petap/" owner=cs02gl group=cs02gl recurse=yes
+  file: path="{{software_dir}}/gm_et_linux_64/" owner=cs02gl group=cs02gl recurse=yes

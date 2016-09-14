@@ -16,3 +16,6 @@
     mode: 0755
   with_fileglob:
     - "{{source_dir}}/Perl_utils/*.pl"
+
+- name: Changing root user:group to cs02gl:cs02gl
+  file: path="{{source_dir}}/Perl_utils" owner=cs02gl group=cs02gl recurse=yes
