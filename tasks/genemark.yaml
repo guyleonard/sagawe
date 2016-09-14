@@ -1,0 +1,30 @@
+- name: Downloading GeneMark-ES / ET v.4.32
+  get_url: url=http://topaz.gatech.edu/GeneMark/tmp/GMtool_QHwSL/gm_et_linux_64.tar.gz dest="{{source_dir}}/gm_et_linux_64.tar.gz"
+  register: get_url_result
+  until: "'OK' in get_url_result.msg or 'file already exists' in get_url_result.msg"
+  retries: 5
+  delay: 10
+
+- name: Downloading GeneMark-ES / ET v.4.32 License Key
+  get_url: url=http://topaz.gatech.edu/GeneMark/tmp/GMtool_QHwSL/gm_key_64.gz dest="{{source_dir}}/gm_key_64.gz"
+  register: get_url_result
+  until: "'OK' in get_url_result.msg or 'file already exists' in get_url_result.msg"
+  retries: 5
+  delay: 10
+
+- name: Uncompress GeneMark
+  unarchive:
+    src="{{source_dir}}/gm_et_linux_64.tar.gz"
+    dest="{{software_dir}}"
+    copy=no
+    creates="{{software_dir}}/gm_et_linux/gmes_petap/INSTALL"
+
+- name: Uncompress GeneMark License
+  unarchive:
+    src="{{source_dir}}/gm_key_64.gz"
+    dest="{{software_dir}}/gm_et_linux/gmes_petap/"
+    copy=no
+    creates="{{software_dir}}/gm_et_linux/gmes_petap/gm_key_64"
+
+- name: Copy License to User
+  copy: src="{{software_dir}}/gm_et_linux/gmes_petap/gm_key_64" dest=/home/cs02gl/.gm_key
