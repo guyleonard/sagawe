@@ -1,0 +1,14 @@
+- hosts: all
+  vars:
+    - source_dir: /home/cs02gl/programs/.source
+    - software_dir: /home/cs02gl/programs
+
+  pre_tasks:
+    - name: Create Software Dir
+      file: path={{software_dir}} state=directory
+    - name: Create Software Source Dir
+      file: path={{source_dir}} state=directory
+
+  tasks:
+    - include: tasks: snap.yaml version=2013-11-29
+      tags: snap
