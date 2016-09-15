@@ -6,7 +6,7 @@
   register: get_url_result
   until: "'OK' in get_url_result.msg or 'file already exists' in get_url_result.msg"
   retries: 5
-  copy=no
+  delay: 10
 
 - name: Uncompress RMBlast
   unarchive:
