@@ -60,7 +60,7 @@
     src: "{{item}}"
     dest: "/usr/local/bin/"
     state: link
-  with_lines: ls "{{software_dir}}/maker/bin/*"
+  with_lines: ls "{{software_dir}}/maker/bin/"
  # with_fileglob:
  #   - "{{software_dir}}/maker/bin/*"
 
