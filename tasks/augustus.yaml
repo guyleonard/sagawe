@@ -23,6 +23,9 @@
 - name: SNAP - Running make
   make: chdir="{{software_dir}}/augustus-3.2.2"
 
+- name: SNAP - Running make install
+  make: chdir="{{software_dir}}/augustus-3.2.2" target=install
+
 - name: Add export AUGUSTUS_CONFIG_PATH
   shell: "export AUGUSTUS_CONFIG_PATH={{software_dir}}/augustus-3.2.2/config"
 
