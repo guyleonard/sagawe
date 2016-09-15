@@ -58,7 +58,7 @@
 - name: Installing Maker binaries
   file:
     src: "{{item}}"
-    dest: /usr/local/bin
+    dest: "/usr/local/bin/{{item}}"
     state: link
   with_fileglob:
     - "{{software_dir}}/maker/bin/*"
