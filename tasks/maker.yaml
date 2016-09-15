@@ -56,10 +56,10 @@
     chdir: "{{software_dir}}/maker/src"
 
 - name: Installing Maker binaries
-  copy:
+  file:
     src: "{{item}}"
     dest: /usr/local/bin
-    mode: 0755
+    state: link
   with_fileglob:
     - "{{software_dir}}/maker/bin/*"
 
