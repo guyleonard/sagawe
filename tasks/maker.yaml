@@ -57,7 +57,7 @@
 
 - name: Installing Maker binaries
   file:
-    src: "{{item}}"
+    src: "{{software_dir}}/maker/bin/{{item}}"
     dest: "/usr/local/bin/"
     state: link
   with_lines: ls "{{software_dir}}/maker/bin/"
