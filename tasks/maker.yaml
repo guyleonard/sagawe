@@ -18,7 +18,7 @@
     - Perl::Unsafe::Signals
     - PerlIO::gzip
     - Proc::ProcessTable
-    - Proc::Signal
+    - Proc::Simple
     - threads
     - URI::Escape
 
