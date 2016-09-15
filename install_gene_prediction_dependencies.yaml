@@ -23,7 +23,6 @@
 
 
     ## MAKER
-
     # RMBLAST
     - include: tasks/rmblast.yaml
       tags: repeatmasker, rmblast, maker
@@ -44,3 +43,7 @@
     - include: tasks/maker.yaml
       tags: maker
 
+
+    ## AUGUSTUS
+    - include: tasks/augustus.yaml
+      tags: augustus
