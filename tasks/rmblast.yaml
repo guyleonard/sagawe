@@ -15,7 +15,7 @@
     copy=no
     creates="{{software_dir}}/ncbi-rmblastn-2.2.28/LICENSE"
 
-- name: Copy rmblastn to /usr/local/bin
+- name: Copy rmblastn to /usr/bin
   copy: src="{{software_dir}}/ncbi-rmblastn-2.2.28/bin/rmblastn" dest=/usr/local/bin/rmblastn mode=0755
 
 - name: Changing root user:group to cs02gl:cs02gl
