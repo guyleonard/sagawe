@@ -40,6 +40,22 @@
 #  args:
 #    chdir: "{{software_dir}}/RepeatMasker/"
 
+- name: Linking DupMasker
+  file: src="{{software_dir}}/RepeatMasker/DupMasker" dest=/usr/local/bin/DupMasker state=link
+
+- name: Linking RepeatProteinMask
+  file: src="{{software_dir}}/RepeatMasker/RepeatProteinMask" dest=/usr/local/bin/DupMasker state=link
+
+- name: Linking ProcessRepeats
+  file: src="{{software_dir}}/RepeatMasker/ProcessRepeats" dest=/usr/local/bin/ProcessRepeats state=link
+
+- name: Linking DateRepeats
+  file: src="{{software_dir}}/RepeatMasker/DateRepeats" dest=/usr/local/bin/DateRepeats state=link
+
+- name: Linking DupMasker
+  file: src="{{software_dir}}/RepeatMasker/RepeatMasker" dest=/usr/local/bin/RepeatMasker state=link
+
+
 # This program is included for my own use, they hide it behind a web-download CGI button
 # and some non-standard "licence" terms. Super annoying in 2016. Super annoying in 1999.
 - name: Copy TRF to /usr/loca/bin
