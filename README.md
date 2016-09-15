@@ -80,6 +80,7 @@ This description is mostly program agnostic, however, we have included below (an
 
 I have used ansible to install the dependencies for this workflow. I have also included a method to download the repbase libraries using my password - however it is encrypted within the playbook, so it won't work for you. You will have to create your own ansible vault with this format
 
+Also, rmblast won't currently download with Ansible 2.1.1.0 as there's something up with ftp downloads, so you will have do download it yourself to the .source dir.!?
     ---
     repbase_password: password
 
