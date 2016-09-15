@@ -23,11 +23,14 @@
 - name: SNAP - Running make
   make: chdir="{{software_dir}}/augustus-3.2.2"
 
+- name: SNAP - Running make install
+  make: chdir="{{software_dir}}/augustus-3.2.2" target=install
+
 - name: Add export AUGUSTUS_CONFIG_PATH
   shell: "export AUGUSTUS_CONFIG_PATH={{software_dir}}/augustus-3.2.2/config"
 
 - name: Adding AUGUSTUS_CONFIG_PATH to .bashrc
-  lineinfile: dest=/home/cs02gl/.bashrc line="AUGUSTUS_CONFIG_PATH={{software_dir}}/augustus-3.2.2/config" backup=yes
+  lineinfile: dest=/home/cs02gl/.bashrc line="export AUGUSTUS_CONFIG_PATH={{software_dir}}/augustus-3.2.2/config" backup=yes
 
 - name: Changing root user:group to cs02gl:cs02gl
   file: path="{{software_dir}}/augustus-3.2.2" owner=cs02gl group=cs02gl recurse=yes
