@@ -58,11 +58,9 @@
 - name: Installing Maker binaries
   file:
     src: "{{software_dir}}/maker/bin/{{item}}"
-    dest: "/usr/local/bin/"
+    dest: "/usr/local/bin/{{item}}"
     state: link
   with_lines: ls "{{software_dir}}/maker/bin/"
- # with_fileglob:
- #   - "{{software_dir}}/maker/bin/*"
 
 - name: Changing root user:group to cs02gl:cs02gl
   file: path="{{software_dir}}/maker" owner=cs02gl group=cs02gl recurse=yes
