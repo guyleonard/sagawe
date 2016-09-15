@@ -50,10 +50,18 @@
   args:
     chdir: "{{software_dir}}/maker/src"
 
-- name: install
+- name: build install
   shell: ./Build install
   args:
     chdir: "{{software_dir}}/maker/src"
+
+- name: Installing Maker binaries
+  copy:
+    src: "{{item}}"
+    dest: /usr/local/bin
+    mode: 0755
+  with_fileglob:
+    - "{{software_dir}}/maker/bin/*"
 
 - name: Changing root user:group to cs02gl:cs02gl
   file: path="{{software_dir}}/maker" owner=cs02gl group=cs02gl recurse=yes
