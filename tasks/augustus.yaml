@@ -26,6 +26,13 @@
 - name: SNAP - Running make install
   make: chdir="{{software_dir}}/augustus-3.2.2" target=install
 
+- name: Installing Augustus Scripts
+  file:
+    src: "{{software_dir}}/augustus-3.2.2/scripts/{{item}}"
+    dest: "/usr/local/bin/{{item}}"
+    state: link
+  with_lines: ls "{{software_dir}}/augustus-3.2.2/scripts"
+
 - name: Add export AUGUSTUS_CONFIG_PATH
   shell: "export AUGUSTUS_CONFIG_PATH={{software_dir}}/augustus-3.2.2/config"
 
