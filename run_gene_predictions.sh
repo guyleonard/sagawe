@@ -26,6 +26,8 @@ for DIRS in $WD/*; do
   GENE_DIR=$DIRS/raw_illumina_reads/GENE_PREDS
   mkdir -p $GENE_DIR
 
+  SAMPLE_NAME="$(basename $DIRS)"
+
   ## CEGMA
   # Already run, files are in CEGMA
   CEGMA_DIR=$DIRS/raw_illumina_reads/CEGMA
@@ -71,16 +73,22 @@ COMMENT2
   cp $SCRIPT_DIR/maker_opts/maker_exe.ctl $MAKER_DIR
 
   # Maker Options
-  echo "genome=${GENOME}" > $MAKER_DIR/maker_opts.ctl
-  echo "organism_type=eukaryotic" >> $MAKER_DIR/maker_opts.ctl
-  echo "model_org=all" >> $MAKER_DIR/maker_opts.ctl
-  echo "softmask=1" >> $MAKER_DIR/maker_opts.ctl
-  echo "snaphmm=$SNAP1_DIR/cegma_snap.hmm" >> $MAKER_DIR/maker_opts.ctl
-  echo "gmhmm=$GENEMARK_DIR/output/gmhmm.mod" >> $MAKER_DIR/maker_opts.ctl
-  echo "keep_preds=1" >> $MAKER_DIR/maker_opts.ctl
-  echo "cpus=24" >> $MAKER_DIR/maker_opts.ctl
+  echo "genome=${GENOME}" > $MAKER_DIR/maker_opts_1.ctl
+  echo "organism_type=eukaryotic" >> $MAKER_DIR/maker_opts_1.ctl
+  echo "model_org=all" >> $MAKER_DIR/maker_opts_1.ctl
+  echo "softmask=1" >> $MAKER_DIR/maker_opts_1.ctl
+  echo "snaphmm=$SNAP1_DIR/cegma_snap.hmm" >> $MAKER_DIR/maker_opts_1.ctl
+  echo "gmhmm=$GENEMARK_DIR/output/gmhmm.mod" >> $MAKER_DIR/maker_opts_1.ctl
+  echo "keep_preds=1" >> $MAKER_DIR/maker_opts_1.ctl
+  echo "cpus=24" >> $MAKER_DIR/maker_opts_1.ctl
+
+  ln -s $MAKER_DIR/maker_opts_1.ctl $MAKER_DIR/maker_opts.ctl
 
   maker ${genome} -base run_1 | tee maker_run_1.log
+  gff3_merge -d $MAKER_DIR/run_1.maker.output/run_1_master_datastore_index.log
+  mv run_1.gff maker_run_1.gff
+  $MAKER_GFF=$MAKER_DIR/maker_run_1.gff
+  cd ../
 
 
   ## SNAP 2
@@ -92,17 +100,50 @@ COMMENT3
   fathom genome.ann genome.dna -categorize 1000 | tee -a snap.log
   fathom -export 1000 -plus uni.ann uni.dna | tee -a snap.log
   forge export.ann export.dna | tee -a snap.log
-  hmm-assembler.pl ${GENOME} . > cegma_snap_2.hmm | tee -a snap.log
+  hmm-assembler.pl ${GENOME} . > maker_snap_2.hmm | tee -a snap.log
+  $SNAP_ZFF=$SNAP2_DIR/genome.ann
   cd ../
 COMMENT3
 
-  ## AUGUSTUS
-  # $DIRS/raw_illumina_reads/GENES/AUGUSTUS
 
+<<COMMENT4
+  ## AUGUSTUS
+  AUGUSTUS_DIR=$GENE_DIR/AUGUSTUS
+  mkdir -p $AUGUSTUS_DIR
+  cd $AUGUSTUS_DIR
+  zff2gff3.pl $SNAP_ZFF | perl -plne 's/\t(\S+)$/\t\.\t$1/' >snap2_genome.gff
+  SNAP2_GENOME=$AUGUSTUS_DIR/snap2_genome.gff
+  autoAug.pl –genome=$GENOME –species=$SAMPLE_NAME --trainingset=$SNAP2_GENOME --singleCPU --noutr -v --useexisting
+  cd ../
+COMMENT4
+
+
+<<COMMENT5
   ## MAKER 2
-  # $DIRS/raw_illumina_reads/GENES/MAKER2
+
+  # Maker Options
+  echo "genome=${GENOME}" > $MAKER_DIR/maker_opts_2.ctl
+  echo "organism_type=eukaryotic" >> $MAKER_DIR/maker_opts_2.ctl
+  echo "model_org=all" >> $MAKER_DIR/maker_opts_2.ctl
+  echo "softmask=1" >> $MAKER_DIR/maker_opts_2.ctl
+  echo "snaphmm=$SNAP1_DIR/cegma_snap.hmm" >> $MAKER_DIR/maker_opts_2.ctl
+  echo "gmhmm=$GENEMARK_DIR/output/gmhmm.mod" >> $MAKER_DIR/maker_opts_2.ctl
+  echo "keep_preds=1" >> $MAKER_DIR/maker_opts_2.ctl
+  echo "cpus=24" >> $MAKER_DIR/maker_opts_2.ctl
+
+  rm $MAKER_DIR/maker_opts.ctl
+  ln -s $MAKER_DIR/maker_opts_2.ctl $MAKER_DIR/maker_opts.ctl
+
+  maker ${genome} -base run_2 | tee maker_run_2.log
 
   ## Collate GFF3 + FASTA
+  gff3_merge -d $MAKER_DIR/run_2.maker.output/run_2_master_datastore_index.log
+  mv run_2.gff maker_run_2.gff
+
+  fasta_merge -d $MAKER_DIR/run_2.maker.output/run_2_master_datastore_index.log
+
+  cd ../
+COMMENT5
 
   fi
 done
