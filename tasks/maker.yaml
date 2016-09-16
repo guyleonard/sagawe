@@ -68,6 +68,7 @@
     dest: "/usr/local/lib/{{item}}"
     state: link
   with_lines: ls "{{software_dir}}/maker/lib/"
+  ignore_errors: yes
 
 - name: Changing root user:group to cs02gl:cs02gl
   file: path="{{software_dir}}/maker" owner=cs02gl group=cs02gl recurse=yes
