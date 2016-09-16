@@ -121,14 +121,20 @@ COMMENT4
 <<COMMENT5
   ## MAKER 2
 
+  cd $MAKER_DIR
+
   # Maker Options
   echo "genome=${GENOME}" > $MAKER_DIR/maker_opts_2.ctl
   echo "organism_type=eukaryotic" >> $MAKER_DIR/maker_opts_2.ctl
   echo "model_org=all" >> $MAKER_DIR/maker_opts_2.ctl
-  echo "softmask=1" >> $MAKER_DIR/maker_opts_2.ctl
-  echo "snaphmm=$SNAP1_DIR/cegma_snap.hmm" >> $MAKER_DIR/maker_opts_2.ctl
+  echo "snaphmm=$SNAP2_DIR/maker_snap.hmm" >> $MAKER_DIR/maker_opts_2.ctl
   echo "gmhmm=$GENEMARK_DIR/output/gmhmm.mod" >> $MAKER_DIR/maker_opts_2.ctl
+  echo "augustus_species=$SAMPLE_NAME" >> $MAKER_DIR/maker_opts_2.ctl
+  echo "pred_stats=1" >> $MAKER_DIR/maker_opts_2.ctl
+  echo "min_protein=30" >> $MAKER_DIR/maker_opts_2.ctl
+  echo "alt_splice=1" >> $MAKER_DIR/maker_opts_2.ctl
   echo "keep_preds=1" >> $MAKER_DIR/maker_opts_2.ctl
+  echo "evaluate=1" >> $MAKER_DIR/maker_opts_2.ctl
   echo "cpus=24" >> $MAKER_DIR/maker_opts_2.ctl
 
   rm $MAKER_DIR/maker_opts.ctl
