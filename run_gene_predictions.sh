@@ -67,7 +67,7 @@ COMMENT2
   MAKER_DIR=$GENE_DIR/MAKER
   mkdir -p $MAKER_DIR
   cd $MAKER_DIR
-
+<<COMMENT3
   # Other Maker Option Files
   cp $SCRIPT_DIR/maker_opts/maker_bopts.ctl $MAKER_DIR
   cp $SCRIPT_DIR/maker_opts/maker_exe.ctl $MAKER_DIR
@@ -81,29 +81,30 @@ COMMENT2
   echo "gmhmm=$GENEMARK_DIR/output/gmhmm.mod" >> $MAKER_DIR/maker_opts_1.ctl
   echo "keep_preds=1" >> $MAKER_DIR/maker_opts_1.ctl
   echo "cpus=24" >> $MAKER_DIR/maker_opts_1.ctl
-
   ln -s $MAKER_DIR/maker_opts_1.ctl $MAKER_DIR/maker_opts.ctl
 
   maker ${genome} -base run_1 | tee maker_run_1.log
+
   gff3_merge -d $MAKER_DIR/run_1.maker.output/run_1_master_datastore_index.log
-  mv run_1.gff maker_run_1.gff
-  $MAKER_GFF=$MAKER_DIR/maker_run_1.gff
-  cd ../
+  mv run_1.all.gff maker_run_1.all.gff
+COMMENT3
+  MAKER_GFF=$MAKER_DIR/maker_run_1.all.gff
+
+  #cd ../
 
 
   ## SNAP 2
-COMMENT3
   SNAP2_DIR=$GENE_DIR/SNAP2
   mkdir -p $SNAP2_DIR
   cd $SNAP2_DIR
-  cegma2zff ${MAKER_GFF} ${GENOME} | tee snap.log
+
+  maker2zff ${MAKER_GFF} ${GENOME} | tee snap.log
   fathom genome.ann genome.dna -categorize 1000 | tee -a snap.log
   fathom -export 1000 -plus uni.ann uni.dna | tee -a snap.log
   forge export.ann export.dna | tee -a snap.log
   hmm-assembler.pl ${GENOME} . > maker_snap_2.hmm | tee -a snap.log
   $SNAP_ZFF=$SNAP2_DIR/genome.ann
   cd ../
-COMMENT3
 
 
 <<COMMENT4
@@ -113,7 +114,7 @@ COMMENT3
   cd $AUGUSTUS_DIR
   zff2gff3.pl $SNAP_ZFF | perl -plne 's/\t(\S+)$/\t\.\t$1/' >snap2_genome.gff
   SNAP2_GENOME=$AUGUSTUS_DIR/snap2_genome.gff
-  autoAug.pl –genome=$GENOME –species=$SAMPLE_NAME --trainingset=$SNAP2_GENOME --singleCPU --noutr -v --useexisting
+  autoAug.pl –genome=$GENOME –species=$SAMPLE_NAME --trainingset=$SNAP2_GENOME --singleCPU --noutr -v --useexisting | tee autoAug.log
   cd ../
 COMMENT4
 
@@ -144,7 +145,7 @@ COMMENT4
 
   ## Collate GFF3 + FASTA
   gff3_merge -d $MAKER_DIR/run_2.maker.output/run_2_master_datastore_index.log
-  mv run_2.gff maker_run_2.gff
+  mv run_2.all.gff maker_run_2.all.gff
 
   fasta_merge -d $MAKER_DIR/run_2.maker.output/run_2_master_datastore_index.log
 
