@@ -27,6 +27,7 @@ for DIRS in $WD/*; do
   mkdir -p $GENE_DIR
 
   SAMPLE_NAME="$(basename $DIRS)"
+  echo "Sample: $SAMPLE_NAME"
 
   ## CEGMA
   # Already run, files are in CEGMA
@@ -65,9 +66,9 @@ COMMENT2
 
   ## MAKER 1
   MAKER_DIR=$GENE_DIR/MAKER
+<<COMMENT3
   mkdir -p $MAKER_DIR
   cd $MAKER_DIR
-<<COMMENT3
   # Other Maker Option Files
   cp $SCRIPT_DIR/maker_opts/maker_bopts.ctl $MAKER_DIR
   cp $SCRIPT_DIR/maker_opts/maker_exe.ctl $MAKER_DIR
@@ -79,6 +80,7 @@ COMMENT2
   echo "softmask=1" >> $MAKER_DIR/maker_opts_1.ctl
   echo "snaphmm=$SNAP1_DIR/cegma_snap.hmm" >> $MAKER_DIR/maker_opts_1.ctl
   echo "gmhmm=$GENEMARK_DIR/output/gmhmm.mod" >> $MAKER_DIR/maker_opts_1.ctl
+  echo "min_contig=100" >> $MAKER_DIR/maker_opts_1.ctl
   echo "keep_preds=1" >> $MAKER_DIR/maker_opts_1.ctl
   echo "cpus=24" >> $MAKER_DIR/maker_opts_1.ctl
   ln -s $MAKER_DIR/maker_opts_1.ctl $MAKER_DIR/maker_opts.ctl
@@ -89,48 +91,47 @@ COMMENT2
   mv run_1.all.gff maker_run_1.all.gff
 COMMENT3
   MAKER_GFF=$MAKER_DIR/maker_run_1.all.gff
-
   #cd ../
-
 
   ## SNAP 2
   SNAP2_DIR=$GENE_DIR/SNAP2
+<<COMMENTX
   mkdir -p $SNAP2_DIR
   cd $SNAP2_DIR
 
-  maker2zff ${MAKER_GFF} ${GENOME} | tee snap.log
+  maker2zff -n ${MAKER_GFF} | tee snap.log
   fathom genome.ann genome.dna -categorize 1000 | tee -a snap.log
   fathom -export 1000 -plus uni.ann uni.dna | tee -a snap.log
   forge export.ann export.dna | tee -a snap.log
   hmm-assembler.pl ${GENOME} . > maker_snap_2.hmm | tee -a snap.log
-  $SNAP_ZFF=$SNAP2_DIR/genome.ann
-  cd ../
+COMMENTX
+  SNAP_ZFF=$SNAP2_DIR/genome.ann
+  #cd ../
 
 
-<<COMMENT4
   ## AUGUSTUS
   AUGUSTUS_DIR=$GENE_DIR/AUGUSTUS
+<<COMMENTY
   mkdir -p $AUGUSTUS_DIR
   cd $AUGUSTUS_DIR
   zff2gff3.pl $SNAP_ZFF | perl -plne 's/\t(\S+)$/\t\.\t$1/' >snap2_genome.gff
   SNAP2_GENOME=$AUGUSTUS_DIR/snap2_genome.gff
-  autoAug.pl –genome=$GENOME –species=$SAMPLE_NAME --trainingset=$SNAP2_GENOME --singleCPU --noutr -v --useexisting | tee autoAug.log
+  autoAug.pl --genome=$GENOME --species=$SAMPLE_NAME --trainingset=$SNAP2_GENOME --singleCPU --noutr -v --useexisting | tee autoAug.log
   cd ../
-COMMENT4
+COMMENTY
 
-
-<<COMMENT5
   ## MAKER 2
-
   cd $MAKER_DIR
 
   # Maker Options
   echo "genome=${GENOME}" > $MAKER_DIR/maker_opts_2.ctl
   echo "organism_type=eukaryotic" >> $MAKER_DIR/maker_opts_2.ctl
   echo "model_org=all" >> $MAKER_DIR/maker_opts_2.ctl
-  echo "snaphmm=$SNAP2_DIR/maker_snap.hmm" >> $MAKER_DIR/maker_opts_2.ctl
+  echo "snaphmm=$SNAP2_DIR/maker_snap_2.hmm" >> $MAKER_DIR/maker_opts_2.ctl
   echo "gmhmm=$GENEMARK_DIR/output/gmhmm.mod" >> $MAKER_DIR/maker_opts_2.ctl
   echo "augustus_species=$SAMPLE_NAME" >> $MAKER_DIR/maker_opts_2.ctl
+  echo "rm_gff=$MAKER_DIR/maker_run_1.all.gff" >> $MAKER_DIR/maker_opts_2.ctl # previous maker run for repeat masks to save time
+  echo "min_contig=100" >> $MAKER_DIR/maker_opts_2.ctl
   echo "pred_stats=1" >> $MAKER_DIR/maker_opts_2.ctl
   echo "min_protein=30" >> $MAKER_DIR/maker_opts_2.ctl
   echo "alt_splice=1" >> $MAKER_DIR/maker_opts_2.ctl
@@ -150,7 +151,6 @@ COMMENT4
   fasta_merge -d $MAKER_DIR/run_2.maker.output/run_2_master_datastore_index.log
 
   cd ../
-COMMENT5
 
   fi
 done
