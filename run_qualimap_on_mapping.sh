@@ -22,9 +22,9 @@ for DIRS in $WD/*; do
   	echo -e "\tSample: $SAMPLE_NAME"
 
     	MAPPING_DIR="$DIRS/$SAMPLE_NAME/raw_illumina_reads/BLOBTOOLS/MAPPING"
-    	echo -e "\t\tBD: ${BLAST_DIR}"
+    	echo -e "\t\tBD: ${MAPPING_DIR}"
 
-	qualimap bamqc -bam scaffolds_mapped_all_reads.bam -outfile ${MAPPING_DIR}/${SAMPLE_NAME}\_qualimap.pdf
+	qualimap bamqc -bam ${MAPPING_DIR}/scaffolds_mapped_all_reads.bam -outfile ${MAPPING_DIR}/${SAMPLE_NAME}\_qualimap.pdf
       fi
     done
   fi
