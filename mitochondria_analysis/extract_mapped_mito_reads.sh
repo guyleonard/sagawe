@@ -57,8 +57,12 @@ for dir in *; do
 	cat *unassembled_unpaired_reverse_reads.fq > ${dir}_unassembled_unpaired_reverse_reads.fastq
 
         echo "Sorting interleaved fastq"
-        cat ${dir}_unassembled_paired_unordered_interleaved_reads.fastq | paste - - - - | sort -k1,1 -S 3G | tr '\t' '\n' > ${dir}_unassembled_paired_interleaved_reads.fastq
-        rm ${dir}_unassembled_paired_unordered_interleaved_reads.fastq
+        #cat ${dir}_unassembled_paired_unordered_interleaved_reads.fastq | paste - - - - | sort -k1,1 -S 3G | tr '\t' '\n' > ${dir}_unassembled_paired_interleaved_reads.fastq
+        #rm ${dir}_unassembled_paired_unordered_interleaved_reads.fastq
+
+	# the sort still sometimes gets out of order
+	# use khmer split-paired-reads.py -0 erroneous_unpaired and dump them in to one of the unpaired files
+	# then use the khmer interleave-reads.py to put the corrected paired reads together
 
 	mkdir node_fq
 	mv *.fq node_fq
