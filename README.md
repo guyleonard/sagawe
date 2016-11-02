@@ -1,6 +1,6 @@
 # Single Cell Genome Assembly Workflow
 
-This is a suggested workflow for the assembly of [MDA](https://en.wikipedia.org/wiki/Multiple_displacement_amplification) sequenced Single Cells from the Illumina MiSeq platform. These are sometimes also described as Single Amplified Genomes (SAGs). 
+This is a suggested workflow for the assembly of [MDA](https://en.wikipedia.org/wiki/Multiple_displacement_amplification) sequenced Single Cells from the Illumina MiSeq platform. These are sometimes also described as Single-cell Amplified Genomes (SAGs). 
 
 ## SAG Assembly Workflow in Steps
 
