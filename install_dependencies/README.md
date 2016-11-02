@@ -36,7 +36,22 @@ A bash script to install the required software:
 ## 2. Gene Prediction Dependencies
 An [Ansible]() playbook to install the software:
 
-This requires the user to obtain a username and password for access to [Repbase](http://www.girinst.org/repbase/), it is stored in an ansible 'vault' file.
+
+You can call the playbook to install like this:
+
+    ansible-playbook install_gene_prediction_dependencies.yaml --sudo -K -c local -i "localhost," --ask-vault-pass
+
+There are also tags so you can install one or many components in a go:
+
+    ansible-playbook install_gene_prediction_dependencies.yaml --sudo -K -c local -i "localhost," --ask-vault-pass --tags repbase,hmmer
+
+
+I have used ansible to install the dependencies for this workflow. I have also included a method to download the repbase libraries using my password - however it is
+encrypted within the playbook, so it won't work for you. You will have to create your own ansible vault with this format
+
+Also, rmblast won't currently download with Ansible 2.1.1.0 as there's something up with ftp downloads, so you will have do download it yourself to the .source dir.!?
+
+RepeatMasker libraries requires the user to obtain a username and password for access to [Repbase](http://www.girinst.org/repbase/), it is stored in an ansible 'vault' file.
 This file is also password protected, so the RepeatMasker install will not work for user of this repo, you will need to make your own vault, containing your own password
 with this command:
 
