@@ -33,7 +33,6 @@ A bash script to install the required software:
   5. [EMBOSS](ftp://emboss.open-bio.org/pub/EMBOSS/)
 10. [MultiQC](http://multiqc.info/)
 
-
 ## 2. Gene Prediction Dependencies
 An [Ansible]() playbook to install the software:
 
@@ -50,3 +49,9 @@ and add your password like so:
 ```
 
 Your username is in the repeatmasker.yaml taskbook
+
+## Other Dependencies
+1. [pigz](http://zlib.net/pigz/) - Parallel GZIP
+2. tee - GNU Core
+3. time - *nix Core
+
