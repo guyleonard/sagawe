@@ -1,8 +1,5 @@
 #!/bin/bash
 
-THREADS=18
-SEQ_DIR="/storage/single_cells/completed"
-
 for dir in *; do
     if [[ -d $dir ]]; then
        echo "${dir}"
