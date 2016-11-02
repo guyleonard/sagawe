@@ -1,13 +1,6 @@
 # Single Cell Assembly Workflow
 
-This is a suggested workflow for the assembly of MDA Single Cell MiSeq Illumina libraries. It is contained within a bash script that will execute all the programs sequentially.
-The directory structure is assumed (read: adapted to our local situation) to be:
-
-* WD/Sample_1/raw_illumina_reads/*.fastq
-* ...
-* WD/Sample_n/raw_illumina_reads/*.fastq
-
-The script will iterate over each folder one by one...
+This is a suggested workflow for the assembly of MDA Single Cell MiSeq Illumina libraries. 
 
 ## SAG Assembly Workflow in Steps
 
@@ -32,10 +25,15 @@ This description is mostly program agnostic, however, we have included below (an
 10. MultiQC - Aggregate results from bioinformatics analyses across many samples into a single report
 11. ?
 
-#### Other Dependencies
-1. [pigz](http://zlib.net/pigz/) - Parallel GZIP
-2. tee - GNU Core
-3. time - *nix Core
+## Running
+
+Execute the bash script 'run_single_cell_assemblies.sh'. The directory structure is assumed (read: adapted to our local situation) to be:
+
+* WorkDir/Sample_1/raw_illumina_reads/*.fastq
+* ...
+* WorkDir/Sample_n/raw_illumina_reads/*.fastq
+
+The script will iterate over each folder one by one...
 
 ## Assembly Downstream/Other Analyses
 
