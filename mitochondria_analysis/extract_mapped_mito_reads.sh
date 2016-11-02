@@ -41,11 +41,10 @@ for dir in *; do
 
 		echo "Converting extracted bams to fastq"
 		bedtools bamtofastq -i ${node}_mapped_assembled_reads.bam -fq ${node}_mapped_assembled_reads.fq
-		# bedtools can't handle pairs that are out of order
-		#bedtools bamtofastq -i ${node}_mapped_unassembled_paired_reads.bam -fq ${node}_mapped_unassembled_paired_forward_reads.fq -fq2 ${node}_mapped_unassembled_paired_reverse_reads.fq
 		bedtools bamtofastq -i ${node}_mapped_unassembled_unpaired_forward_reads.bam -fq ${node}_mapped_unassembled_unpaired_forward_reads.fq
 		bedtools bamtofastq -i ${node}_mapped_unassembled_unpaired_reverse_reads.bam -fq ${node}_mapped_unassembled_unpaired_reverse_reads.fq
 
+		# bedtools can't handle pairs that are out of order, so we will have to have an interleaved fastq
 		echo "Converting paired read bam to interleaved fastq"
 		bamtools convert -format fastq -in ${node}_mapped_unassembled_paired_reads.bam > ${node}_mapped_unassembled_paired_unordered_interleaved_reads.fq
 	done
@@ -53,8 +52,6 @@ for dir in *; do
 	# concatenate all .fq reads to respective libraries
         echo "concat .fq files to .fastq"
 	cat *assembled_reads.fq > ${dir}_assembled_reads.fastq
-	#cat *unassembled_paired_forward_reads.fq > ${dir}_unassembled_paired_forward_reads.fastq
-	#cat *unassembled_paired_reverse_reads.fq > ${dir}_unassembled_paired_reverse_reads.fastq
 	cat *unassembled_paired_unordered_interleaved_reads.fq > ${dir}_unassembled_paired_unordered_interleaved_reads.fastq
 	cat *unassembled_unpaired_forward_reads.fq > ${dir}_unassembled_unpaired_forward_reads.fastq
 	cat *unassembled_unpaired_reverse_reads.fq > ${dir}_unassembled_unpaired_reverse_reads.fastq
