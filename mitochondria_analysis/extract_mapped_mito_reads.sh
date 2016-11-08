@@ -5,7 +5,7 @@ for dir in *; do
        echo "${dir}"
        cd $dir
 
-       # remove old fastq files
+       # remove old/previous files
        echo "Removing .fastq"
        rm *.fastq
        rm *.fq
@@ -40,9 +40,9 @@ for dir in *; do
 		samtools view -bh ${dir}_mt_mapped_unassembled_unpaired_reverse_reads.bam ${scaffold} > ${node}_mapped_unassembled_unpaired_reverse_reads.bam
 
 		echo "Converting extracted bams to fastq"
-		bedtools bamtofastq -i ${node}_mapped_assembled_reads.bam -fq ${node}_mapped_assembled_reads.fq
-		bedtools bamtofastq -i ${node}_mapped_unassembled_unpaired_forward_reads.bam -fq ${node}_mapped_unassembled_unpaired_forward_reads.fq
-		bedtools bamtofastq -i ${node}_mapped_unassembled_unpaired_reverse_reads.bam -fq ${node}_mapped_unassembled_unpaired_reverse_reads.fq
+		bamtools convert -format fastq -in ${node}_mapped_assembled_reads.bam > ${node}_mapped_assembled_reads.fq
+		bamtools convert -format fastq -in ${node}_mapped_unassembled_unpaired_forward_reads.bam > ${node}_mapped_unassembled_unpaired_forward_reads.fq
+		bamtools convert -format fastq -in ${node}_mapped_unassembled_unpaired_reverse_reads.bam > ${node}_mapped_unassembled_unpaired_reverse_reads.fq
 
 		# bedtools can't handle pairs that are out of order, so we will have to have an interleaved fastq
 		echo "Converting paired read bam to interleaved fastq"
