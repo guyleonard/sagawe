@@ -62,15 +62,15 @@ do
   $current_sample\_mapped_unassembled_paired_reads.sam | tee -a samtools.log
 
   # Merge SAM files
-  echo "Merging 4 BAM files"
-  samtools merge -@ $THREADS -f $current_sample\_mapped_all_reads.bam \
-  $current_sample\_mapped_assembled_reads.bam \
-  $current_sample\_mapped_unassembled_paired_reads.bam \
-  $current_sample\_mapped_unassembled_unpaired_forward_reads.bam \
-  $current_sample\_mapped_unassembled_unpaired_reverse_reads.bam | tee -a samtools.log
+  #echo "Merging 4 BAM files"
+  #samtools merge -@ $THREADS -f $current_sample\_mapped_all_reads.bam \
+  #$current_sample\_mapped_assembled_reads.bam \
+  #$current_sample\_mapped_unassembled_paired_reads.bam \
+  #$current_sample\_mapped_unassembled_unpaired_forward_reads.bam \
+  #$current_sample\_mapped_unassembled_unpaired_reverse_reads.bam | tee -a samtools.log
   
-  echo "Indexing Bam"
-  samtools index $current_sample\_mapped_all_reads.bam | tee -a samtools.log
+  #echo "Indexing Bam"
+  #samtools index $current_sample\_mapped_all_reads.bam | tee -a samtools.log
   
   # delete sam file - save some disk space, we have the bam now
   #rm *.sam
