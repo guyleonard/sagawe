@@ -40,7 +40,6 @@ for DIRS in $WD/*; do
 
   ## SNAP 1
   SNAP1_DIR=$GENE_DIR/SNAP1
-<<COMMENT
   mkdir -p $SNAP1_DIR
   cd $SNAP1_DIR
   cegma2zff ${CEGMA_GFF} ${GENOME} | tee snap.log
@@ -49,24 +48,20 @@ for DIRS in $WD/*; do
   forge export.ann export.dna | tee -a snap.log
   hmm-assembler.pl ${GENOME} . > cegma_snap.hmm | tee -a snap.log
   cd ../
-COMMENT
 
 
   ## GeneMark
   GENEMARK_DIR=$GENE_DIR/GENEMARK
-<<COMMENT2
   mkdir -p $GENEMARK_DIR
   cd $GENEMARK_DIR
   # setting minimum gene prediction to lower than default 300 - just in case!
   # setting minimum contig to 1000bp as the 50Kbp is quite high for SAGs
   gmes_petap.pl --ES --cores 24 --min_gene_prediction 100 --min_contig 1000 --sequence ${GENOME} | tee genemark.log
   cd ../
-COMMENT2
 
 
   ## MAKER 1
   MAKER_DIR=$GENE_DIR/MAKER
-<<COMMENT3
   mkdir -p $MAKER_DIR
   cd $MAKER_DIR
   # Other Maker Option Files
@@ -89,13 +84,11 @@ COMMENT2
 
   gff3_merge -d $MAKER_DIR/run_1.maker.output/run_1_master_datastore_index.log
   mv run_1.all.gff maker_run_1.all.gff
-COMMENT3
   MAKER_GFF=$MAKER_DIR/maker_run_1.all.gff
-  #cd ../
+  cd ../
 
   ## SNAP 2
   SNAP2_DIR=$GENE_DIR/SNAP2
-<<COMMENTX
   mkdir -p $SNAP2_DIR
   cd $SNAP2_DIR
 
@@ -104,21 +97,18 @@ COMMENT3
   fathom -export 1000 -plus uni.ann uni.dna | tee -a snap.log
   forge export.ann export.dna | tee -a snap.log
   hmm-assembler.pl ${GENOME} . > maker_snap_2.hmm | tee -a snap.log
-COMMENTX
   SNAP_ZFF=$SNAP2_DIR/genome.ann
-  #cd ../
+  cd ../
 
 
   ## AUGUSTUS
   AUGUSTUS_DIR=$GENE_DIR/AUGUSTUS
-<<COMMENTY
   mkdir -p $AUGUSTUS_DIR
   cd $AUGUSTUS_DIR
   zff2gff3.pl $SNAP_ZFF | perl -plne 's/\t(\S+)$/\t\.\t$1/' >snap2_genome.gff
   SNAP2_GENOME=$AUGUSTUS_DIR/snap2_genome.gff
   autoAug.pl --genome=$GENOME --species=$SAMPLE_NAME --trainingset=$SNAP2_GENOME --singleCPU --noutr -v --useexisting | tee autoAug.log
   cd ../
-COMMENTY
 
   ## MAKER 2
   cd $MAKER_DIR
@@ -130,10 +120,10 @@ COMMENTY
   echo "snaphmm=$SNAP2_DIR/maker_snap_2.hmm" >> $MAKER_DIR/maker_opts_2.ctl
   echo "gmhmm=$GENEMARK_DIR/output/gmhmm.mod" >> $MAKER_DIR/maker_opts_2.ctl
   echo "augustus_species=$SAMPLE_NAME" >> $MAKER_DIR/maker_opts_2.ctl
-  echo "rm_gff=$MAKER_DIR/maker_run_1.all.gff" >> $MAKER_DIR/maker_opts_2.ctl # previous maker run for repeat masks to save time
-  echo "min_contig=100" >> $MAKER_DIR/maker_opts_2.ctl
+  #echo "rm_gff=$MAKER_DIR/maker_run_1.all.gff" >> $MAKER_DIR/maker_opts_2.ctl # previous maker run for repeat masks to save time
+  echo "min_contig=50" >> $MAKER_DIR/maker_opts_2.ctl
   echo "pred_stats=1" >> $MAKER_DIR/maker_opts_2.ctl
-  echo "min_protein=30" >> $MAKER_DIR/maker_opts_2.ctl
+  echo "min_protein=20" >> $MAKER_DIR/maker_opts_2.ctl
   echo "alt_splice=1" >> $MAKER_DIR/maker_opts_2.ctl
   echo "keep_preds=1" >> $MAKER_DIR/maker_opts_2.ctl
   echo "evaluate=1" >> $MAKER_DIR/maker_opts_2.ctl
