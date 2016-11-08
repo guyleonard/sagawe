@@ -43,9 +43,6 @@ for dir in *; do
 		bamtools convert -format fastq -in ${node}_mapped_assembled_reads.bam > ${node}_mapped_assembled_reads.fq
 		bamtools convert -format fastq -in ${node}_mapped_unassembled_unpaired_forward_reads.bam > ${node}_mapped_unassembled_unpaired_forward_reads.fq
 		bamtools convert -format fastq -in ${node}_mapped_unassembled_unpaired_reverse_reads.bam > ${node}_mapped_unassembled_unpaired_reverse_reads.fq
-
-		# bedtools can't handle pairs that are out of order, so we will have to have an interleaved fastq
-		echo "Converting paired read bam to interleaved fastq"
 		bamtools convert -format fastq -in ${node}_mapped_unassembled_paired_reads.bam > ${node}_mapped_unassembled_paired_unordered_interleaved_reads.fq
 	done
 
@@ -57,12 +54,13 @@ for dir in *; do
 	cat *unassembled_unpaired_reverse_reads.fq > ${dir}_unassembled_unpaired_reverse_reads.fastq
 
         echo "Sorting interleaved fastq"
-        #cat ${dir}_unassembled_paired_unordered_interleaved_reads.fastq | paste - - - - | sort -k1,1 -S 3G | tr '\t' '\n' > ${dir}_unassembled_paired_interleaved_reads.fastq
-        #rm ${dir}_unassembled_paired_unordered_interleaved_reads.fastq
-
-	# the sort still sometimes gets out of order
-	# use khmer split-paired-reads.py -0 erroneous_unpaired and dump them in to one of the unpaired files
-	# then use the khmer interleave-reads.py to put the corrected paired reads together
+	# use khmer script to split out orphaned pairs
+	split-paired-reads.py -0 orphans ${dir}_unassembled_paired_unordered_interleaved_reads.fastq
+	# append the orphans to one of the single reads files
+	cat orphans >> ${dir}_unassembled_unpaired_reverse_reads.fastq
+	rm orphans
+	# re-inter-leave/lace the properly paired reads
+	interleave-reads.py ${dir}_unassembled_paired_unordered_interleaved_reads.fastq.1 ${dir}_unassembled_paired_unordered_interleaved_reads.fastq.2 -o ${dir}_unassembled_paired_unordered_interleaved_reads.fastq
 
 	mkdir node_fq
 	mv *.fq node_fq
