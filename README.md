@@ -2,7 +2,10 @@
 
 This is a suggested workflow for the assembly of [MDA](https://en.wikipedia.org/wiki/Multiple_displacement_amplification) sequenced Single Cells from the Illumina MiSeq platform. These are sometimes also described as Single-cell Amplified Genomes (SAGs). 
 
-## SAG Assembly Workflow in Steps
+## SAG Assembly Workflow Diagram
+![SAGA Workflow](https://github.com/guyleonard/single_cell_workflow/blob/master/single_cell_workflow.png)
+
+## SAG Assembly Workflow Explanation
 This description is mostly program agnostic, however, we have placed the programs that we found to be most useful during our analyses and projects in brackets. You are welcome to adapt the workflow to inlude your favourite<sup>TM</sup> programs. 
 
 1. Overlapping of Read Libraries<sup>[1](#footnote1)</sup> [PEAR](http://sco.h-its.org/exelixis/web/software/pear/doc.html)
