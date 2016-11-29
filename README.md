@@ -39,7 +39,9 @@ The script will iterate over each folder one by one...
 
 ## Gene Prediction Workflow
 
-Coming Soon
+A suggested workflow for predicting genes from your assembly.
+
+![SAGA Workflow](https://github.com/guyleonard/single_cell_workflow/blob/master/gene_prediction.png)
 
 ## Other Thoughts on Assembly & Downstream/Other Analyses
 
