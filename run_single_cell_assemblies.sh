@@ -60,8 +60,8 @@ for DIRS in */ ; do
 
 	# GZIP FASTQs
 	# saving space down the line, all other files will be gzipped
-	#echo "gzipping *.fastq files"
-	#time pigz -9 -R *.fastq
+	echo "gzipping *.fastq files"
+	time pigz -9 -R *.fastq
 
 	# Get all fastq.gz files
 	FASTQ=(*.fastq.gz)
@@ -69,16 +69,16 @@ for DIRS in */ ; do
         # Run PEAR
         # default settings
         # output: pear_overlap
-        #mkdir -p PEAR
-        #cd PEAR
-        #echo "Running PEAR"
-        #pear -f $WD/$DIRS/raw_illumina_reads/${FASTQ[0]} \
-        #-r $WD/$DIRS/raw_illumina_reads/${FASTQ[1]} \
-        #-o pear_overlap -j $THREADS | tee pear.log
+        mkdir -p PEAR
+        cd PEAR
+        echo "Running PEAR"
+        pear -f $WD/$DIRS/raw_illumina_reads/${FASTQ[0]} \
+        -r $WD/$DIRS/raw_illumina_reads/${FASTQ[1]} \
+        -o pear_overlap -j $THREADS | tee pear.log
 
         # Lets GZIP these!
-        #echo "gzipping fastq files"
-        #pigz -9 -R $WD/$DIRS/raw_illumina_reads/PEAR/*.fastq
+        echo "gzipping fastq files"
+        pigz -9 -R $WD/$DIRS/raw_illumina_reads/PEAR/*.fastq
 
 	# Run Trim Galore!
 	# We need to do two sets of trimming:
@@ -88,15 +88,15 @@ for DIRS in */ ; do
 	# minimum quality of Q20
 	# run FASTQC on trimmed
 	# GZIP output
-	#echo "Running Trimming on Untrimmed Assembled Reads"
-	#trim_galore -q 20 --fastqc --gzip --length 150 \
-	#$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled.fastq.gz
+	echo "Running Trimming on Untrimmed Assembled Reads"
+	trim_galore -q 20 --fastqc --gzip --length 150 \
+	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled.fastq.gz
 
-        #echo "Running Trimming on Untrimmed Un-assembled Reads"
-        #trim_galore -q 20 --fastqc --gzip --length 150 --paired --retain_unpaired \
-        #$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward.fastq.gz pear_overlap.unassembled.reverse.fastq.gz
+        echo "Running Trimming on Untrimmed Un-assembled Reads"
+        trim_galore -q 20 --fastqc --gzip --length 150 --paired --retain_unpaired \
+        $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward.fastq.gz pear_overlap.unassembled.reverse.fastq.gz
 
-	#cd ../
+	cd ../
 
 	# Run SPAdes
 	# single cell mode - default kmers 21,33,55
