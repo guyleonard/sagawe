@@ -33,26 +33,12 @@ BUSCO_DB=/home/ubuntu/busco/eukaryota
 # Augustus Config Path
 export AUGUSTUS_CONFIG_PATH=/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/config
 
+# Check that we have the required programs
 declare -a exes('pigz' 'trim_galore' 'pear'  'spades.py' 'quast.py' 'cegma' 'BUSCO_v1.2.py' 'bwa' 'samtools' 'blastn' 'blobtools' 'multiqc')
 for $program in "${exes[@]}"
 do
   check_exe $program
 done
-
-## Check programs are executable
-#command -v pigz >/dev/null 2>&1 || { echo "I require pigz but it's not installed.  Aborting." >&2; exit 1;}
-#command -v trim_galore >/dev/null 2>&1 || { echo "I require Trim Galore! but it's not installed.  Aborting." >&2; exit 1;}
-#command -v pear >/dev/null 2>&1 || { echo "I require PEAR but it's not installed.  Aborting." >&2; exit 1;}
-#command -v spades.py >/dev/null 2>&1 || { echo "I require SPAdes but it's not installed.  Aborting." >&2; exit 1;}
-#command -v quast.py >/dev/null 2>&1 || { echo "I require QUAST but it's not installed.  Aborting." >&2; exit 1;}
-#command -v cegma >/dev/null 2>&1 || { echo "I require CEGMA but it's not installed.  Aborting." >&2; exit 1;}
-#command -v BUSCO_v1.2.py >/dev/null 2>&1 || { echo "I require BUSCO but it's not installed.  Aborting." >&2; exit 1;}
-#command -v bwa >/dev/null 2>&1 || { echo "I require bwa but it's not installed.  Aborting." >&2; exit 1;}
-#command -v samtools >/dev/null 2>&1 || { echo "I require Samtools 1.3 but it's not installed.  Aborting." >&2; exit 1;}
-#command -v blastn >/dev/null 2>&1 || { echo "I require BLASTn but it's not installed.  Aborting." >&2; exit 1;}
-#command -v blobtools >/dev/null 2>&1 || { echo "I require BLOBTOOLS but it's not installed.  Aborting." >&2; exit 1;}
-#command -v multiqc >/dev/null 2>&1 || { echo "I require MultiQC but it's not installed.  Aborting." >&2; exit 1;}
-
 
 ## Try not to change code below here...
 # Working Directory
@@ -299,8 +285,9 @@ for DIRS in */ ; do
 	fi
 done
 
+## Functions ##
 function check_exe () {
     program=$1
     #https://techalicious.club/tutorials/validating-if-external-program-exists-linuxunix-based-bash-and-perl-scripts
-    command -v $program >/dev/null 2>&1 || { echo "$program is require, but it is not installed.  Please install." >&2; exit 1;}
+    command -v $program >/dev/null 2>&1 || { echo "$program is required, but it is not in PATH.  Please install/ammend." >&2; exit 1;}
 }
