@@ -7,27 +7,25 @@
 ##
 
 ##
-# User Variables
+# User Defined Variables
 ##
 
-# Number of processor cores
+# Number of Processor Cores
 THREADS=8
 
-## NCBI Databases
 # NCBI 'nt' Database Location and name (no extension)
 NCBI_NT=/home/ubuntu/blast/nt/nt
+
 # NCBI Taxonomy Location
 NCBI_TAX=/home/ubuntu/blast/taxonomy
 
-## CEGMA Environment Variables
 # CEGMA DIR
 CEGMA_DIR=/home/ubuntu/single_cell_workflow/build/CEGMA_v2.5
 export_cegma
 
-
-## BUSCO Environment Variables
 # BUSCO Lineage Location
 BUSCO_DB=/home/ubuntu/busco/eukaryota
+
 # Augustus Config Path
 export AUGUSTUS_CONFIG_PATH=/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/config
 
