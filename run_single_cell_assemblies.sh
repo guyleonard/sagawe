@@ -21,11 +21,9 @@ NCBI_TAX=/home/ubuntu/blast/taxonomy
 
 ## CEGMA Environment Variables
 # CEGMA DIR
-export CEGMA=/home/ubuntu/single_cell_workflow/build/CEGMA_v2.5
-export PERL5LIB=$PERL5LIB:/home/ubuntu/single_cell_workflow/build/CEGMA_v2.5/lib
-export WISECONFIGDIR=/usr/share/wise/
-# Ammend PATH for CEGMA bin
-export PATH=$PATH:/home/ubuntu/single_cell_workflow/build/CEGMA_v2.5/bin
+CEGMA_DIR=/home/ubuntu/single_cell_workflow/build/CEGMA_v2.5
+export_cegma
+
 
 ## BUSCO Environment Variables
 # BUSCO Lineage Location
@@ -290,4 +288,11 @@ function check_exe () {
     program=$1
     #https://techalicious.club/tutorials/validating-if-external-program-exists-linuxunix-based-bash-and-perl-scripts
     command -v $program >/dev/null 2>&1 || { echo "$program is required, but it is not in PATH.  Please install/ammend." >&2; exit 1;}
+}
+
+function export_cegma () {
+    export CEGMA=$CEGMA_DIR
+    export PATH=$PATH:$CEGMA_DIR/bin
+    export PERL5LIB=$PERL5LIB:$CEGMA_DIR/lib
+    export WISECONFIGDIR=/usr/share/wise/
 }
