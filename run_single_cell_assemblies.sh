@@ -11,7 +11,7 @@
 ##
 
 # Number of Processor Cores
-THREADS=$(cores) / 2
+THREADS=$((cores) / 2)
 
 # NCBI 'nt' Database Location and name (no extension)
 NCBI_NT=/home/ubuntu/blast/nt/nt
