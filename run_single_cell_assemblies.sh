@@ -30,7 +30,7 @@ BUSCO_DB=/home/ubuntu/busco/eukaryota
 export AUGUSTUS_CONFIG_PATH=/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/config
 
 # Check that we have the required programs
-declare -a exes('pigz' 'clumpify' 'trim_galore' 'pear' 'spades.py' 'quast.py' 'cegma' 'BUSCO_v1.2.py' 'bwa' 'samtools' 'blastn' 'blobtools' 'multiqc')
+exes('pigz' 'clumpify' 'trim_galore' 'pear' 'spades.py' 'quast.py' 'cegma' 'BUSCO_v1.2.py' 'bwa' 'samtools' 'blastn' 'blobtools' 'multiqc')
 for $program in "${exes[@]}" ; do
   check_exe $program
 done
