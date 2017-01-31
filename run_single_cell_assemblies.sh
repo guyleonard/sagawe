@@ -37,7 +37,7 @@ done
 
 ## Try not to change code below here...
 # Working Directory
-WD=`pwd`
+WD=$(pwd)
 echo "$WD"
 
 # Get filenames for current Single Cell Library
