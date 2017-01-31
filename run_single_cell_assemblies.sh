@@ -45,8 +45,8 @@ echo "$WD"
 # Locations of FASTQs = Sample_**_***/raw_illumina_reads/
 for DIRS in */ ; do
 	echo "Working in $DIRS"
-	cd $DIRS/raw_illumina_reads
-
+	current_dir=$WD/$DIRS/raw_illumina_reads
+	
 	# GZIP FASTQs
 	# saving space down the line, all other files will be gzipped
 	echo "gzipping *.fastq files"
@@ -56,14 +56,9 @@ for DIRS in */ ; do
 	FASTQ=(*.fastq.gz)
 
         # Run PEAR
-        # default settings
-        # output: pear_overlap
-        mkdir -p PEAR
-        cd PEAR
-        echo "Running PEAR"
-        pear -f $WD/$DIRS/raw_illumina_reads/${FASTQ[0]} \
-        -r $WD/$DIRS/raw_illumina_reads/${FASTQ[1]} \
-        -o pear_overlap -j $THREADS | tee pear.log
+        mkdir -p $current_dir/PEAR
+	run_pear
+
 
         # Lets GZIP these!
         echo "gzipping fastq files"
@@ -281,7 +276,16 @@ for DIRS in */ ; do
 	fi
 done
 
-## Functions ##
+## Program Functions ##
+
+function run_pear () {
+    echo "Running PEAR"
+    pear -f $current_dir/PEAR/${FASTQ[0]} \
+    -r $current_dir/PEAR/${FASTQ[1]} \
+    -o pear_overlap -j $THREADS | tee pear.log
+}
+
+## Accessory Functions ##
 function check_exe () {
     program=$1
     #https://techalicious.club/tutorials/validating-if-external-program-exists-linuxunix-based-bash-and-perl-scripts
