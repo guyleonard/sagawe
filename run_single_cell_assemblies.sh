@@ -11,7 +11,7 @@
 ##
 
 # Number of Processor Cores
-THREADS=8
+THREADS=$(cores) / 2
 
 # NCBI 'nt' Database Location and name (no extension)
 NCBI_NT=/home/ubuntu/blast/nt/nt
@@ -286,6 +286,10 @@ function check_exe () {
     program=$1
     #https://techalicious.club/tutorials/validating-if-external-program-exists-linuxunix-based-bash-and-perl-scripts
     command -v $program >/dev/null 2>&1 || { echo "$program is required, but it is not in PATH.  Please install/ammend." >&2; exit 1;}
+}
+
+function cores () {
+    cores=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu)
 }
 
 function export_cegma () {
