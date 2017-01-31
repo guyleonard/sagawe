@@ -11,7 +11,7 @@
 ##
 
 # Number of Processor Cores
-THREADS=$((cores) / 2)
+THREADS=($(cores) / 2)
 
 # NCBI 'nt' Database Location and name (no extension)
 NCBI_NT=/home/ubuntu/blast/nt/nt
@@ -31,8 +31,8 @@ export AUGUSTUS_CONFIG_PATH=/home/ubuntu/single_cell_workflow/build/augustus-3.2
 
 # Check that we have the required programs
 exes=('pigz' 'clumpify' 'trim_galore' 'pear' 'spades.py' 'quast.py' 'cegma' 'BUSCO_v1.2.py' 'bwa' 'samtools' 'blastn' 'blobtools' 'multiqc')
-for $program in "${exes[@]}" ; do
-  check_exe $program
+for program in "${exes[@]}" ; do
+  check_exe "$program"
 done
 
 ## Try not to change code below here...
