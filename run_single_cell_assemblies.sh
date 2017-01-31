@@ -49,15 +49,14 @@ for DIRS in */ ; do
 	# GZIP FASTQs
 	# saving space down the line, all other files will be gzipped
 	echo "gzipping *.fastq files"
-	time pigz -9 -R *.fastq
+	time pigz -9 -R ./*.fastq
 
 	# Get all fastq.gz files
 	FASTQ=(*.fastq.gz)
 
         # Run PEAR
-        mkdir -p $current_dir/PEAR
+        mkdir -p "$current_dir/PEAR"
 	run_pear
-
 
         # Lets GZIP these!
         echo "gzipping fastq files"
