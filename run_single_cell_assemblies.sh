@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Guy Leonard MMXVI
 
 ##
@@ -31,8 +31,7 @@ export AUGUSTUS_CONFIG_PATH=/home/ubuntu/single_cell_workflow/build/augustus-3.2
 
 # Check that we have the required programs
 declare -a exes('pigz' 'clumpify' 'trim_galore' 'pear' 'spades.py' 'quast.py' 'cegma' 'BUSCO_v1.2.py' 'bwa' 'samtools' 'blastn' 'blobtools' 'multiqc')
-for $program in "${exes[@]}"
-do
+for $program in "${exes[@]}" ; do
   check_exe $program
 done
 
@@ -103,8 +102,7 @@ for DIRS in */ ; do
 
 	# on occasion SPAdes, even though it is aware of the memory limits, will request more memory than is available
         # and then crash, we don't want the rest of the workflow to run through, and it would be nice to have an error message
-	if [ ! -f $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta ]
-	    then
+	if [ ! -f $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta ] ; then
 		echo -e "[ERROR]\t[$DIRS]: SPAdes did not build scaffolds. This is possibly a memory error. This will need re-running" >> $WD/$DIRS/raw_illumina_reads/errors.txt
 	else
 
@@ -198,8 +196,7 @@ for DIRS in */ ; do
 	echo "Indexing Bam"
 	samtools index $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam | tee -a samtools.log
 
-	if [ ! -f $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam.bai ]
-	then
+	if [ ! -f $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam.bai ] ; then
 		echo -e "[ERROR]\t[$DIRS]: No index file was created for your BAM file. !?" >> $WD/$DIRS/raw_illumina_reads/errors.txt
 		# blobtools create will crash without this file, so we might as well move on to the next library...
 		#break
@@ -233,8 +230,7 @@ for DIRS in */ ; do
 	-b $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/MAPPING/scaffolds_mapped_all_reads.bam \
 	-o scaffolds_mapped_reads_nt_1e-10_megablast_blobtools | tee -a $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/blobtools.log
 
-	if  [ ! -f $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json ]
-	  then
+	if  [ ! -f $WD/$DIRS/raw_illumina_reads/BLOBTOOLS/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json ] ; then
 		echo -e "[ERROR]\t[$DIRS]: Missing blobtools JSON, no tables or figures produced." >> $WD/$DIRS/raw_illumina_reads/errors.txt
 	else
 		# run blobtools view - table output
