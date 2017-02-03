@@ -10,7 +10,7 @@
 # User Defined Variables
 ##
 
-# Number of Processor Cores
+# Number of Processor Cores / 2
 THREADS=($(cores) / 2)
 
 # NCBI 'nt' Database Location and name (no extension)
@@ -34,6 +34,25 @@ exes=('pigz' 'clumpify' 'trim_galore' 'pear' 'spades.py' 'quast.py' 'cegma' 'BUS
 for program in "${exes[@]}" ; do
   check_exe "$program"
 done
+
+while getopts f:r: FLAG; do
+    case $FLAG in
+        f)
+	    READ1=$OPTARG
+	    ;;
+	r)
+	    READ2=$OPTARG
+	    ;;
+	h)
+	    help
+	    ;;
+	\?) #unrecognized option - show help
+         echo -e \\n"Option -$OPTARG not allowed."
+         help
+         ;;
+    esac
+done
+
 
 ## Try not to change code below here...
 # Working Directory
@@ -296,4 +315,12 @@ function export_cegma () {
     export PATH=$PATH:$CEGMA_DIR/bin
     export PERL5LIB=$PERL5LIB:$CEGMA_DIR/lib
     export WISECONFIGDIR=/usr/share/wise/
+}
+
+function HELP {
+    echo -e "Basic Usage:"
+    echo -e "-f Read 1 FASTQ"
+    echo -e "-r Read 2 FASTQ"
+    echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq"
+    exit 1
 }
