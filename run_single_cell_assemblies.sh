@@ -35,7 +35,7 @@ for program in "${exes[@]}" ; do
   check_exe "$program"
 done
 
-while getopts f:r: FLAG; do
+while getopts f:r:h FLAG; do
     case $FLAG in
         f)
 	    READ1=$OPTARG
