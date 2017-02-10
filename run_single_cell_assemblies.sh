@@ -26,7 +26,7 @@ BUSCO_DB=/home/ubuntu/busco/eukaryota
 # Augustus Config Path
 export AUGUSTUS_CONFIG_PATH=/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/config
 
-while getopts f:r:o:ph FLAG; do
+while getopts f:r:o:pth FLAG; do
     case $FLAG in
         f)
 	        READ1=$OPTARG
@@ -38,9 +38,19 @@ while getopts f:r:o:ph FLAG; do
             $current_dir=$OPTARG
             ;;
 	    p)
-            mkdir -p "$current_dir/pear"
+			overlapped_dir=$current_dir/overlapped
+            mkdir -p "$overlapped_dir"
             run_pear
             ;;
+        t)
+			trimmed_dir=$current_dir/trimmed
+			mkdir -p "$trimmed_dir"
+		    trim_galore
+		    ;;
+		s)
+			assembly_dir=$current_dir/assembly
+			mkdir -p "$assembly_dir"
+			assembly_spades
 	    h)
 	        help
 	        ;;
@@ -54,101 +64,27 @@ done
 
 ## Try not to change code below here...
 # Working Directory
-WD=$(pwd)
-echo "$WD"
+#WD=$(pwd)
+#echo "$WD"
 
 # Get filenames for current Single Cell Library
 # Locations of FASTQs = Sample_**_***/raw_illumina_reads/
 for DIRS in */ ; do
-	echo "Working in $DIRS"
-	current_dir=$WD/$DIRS/raw_illumina_reads
+	#echo "Working in $DIRS"
+	#current_dir=$WD/$DIRS/raw_illumina_reads
 	
 	# GZIP FASTQs
 	# saving space down the line, all other files will be gzipped
-	echo "gzipping *.fastq files"
-	time pigz -9 -R ./*.fastq
+	#echo "gzipping *.fastq files"
+	#time pigz -9 -R ./*.fastq
 
 	# Get all fastq.gz files
-	FASTQ=(*.fastq.gz)
+	#FASTQ=(*.fastq.gz)
 
-        # Run PEAR
-        mkdir -p "$current_dir/pear"
-	    run_pear
+    # Lets GZIP these!
+    #echo "gzipping fastq files"
+    #pigz -9 -R $WD/$DIRS/raw_illumina_reads/PEAR/*.fastq
 
-        # Lets GZIP these!
-        echo "gzipping fastq files"
-        pigz -9 -R $WD/$DIRS/raw_illumina_reads/PEAR/*.fastq
-
-	# Run Trim Galore!
-	# We need to do two sets of trimming:
-	# one on the assembled reads
-	# one on the unassembled paired reads.
-	# minimum length of 150
-	# minimum quality of Q20
-	# run FASTQC on trimmed
-	# GZIP output
-	echo "Running Trimming on Untrimmed Assembled Reads"
-	trim_galore -q 20 --fastqc --gzip --length 150 \
-	$WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled.fastq.gz
-
-        echo "Running Trimming on Untrimmed Un-assembled Reads"
-        trim_galore -q 20 --fastqc --gzip --length 150 --paired --retain_unpaired \
-        $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward.fastq.gz pear_overlap.unassembled.reverse.fastq.gz
-
-	cd ../
-
-	# Run SPAdes
-	# single cell mode - default kmers 21,33,55
-	# careful mode - runs mismatch corrector
-        # use all 5 sets of output reads
-	# 1 x assembled
-	# 2 x unassembled
-	# 2 x unpaired
-	mkdir -p SPADES
-	cd SPADES
-	echo "Running SPAdes"
-	spades.py --sc --careful -t $THREADS \
-	--s1 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.assembled_trimmed.fq.gz \
-        --s2 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward_unpaired_1.fq.gz \
-        --s3 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.reverse_unpaired_2.fq.gz \
-	--pe1-1 $WD/$DIRS/raw_illumina_reads/PEAR/pear_overlap.unassembled.forward_val_1.fq.gz \
-	--pe1-2 $WD/$DIRS/raw_illumina_reads//PEAR/pear_overlap.unassembled.reverse_val_2.fq.gz \
-	-o overlapped_and_paired | tee spades.log
-	cd ../
-
-	# on occasion SPAdes, even though it is aware of the memory limits, will request more memory than is available
-        # and then crash, we don't want the rest of the workflow to run through, and it would be nice to have an error message
-	if [ ! -f $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta ] ; then
-		echo -e "[ERROR]\t[$DIRS]: SPAdes did not build scaffolds. This is possibly a memory error. This will need re-running" >> $WD/$DIRS/raw_illumina_reads/errors.txt
-	else
-
-	# Run QUAST
-	# eukaryote mode
-	# glimmer protein predictions
-	mkdir -p QUAST
-	cd QUAST
-	echo "Running QUAST"
-	quast.py -o quast_reports -t $THREADS \
-	--min-contig 100 -f --eukaryote --scaffolds \
-	--glimmer $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta | tee quast.log
-	cd ../
-
-	# Run CEGMA
-	# Genome mode
-	echo "Running CEGMA"
-	mkdir -p CEGMA
-	cd CEGMA
-	cegma -T $THREADS -g $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta -o cegma
-	cd ../
-
-	# Run BUSCO
-	echo "Running BUSCO"
-	mkdir -p BUSCO
-	cd BUSCO
-	BUSCO_v1.2.py \
-        -g $WD/$DIRS/raw_illumina_reads/SPADES/overlapped_and_paired/scaffolds.fasta \
-	-c $THREADS -l $BUSCO_DB -o busco -f
-	cd ../
 
 	# Run BlobTools
 	mkdir -p BLOBTOOLS
@@ -288,16 +224,139 @@ for DIRS in */ ; do
 	fi
 done
 
-## Program Functions ##
 
+#######################
+## Program Functions ##
+#######################
+
+## Run Pear Overlapper
+# default settings
+## deprecate for bbmerge?
 function run_pear () {
-    echo "Running PEAR"
-    pear -f $current_dir/PEAR/${FASTQ[0]} \
-    -r $current_dir/PEAR/${FASTQ[1]} \
-    -o pear_overlap -j $THREADS | tee pear.log
+    echo "Running PEAR Assembler"
+    pear -f $overlapped_dir/$READ1 \
+    -r $overlapped_dir/$READ2 \
+    -o pear_overlap -j $THREADS | tee $overlapped_dir/pear.log
+
+    ln -s $trimmed_dir/pear_overlap.assembled.fastq.gz $trimmed_dir/assembled.fastq.gz
+    ln -s $trimmed_dir/pear_overlap.unassembled.forward.fastq.gz $trimmed_dir/unassembled.forward.fastq.gz
+    ln -s $trimmed_dir/pear_overlap.unassembled.reverse.fastq.gz $trimmed_dir/unassembled.reverse.fastq.gz
 }
 
+## Run Trim Galore!
+# Two sets of trimming:
+# Assembled/overlapped reads
+# Unassembled paired reads.
+# Minimum length of 150
+# Minimum quality of Q20
+# run FASTQC on trimmed
+# GZIP output
+function trim_galore () {
+	echo "Running Trim Galore! on Untrimmed Assembled Reads"
+	trim_galore -q 20 --fastqc --gzip --length 150 \
+	$trimmed_dir/assembled.fastq.gz
+
+	echo "Running Trim Galore! on Untrimmed Un-assembled Reads"
+	trim_galore -q 20 --fastqc --gzip --length 150 --paired --retain_unpaired \
+	$trimmed_dir/unassembled.forward.fastq.gz \
+	$trimmed_dir/unassembled.reverse.fastq.gz
+}
+
+## Run SPAdes
+# single cell mode - default kmers 21,33,55
+# careful mode - runs mismatch corrector
+# use all 5 sets of output reads
+# 1 x assembled
+# 2 x unassembled
+# 2 x unpaired
+function assembly_spades () {
+	echo "Running SPAdes"
+	spades.py --sc --careful -t $THREADS \
+	--s1 $trimmed_dir/assembled_trimmed.fq.gz \
+	--s2 $trimmed_dir/unassembled.forward_unpaired_1.fq.gz \
+	--s3 $trimmed_dir/unassembled.reverse_unpaired_2.fq.gz \
+	--pe1-1 $trimmed_dir/unassembled.forward_val_1.fq.gz \
+	--pe1-2 $trimmed_dir/unassembled.reverse_val_2.fq.gz \
+	-o overlapped_and_paired | tee $assembly_dir/spades_overlapped_and_paired.log
+
+	# Sometimes SPAdes, even though it is aware of the memory limits, will request more memory than is available
+    # and then crash, we don't want the rest of the workflow to run through, and it would be nice to have an error message
+	#if [ ! -f $assembly_dir/overlapped_and_paired/scaffolds.fasta ] ; then
+	#	echo -e "[ERROR]: SPAdes did not build scaffolds. This is possibly a memory error."
+	#	exit 1
+	#fi
+}
+
+# Run QUAST
+# eukaryote mode
+# glimmer protein predictions
+function report_quast () {
+
+	if [ ! -f $assembly_dir/overlapped_and_paired/scaffolds.fasta ] ; then
+		echo -e "[ERROR]: SPAdes scaffolds cannot be found."
+		exit 1
+	else
+		echo "Running QUAST"
+		quast.py -o $report_dir/quast -t $THREADS \
+		--min-contig 100 -f --eukaryote --scaffolds \
+		--glimmer $assembly_dir/overlapped_and_paired/scaffolds.fasta | tee quast.log
+	fi
+}
+
+# Run CEGMA
+# Genome mode
+function report_cegma () {
+	if [ ! -f $assembly_dir/overlapped_and_paired/scaffolds.fasta ] ; then
+		echo -e "[ERROR]: SPAdes scaffolds cannot be found."
+		exit 1
+	else
+		echo "Running CEGMA"
+		cegma -T $THREADS -g $assembly_dir/overlapped_and_paired/scaffolds.fasta -o $report_dir/cegma
+	fi
+}
+
+
+# Run BUSCO
+function report_busco () {
+	if [ ! -f $assembly_dir/overlapped_and_paired/scaffolds.fasta ] ; then
+		echo -e "[ERROR]: SPAdes scaffolds cannot be found."
+		exit 1
+	else
+		BUSCO_v1.22.py \
+	    -g $assembly_dir/overlapped_and_paired/scaffolds.fasta \
+		-c $THREADS -l $BUSCO_DB -o $report_dir/busco -f
+	fi
+}
+
+function report_multiqc () {
+
+}
+
+function blobtools_bwa () {
+
+}
+
+function blobtools_blast () {
+
+}
+
+function blobtools_create () {
+
+}
+
+function blobtools_table () {
+
+}
+
+function blobtools_image () {
+
+}
+
+
+#########################
 ## Accessory Functions ##
+#########################
+
 function check_exe () {
     program=$1
     #https://techalicious.club/tutorials/validating-if-external-program-exists-linuxunix-based-bash-and-perl-scripts
@@ -332,7 +391,7 @@ THREADS=$(cores)
 echo "num_threads:$THREADS"
 
 # Check that we have the required programs
-exes=('pigz' 'clumpify' 'trim_galore' 'pear' 'spades.py' 'quast.py' 'cegma' 'BUSCO_v1.2.py' 'bwa' 'samtools' 'blastn' 'blobtools' 'multiqc')
+exes=('pigz' 'clumpify.sh' 'trim_galore' 'pear' 'spades.py' 'quast.py' 'cegma' 'BUSCO_v1.22.py' 'bwa' 'samtools' 'blastn' 'blobtools' 'multiqc')
 for program in "${exes[@]}" ; do
     check_exe "$program"
 done
