@@ -214,7 +214,7 @@ cd $build_dir
 echo "BUSCO: downloading Augustus"
 wget http://bioinf.uni-greifswald.de/augustus/binaries/augustus.current.tar.gz
 tar zxvf augustus.current.tar.gz
-cd augustus-3.2.2
+cd augustus-3.2.3
 augustus_dir=$(pwd)
 echo "BUSCO: AUGUSTUS: Installing"
 make
