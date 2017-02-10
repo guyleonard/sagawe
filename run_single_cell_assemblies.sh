@@ -10,9 +10,6 @@
 # User Defined Variables
 ##
 
-# Number of Processor Cores / 2
-THREADS=($(cores) / 2)
-
 # NCBI 'nt' Database Location and name (no extension)
 NCBI_NT=/home/ubuntu/blast/nt/nt
 
@@ -29,27 +26,28 @@ BUSCO_DB=/home/ubuntu/busco/eukaryota
 # Augustus Config Path
 export AUGUSTUS_CONFIG_PATH=/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/config
 
-# Check that we have the required programs
-exes=('pigz' 'clumpify' 'trim_galore' 'pear' 'spades.py' 'quast.py' 'cegma' 'BUSCO_v1.2.py' 'bwa' 'samtools' 'blastn' 'blobtools' 'multiqc')
-for program in "${exes[@]}" ; do
-  check_exe "$program"
-done
-
-while getopts f:r:h FLAG; do
+while getopts f:r:o:ph FLAG; do
     case $FLAG in
         f)
-	    READ1=$OPTARG
-	    ;;
-	r)
-	    READ2=$OPTARG
-	    ;;
-	h)
-	    help
-	    ;;
-	\?) #unrecognized option - show help
-         echo -e \\n"Option -$OPTARG not allowed."
-         help
-         ;;
+	        READ1=$OPTARG
+	        ;;
+	    r)
+	        READ2=$OPTARG
+	        ;;
+	    o)
+            $current_dir=$OPTARG
+            ;;
+	    p)
+            mkdir -p "$current_dir/pear"
+            run_pear
+            ;;
+	    h)
+	        help
+	        ;;
+	    \?)
+            echo -e \\n"Option -$OPTARG not allowed."
+            help
+            ;;
     esac
 done
 
@@ -74,8 +72,8 @@ for DIRS in */ ; do
 	FASTQ=(*.fastq.gz)
 
         # Run PEAR
-        mkdir -p "$current_dir/PEAR"
-	run_pear
+        mkdir -p "$current_dir/pear"
+	    run_pear
 
         # Lets GZIP these!
         echo "gzipping fastq files"
@@ -308,6 +306,7 @@ function check_exe () {
 
 function cores () {
     cores=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu)
+    echo $(($cores / 2))
 }
 
 function export_cegma () {
@@ -321,6 +320,19 @@ function HELP {
     echo -e "Basic Usage:"
     echo -e "-f Read 1 FASTQ"
     echo -e "-r Read 2 FASTQ"
-    echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq"
+    echo -e "-o Output Directory"
+    echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir"
     exit 1
 }
+
+
+## Main Pipeline Actions ##
+
+THREADS=$(cores)
+echo "num_threads:$THREADS"
+
+# Check that we have the required programs
+exes=('pigz' 'clumpify' 'trim_galore' 'pear' 'spades.py' 'quast.py' 'cegma' 'BUSCO_v1.2.py' 'bwa' 'samtools' 'blastn' 'blobtools' 'multiqc')
+for program in "${exes[@]}" ; do
+    check_exe "$program"
+done
