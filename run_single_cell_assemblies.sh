@@ -15,6 +15,7 @@ BUSCO_DB="/home/ubuntu/busco/eukaryota"
 # Augustus Config Path
 AUGUSTUS_CONFIG_PATH="/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/config"
 
+
 ###########################################
 ## Program Options - Do Not Change Below ##
 ###########################################
@@ -329,7 +330,7 @@ function cores () {
 }
 
 function export_cegma () {
-    if [ ! -d "$CEGMA_DIR"] ; then
+    if [ ! -d "$CEGMA_DIR" ] ; then
 		echo "[ERROR]: Incorrect CEGMA Path. Is your path correct?\n$CEGMA_DIR\n"
 		exit 1
 	else
@@ -340,6 +341,36 @@ function export_cegma () {
 	fi
 }
 
+function ncbi_nt () {
+	if [ ! -f "$NCBI_NT/nt.pal" ] ; then
+		echo "[ERROR]: Missing NCBI NT Libraries. Is your path correct?\n$NCBI_NT\n"
+		exit 1
+	fi
+}
+
+function ncbi_taxonomy () {
+	if [ ! -f "$NCBI_TAX/" ] ; then
+		echo "[ERROR]: Missing NCBI Taxonomy Libraries. Is your path correct?\n$NCBI_TAX\n"
+		exit 1
+	fi
+}
+
+function busco_db () {
+	if [ ! -d "$BUSCO_DB" ] ; then
+		echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?\n$BUSCO_DB\n"
+		exit 1
+	fi
+}
+
+function augustus () {
+	if [ ! -d "AUGUSTUS_CONFIG_PATH" ] ; then
+		echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?\n$BUSCO_DB\n"
+		exit 1
+	else
+		export AUGUSTUS_CONFIG_PATH="$AUGUSTUS_CONFIG_PATH"
+	fi
+}
+
 function HELP {
     echo -e "Basic Usage:"
     echo -e "-f Read 1 FASTQ"
@@ -347,36 +378,6 @@ function HELP {
     echo -e "-o Output Directory"
     echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir"
     exit 1
-}
-
-function ncbi_nt () {
-	if [ ! -f "$NCBI_NT/nt.pal"] ; then
-		echo "[ERROR]: Missing NCBI NT Libraries. Is your path correct?\n$NCBI_NT\n"
-		exit 1
-	fi
-}
-
-function ncbi_taxonomy () {
-	if [ ! -f "$NCBI_TAX/"] ; then
-		echo "[ERROR]: Missing NCBI Taxonomy Libraries. Is your path correct?\n$NCBI_TAX\n"
-		exit 1
-	fi
-}
-
-function busco () {
-	if [ ! -d "$BUSCO_DB"] ; then
-		echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?\n$BUSCO_DB\n"
-		exit 1
-	fi
-}
-
-function augustus () {
-	if [ ! -d "AUGUSTUS_CONFIG_PATH"] ; then
-		echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?\n$BUSCO_DB\n"
-		exit 1
-	else
-		export AUGUSTUS_CONFIG_PATH="$AUGUSTUS_CONFIG_PATH"
-	fi
 }
 
 
@@ -397,5 +398,5 @@ done
 export_cegma
 ncbi_taxonomy
 ncbi_nt
-busco
+busco_db
 augustus
