@@ -22,48 +22,48 @@ AUGUSTUS_CONFIG_PATH="/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/con
 while getopts f:r:o:ptsqcbBmh FLAG; do
     case $FLAG in
         f)
-	        READ1=$OPTARG
-	        ;;
-	    r)
-	        READ2=$OPTARG
-	        ;;
-	    o)
+            READ1=$OPTARG
+            ;;
+        r)
+            READ2=$OPTARG
+            ;;
+        o)
             output_dir=$OPTARG
             ;;
-	    p)
+        p)
             run_pear
             ;;
         t)
-		    trim_galore
-		    ;;
-		s)
-			assembly_spades
-			;;
-		q)
-			report_quast
-			;;
-		c)
-			report_cegma
-			;;
-		b)
-			report_busco
-			;;
-		B)
-			blobtools_bwa
-			blobtools_samtools
-			blobtools_blast
-			blobtools_create
-			blobtools_table
-			blobtools_image
-			;;
-		m)
-			report_multiqc
-			;;
-	    h)
-	        help
-	        ;;
-	    \?)
-            echo -e \\n"Option -$OPTARG not allowed."
+            trim_galore
+            ;;
+        s)
+            assembly_spades
+            ;;
+        q)
+            report_quast
+            ;;
+        c)
+            report_cegma
+            ;;
+        b)
+            report_busco
+            ;;
+        B)
+            blobtools_bwa
+            blobtools_samtools
+            blobtools_blast
+            blobtools_create
+            blobtools_table
+            blobtools_image
+            ;;
+        m)
+            report_multiqc
+            ;;
+        h)
+            help
+            ;;
+        \?)
+            echo -e "Option -$OPTARG not allowed."
             help
             ;;
     esac
@@ -78,7 +78,7 @@ done
 # default settings
 ## deprecate for bbmerge?
 function run_pear () {
-	overlapped_dir="$output_dir/overlapped"
+    overlapped_dir="$output_dir/overlapped"
     mkdir -p "$overlapped_dir"
 
     echo "Running PEAR Assembler"
@@ -99,16 +99,16 @@ function run_pear () {
 # run FASTQC on trimmed
 # GZIP output
 function trim_galore () {
-	trimmed_dir="$output_dir/trimmed"
-	mkdir -p "$trimmed_dir"
+    trimmed_dir="$output_dir/trimmed"
+    mkdir -p "$trimmed_dir"
 
-	echo "Running Trim Galore! on Untrimmed Assembled Reads"
-	trim_galore -q 20 --fastqc --gzip --length 150 \
-	"$overlapped_dir/assembled.fastq.gz"
+    echo "Running Trim Galore! on Untrimmed Assembled Reads"
+    trim_galore -q 20 --fastqc --gzip --length 150 \
+    "$overlapped_dir/assembled.fastq.gz"
 
-	echo "Running Trim Galore! on Untrimmed Un-assembled Reads"
-	trim_galore -q 20 --fastqc --gzip --length 150 --paired --retain_unpaired \
-	"$overlapped_dir/unassembled.forward.fastq.gz" "$overlapped_dir/unassembled.reverse.fastq.gz"
+    echo "Running Trim Galore! on Untrimmed Un-assembled Reads"
+    trim_galore -q 20 --fastqc --gzip --length 150 --paired --retain_unpaired \
+    "$overlapped_dir/unassembled.forward.fastq.gz" "$overlapped_dir/unassembled.reverse.fastq.gz"
 }
 
 ## Run SPAdes
@@ -119,119 +119,119 @@ function trim_galore () {
 # 2 x unassembled
 # 2 x unpaired
 function assembly_spades () {
-	assembly_dir="$output_dir/assembly"
-	mkdir -p "$assembly_dir"
+    assembly_dir="$output_dir/assembly"
+    mkdir -p "$assembly_dir"
 
-	echo "Running SPAdes"
-	spades.py --sc --careful -t "$THREADS" \
-	--s1 "$trimmed_dir/assembled_trimmed.fq.gz" \
-	--s2 "$trimmed_dir/unassembled.forward_unpaired_1.fq.gz" \
-	--s3 "$trimmed_dir/unassembled.reverse_unpaired_2.fq.gz" \
-	--pe1-1 "$trimmed_dir/unassembled.forward_val_1.fq.gz" \
-	--pe1-2 "$trimmed_dir/unassembled.reverse_val_2.fq.gz" \
-	-o overlapped_and_paired | tee "$assembly_dir/spades_overlapped_and_paired.log"
+    echo "Running SPAdes"
+    spades.py --sc --careful -t "$THREADS" \
+    --s1 "$trimmed_dir/assembled_trimmed.fq.gz" \
+    --s2 "$trimmed_dir/unassembled.forward_unpaired_1.fq.gz" \
+    --s3 "$trimmed_dir/unassembled.reverse_unpaired_2.fq.gz" \
+    --pe1-1 "$trimmed_dir/unassembled.forward_val_1.fq.gz" \
+    --pe1-2 "$trimmed_dir/unassembled.reverse_val_2.fq.gz" \
+    -o overlapped_and_paired | tee "$assembly_dir/spades_overlapped_and_paired.log"
 
-	# Sometimes SPAdes, even though it is aware of the memory limits, will request more memory than is available
+    # Sometimes SPAdes, even though it is aware of the memory limits, will request more memory than is available
     # and then crash, we don't want the rest of the workflow to run through, and it would be nice to have an error message
-	#if [ ! -f $assembly_dir/overlapped_and_paired/scaffolds.fasta ] ; then
-	#	echo -e "[ERROR]: SPAdes did not build scaffolds. This is possibly a memory error."
-	#	exit 1
-	#fi
+    #if [ ! -f $assembly_dir/overlapped_and_paired/scaffolds.fasta ] ; then
+    #   echo -e "[ERROR]: SPAdes did not build scaffolds. This is possibly a memory error."
+    #   exit 1
+    #fi
 }
 
 # Run QUAST
 # eukaryote mode
 # glimmer protein predictions
 function report_quast () {
-	quast_dir="$output_dir/reports/quast"
-	mkdir -p "$quast_dir"
+    quast_dir="$output_dir/reports/quast"
+    mkdir -p "$quast_dir"
 
-	if [ ! -f "$assembly_dir/overlapped_and_paired/scaffolds.fasta" ] ; then
-		echo -e "[ERROR]: SPAdes scaffolds cannot be found."
-		exit 1
-	else
-		echo "Running QUAST"
-		quast.py -o "$quast_dir/quast" -t "$THREADS" \
-		--min-contig 100 -f --eukaryote --scaffolds \
-		--glimmer "$assembly_dir/overlapped_and_paired/scaffolds.fasta" | tee quast.log
-	fi
+    if [ ! -f "$assembly_dir/overlapped_and_paired/scaffolds.fasta" ] ; then
+        echo -e "[ERROR]: SPAdes scaffolds cannot be found."
+        exit 1
+    else
+        echo "Running QUAST"
+        quast.py -o "$quast_dir/quast" -t "$THREADS" \
+        --min-contig 100 -f --eukaryote --scaffolds \
+        --glimmer "$assembly_dir/overlapped_and_paired/scaffolds.fasta" | tee quast.log
+    fi
 }
 
 # Run CEGMA
 # Genome mode
 function report_cegma () {
-	cegma_dir="$output_dir/reports/cegma"
-	mkdir -p "$cegma_dir"
+    cegma_dir="$output_dir/reports/cegma"
+    mkdir -p "$cegma_dir"
 
-	if [ ! -f "$assembly_dir/overlapped_and_paired/scaffolds.fasta" ] ; then
-		echo -e "[ERROR]: SPAdes scaffolds cannot be found."
-		exit 1
-	else
-		echo "Running CEGMA"
-		cegma -T "$THREADS" -g "$assembly_dir/overlapped_and_paired/scaffolds.fasta" -o "$cegma_dir/cegma"
-	fi
+    if [ ! -f "$assembly_dir/overlapped_and_paired/scaffolds.fasta" ] ; then
+        echo -e "[ERROR]: SPAdes scaffolds cannot be found."
+        exit 1
+    else
+        echo "Running CEGMA"
+        cegma -T "$THREADS" -g "$assembly_dir/overlapped_and_paired/scaffolds.fasta" -o "$cegma_dir/cegma"
+    fi
 }
 
 
 # Run BUSCO
 function report_busco () {
-	busco_dir="$output_dir/reports/busco"
-	mkdir -p "$busco_dir"
+    busco_dir="$output_dir/reports/busco"
+    mkdir -p "$busco_dir"
 
-	if [ ! -f "$assembly_dir/overlapped_and_paired/scaffolds.fasta" ] ; then
-		echo -e "[ERROR]: SPAdes scaffolds cannot be found."
-		exit 1
-	else
-		BUSCO_v1.22.py \
-	    -g "$assembly_dir/overlapped_and_paired/scaffolds.fasta" \
-		-c "$THREADS" -l "$BUSCO_DB" -o "$busco_dir/busco" -f
-	fi
+    if [ ! -f "$assembly_dir/overlapped_and_paired/scaffolds.fasta" ] ; then
+        echo -e "[ERROR]: SPAdes scaffolds cannot be found."
+        exit 1
+    else
+        BUSCO_v1.22.py \
+        -g "$assembly_dir/overlapped_and_paired/scaffolds.fasta" \
+        -c "$THREADS" -l "$BUSCO_DB" -o "$busco_dir/busco" -f
+    fi
 }
 
 function report_multiqc () {
-	multiqc "$output_dir"
+    multiqc "$output_dir"
 }
 
 function blobtools_bwa () {
-	blobtools_dir="$output_dir/reports/blobtools"
-	mkdir -p "$blobtools_dir"
+    blobtools_dir="$output_dir/reports/blobtools"
+    mkdir -p "$blobtools_dir"
 
-	blobtools_map="$blobtools_dir/mapping"
-	mkdir -p "$blobtools_map"
+    blobtools_map="$blobtools_dir/mapping"
+    mkdir -p "$blobtools_map"
 
-	ln -s "$assembly_dir/overlapped_and_paired/scaffolds.fasta" "$blobtools_map/scaffolds.fasta"
+    ln -s "$assembly_dir/overlapped_and_paired/scaffolds.fasta" "$blobtools_map/scaffolds.fasta"
 
-	# index assembly (scaffolds.fa) with BWA
-	echo "Indexing Assembly"
-	bwa index -a bwtsw "$blobtools_map/scaffolds.fasta" | tee "$blobtools_map/bwa.log"
+    # index assembly (scaffolds.fa) with BWA
+    echo "Indexing Assembly"
+    bwa index -a bwtsw "$blobtools_map/scaffolds.fasta" | tee "$blobtools_map/bwa.log"
 
-	# map reads to assembly with BWA MEM
-	# we will have to do this for all 5 sets of reads and then merge
-	echo "Mapping Assembled reads to Assembly"
-	bwa mem -t "$THREADS" "$blobtools_map/scaffolds.fasta" \
-	"$trimmed_dir/assembled_trimmed.fq.gz" \
-	> "$blobtools_map/scaffolds_mapped_assembled_reads.sam" | tee -a "$blobtools_map/bwa.log"
+    # map reads to assembly with BWA MEM
+    # we will have to do this for all 5 sets of reads and then merge
+    echo "Mapping Assembled reads to Assembly"
+    bwa mem -t "$THREADS" "$blobtools_map/scaffolds.fasta" \
+    "$trimmed_dir/assembled_trimmed.fq.gz" \
+    > "$blobtools_map/scaffolds_mapped_assembled_reads.sam" | tee -a "$blobtools_map/bwa.log"
 
     echo "Mapping Un-assembled & Un-Paired reads to Assembly - Forward"
     bwa mem -t "$THREADS" "$blobtools_map/scaffolds.fasta" \
-	"$trimmed_dir/unassembled.forward_unpaired_1.fq.gz" \
+    "$trimmed_dir/unassembled.forward_unpaired_1.fq.gz" \
     > "$blobtools_map/scaffolds_mapped_unassembled_unpaired_forward_reads.sam" | tee -a "$blobtools_map/bwa.log"
 
-	echo "Mapping Un-assembled & Un-Paired reads to Assembly - Reverse"
+    echo "Mapping Un-assembled & Un-Paired reads to Assembly - Reverse"
     bwa mem -t "$THREADS" "$blobtools_map/scaffolds.fasta" \
-	"$trimmed_dir/unassembled.reverse_unpaired_2.fq.gz" \
+    "$trimmed_dir/unassembled.reverse_unpaired_2.fq.gz" \
     > "$blobtools_map/scaffolds_mapped_unassembled_unpaired_reverse_reads.sam" | tee -a "$blobtools_map/bwa.log"
 
     echo "Mapping Un-assembled but still Paired reads to Assembly"
     bwa mem -t "$THREADS" "$blobtools_map/scaffolds.fasta" \
-	"$trimmed_dir/unassembled.forward_val_1.fq.gz" \
-	"$trimmed_dir/unassembled.reverse_val_2.fq.gz" \
+    "$trimmed_dir/unassembled.forward_val_1.fq.gz" \
+    "$trimmed_dir/unassembled.reverse_val_2.fq.gz" \
     > "$blobtools_map/scaffolds_mapped_unassembled_paired_reads.sam" | tee -a "$blobtools_map/bwa.log"
 }
 
 function blobtools_samtools () {
-	blobtools_dir="$output_dir/reports/blobtools"
-	blobtools_map="$blobtools_dir/mapping"
+    blobtools_dir="$output_dir/reports/blobtools"
+    blobtools_map="$blobtools_dir/mapping"
 
     # sort and convert sam to bam with SAMTOOLS
     echo "Sorting Assembled SAM File and Converting to BAM"
@@ -252,85 +252,85 @@ function blobtools_samtools () {
     samtools sort -@ "$THREADS" -o "$blobtools_map/scaffolds_mapped_unassembled_paired_reads.bam" \
     "$blobtools_map/scaffolds_mapped_unassembled_paired_reads.sam" | tee -a "$blobtools_map/samtools.log"
 
-	# Merge SAM files
-	echo "Merging 4 BAM files"
-	samtools merge -@ "$THREADS" -f "$blobtools_map/scaffolds_mapped_all_reads.bam" \
-	"$blobtools_map/scaffolds_mapped_assembled_reads.bam" \
-	"$blobtools_map/scaffolds_mapped_unassembled_paired_reads.bam" \
-	"$blobtools_map/scaffolds_mapped_unassembled_unpaired_forward_reads.bam" \
-	"$blobtools_map/scaffolds_mapped_unassembled_unpaired_reverse_reads.bam" | tee -a "$blobtools_map/samtools.log"
+    # Merge SAM files
+    echo "Merging 4 BAM files"
+    samtools merge -@ "$THREADS" -f "$blobtools_map/scaffolds_mapped_all_reads.bam" \
+    "$blobtools_map/scaffolds_mapped_assembled_reads.bam" \
+    "$blobtools_map/scaffolds_mapped_unassembled_paired_reads.bam" \
+    "$blobtools_map/scaffolds_mapped_unassembled_unpaired_forward_reads.bam" \
+    "$blobtools_map/scaffolds_mapped_unassembled_unpaired_reverse_reads.bam" | tee -a "$blobtools_map/samtools.log"
 
-	echo "Indexing Bam"
-	samtools index "$blobtools_map/scaffolds_mapped_all_reads.bam" | tee -a "$blobtools_map/samtools.log"
+    echo "Indexing Bam"
+    samtools index "$blobtools_map/scaffolds_mapped_all_reads.bam" | tee -a "$blobtools_map/samtools.log"
 
-	# delete sam files
-	rm "$blobtools_map/*.sam"
+    # delete sam files
+    rm "$blobtools_map/*.sam"
 }
 
 function blobtools_blast () {
-	blobtools_dir="$output_dir/reports/blobtools"
-	blobtools_map="$blobtools_dir/mapping"
+    blobtools_dir="$output_dir/reports/blobtools"
+    blobtools_map="$blobtools_dir/mapping"
 
-	blobtools_blast="$blobtools_dir/blast"
-	mkdir -p "$blobtools_blast"
+    blobtools_blast="$blobtools_dir/blast"
+    mkdir -p "$blobtools_blast"
 
-	echo "Running BLAST"
-	blastn -task megablast \
-	-query "$blobtools_map/scaffolds.fasta" \
-	-db "$NCBI_NT" \
-	-evalue 1e-10 \
-	-num_threads "$THREADS" \
-	-outfmt '6 qseqid staxids bitscore std sscinames sskingdoms stitle' \
-	-culling_limit 5 \
-	-out "$blobtools_blast/scaffolds_vs_nt_1e-10.megablast" | tee "$blobtools_blast/blast.log"
+    echo "Running BLAST"
+    blastn -task megablast \
+    -query "$blobtools_map/scaffolds.fasta" \
+    -db "$NCBI_NT" \
+    -evalue 1e-10 \
+    -num_threads "$THREADS" \
+    -outfmt '6 qseqid staxids bitscore std sscinames sskingdoms stitle' \
+    -culling_limit 5 \
+    -out "$blobtools_blast/scaffolds_vs_nt_1e-10.megablast" | tee "$blobtools_blast/blast.log"
 }
 
 function blobtools_create () {
-	blobtools_dir="$output_dir/reports/blobtools"
-	blobtools_map="$blobtools_dir/mapping"
-	blobtools_blast="$blobtools_dir/blast"
+    blobtools_dir="$output_dir/reports/blobtools"
+    blobtools_map="$blobtools_dir/mapping"
+    blobtools_blast="$blobtools_dir/blast"
 
-	echo "Running BlobTools CREATE - slow"
-	blobtools create -i "$blobtools_map/scaffolds.fasta" \
-	--nodes "$NCBI_TAX/nodes.dmp" --names "$NCBI_TAX/names.dmp" \
-	-t "$blobtools_blast/scaffolds_vs_nt_1e-10.megablast" \
-	-b "$blobtools_map/scaffolds_mapped_all_reads.bam" \
-	-o "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools" | tee -a "$blobtools_dir/blobtools.log"
+    echo "Running BlobTools CREATE - slow"
+    blobtools create -i "$blobtools_map/scaffolds.fasta" \
+    --nodes "$NCBI_TAX/nodes.dmp" --names "$NCBI_TAX/names.dmp" \
+    -t "$blobtools_blast/scaffolds_vs_nt_1e-10.megablast" \
+    -b "$blobtools_map/scaffolds_mapped_all_reads.bam" \
+    -o "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools" | tee -a "$blobtools_dir/blobtools.log"
 }
 
 function blobtools_table () {
-	blobtools_dir="$output_dir/reports/blobtools"
+    blobtools_dir="$output_dir/reports/blobtools"
 
-	# Standard Output - Phylum
-	echo "Running BlobTools View"
-	blobtools view -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" \
-	--out "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_phylum_table.csv" | tee -a "$blobtools_dir/blobtools.log"
-	
-	# Other Output - Species
-	blobtools view -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" \
-	--out "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_superkingdom_table.csv" \
-	--rank superkingdom | tee -a "$blobtools_dir/blobtools.log"
+    # Standard Output - Phylum
+    echo "Running BlobTools View"
+    blobtools view -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" \
+    --out "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_phylum_table.csv" | tee -a "$blobtools_dir/blobtools.log"
+    
+    # Other Output - Species
+    blobtools view -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" \
+    --out "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_superkingdom_table.csv" \
+    --rank superkingdom | tee -a "$blobtools_dir/blobtools.log"
 }
 
 # run blobtools plot - image output
 function blobtools_image () {
-	blobtools_dir="$output_dir/reports/blobtools"
+    blobtools_dir="$output_dir/reports/blobtools"
 
-	# Standard Output - Phylum, 7 Taxa
-	echo "Running BlobTools Plots - Standard + SVG"
-	blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" | tee -a "$blobtools_dir/blobtools.log"
+    # Standard Output - Phylum, 7 Taxa
+    echo "Running BlobTools Plots - Standard + SVG"
+    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" | tee -a "$blobtools_dir/blobtools.log"
 
-	blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" \
-	--format svg | tee -a "$blobtools_dir/blobtools.log"
+    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" \
+    --format svg | tee -a "$blobtools_dir/blobtools.log"
 
 
-	# Other Output - Species, 15 Taxa
-	echo "Running BlobTools Plots - SuperKingdom + SVG"
-	blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" \
-	-r superkingdom | tee -a "$blobtools_dir/blobtools.log"
-	
-	blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" \
-	-r superkingdom --format svg | tee -a "$blobtools_dir/blobtools.log"
+    # Other Output - Species, 15 Taxa
+    echo "Running BlobTools Plots - SuperKingdom + SVG"
+    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" \
+    -r superkingdom | tee -a "$blobtools_dir/blobtools.log"
+    
+    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" \
+    -r superkingdom --format svg | tee -a "$blobtools_dir/blobtools.log"
 }
 
 
@@ -350,49 +350,49 @@ function cores () {
 
 function export_cegma () {
     if [ ! -d "$CEGMA_DIR" ] ; then
-		echo "[ERROR]: Incorrect CEGMA Path. Is your path correct?"
-		echo "$CEGMA_DIR"
-		exit 1
-	else
-	    export CEGMA="$CEGMA_DIR"
-	    export PATH=$PATH:"$CEGMA_DIR"/bin
-	    export PERL5LIB=$PERL5LIB:"$CEGMA_DIR"/lib
-	    export WISECONFIGDIR=/usr/share/wise/
-	fi
+        echo "[ERROR]: Incorrect CEGMA Path. Is your path correct?"
+        echo "$CEGMA_DIR"
+        exit 1
+    else
+        export CEGMA="$CEGMA_DIR"
+        export PATH=$PATH:"$CEGMA_DIR"/bin
+        export PERL5LIB=$PERL5LIB:"$CEGMA_DIR"/lib
+        export WISECONFIGDIR=/usr/share/wise/
+    fi
 }
 
 function ncbi_nt () {
-	if [ ! -f "$NCBI_NT/nt.pal" ] ; then
-		echo "[ERROR]: Missing NCBI NT Libraries. Is your path correct?"
-		echo "$NCBI_NT"
-		exit 1
-	fi
+    if [ ! -f "$NCBI_NT/nt.pal" ] ; then
+        echo "[ERROR]: Missing NCBI NT Libraries. Is your path correct?"
+        echo "$NCBI_NT"
+        exit 1
+    fi
 }
 
 function ncbi_taxonomy () {
-	if [ ! -f "$NCBI_TAX/taxdb.btd" ] ; then
-		echo "[ERROR]: Missing NCBI Taxonomy Libraries. Is your path correct?"
-		echo "$NCBI_TAX"
-		exit 1
-	fi
+    if [ ! -f "$NCBI_TAX/taxdb.btd" ] ; then
+        echo "[ERROR]: Missing NCBI Taxonomy Libraries. Is your path correct?"
+        echo "$NCBI_TAX"
+        exit 1
+    fi
 }
 
 function busco_db () {
-	if [ ! -d "$BUSCO_DB" ] ; then
-		echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?"
-		echo "$BUSCO_DB"
-		exit 1
-	fi
+    if [ ! -d "$BUSCO_DB" ] ; then
+        echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?"
+        echo "$BUSCO_DB"
+        exit 1
+    fi
 }
 
 function augustus () {
-	if [ ! -d "AUGUSTUS_CONFIG_PATH" ] ; then
-		echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?"
-		echo "$AUGUSTUS_CONFIG_PATH"
-		exit 1
-	else
-		export AUGUSTUS_CONFIG_PATH="$AUGUSTUS_CONFIG_PATH"
-	fi
+    if [ ! -d "AUGUSTUS_CONFIG_PATH" ] ; then
+        echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?"
+        echo "$AUGUSTUS_CONFIG_PATH"
+        exit 1
+    else
+        export AUGUSTUS_CONFIG_PATH="$AUGUSTUS_CONFIG_PATH"
+    fi
 }
 
 function HELP {
