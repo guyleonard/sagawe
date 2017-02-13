@@ -354,9 +354,9 @@ function export_cegma () {
 		echo "$CEGMA_DIR"
 		exit 1
 	else
-	    export CEGMA=$CEGMA_DIR
-	    export PATH=$PATH:$CEGMA_DIR/bin
-	    export PERL5LIB=$PERL5LIB:$CEGMA_DIR/lib
+	    export CEGMA="$CEGMA_DIR"
+	    export PATH=$PATH:"$CEGMA_DIR"/bin
+	    export PERL5LIB=$PERL5LIB:"$CEGMA_DIR"/lib
 	    export WISECONFIGDIR=/usr/share/wise/
 	fi
 }
@@ -397,6 +397,7 @@ function augustus () {
 
 function HELP {
     echo -e "Basic Usage:"
+    echo -e "Required Parameters:"
     echo -e "-f Read 1 FASTQ"
     echo -e "-r Read 2 FASTQ"
     echo -e "-o Output Directory"
@@ -413,8 +414,8 @@ function HELP {
 THREADS=$(cores)
 
 # Check that we have the required programs
-exes=('pigz' 'clumpify.sh' 'trim_galore' 'pear' 'spades.py' 'quast.py' 'cegma' 'BUSCO_v1.22.py' 'bwa' 'samtools' 'blastn' 'blobtools' 'multiqc')
-for program in "${exes[@]}" ; do
+exes=(pigz clumpify.sh trim_galore pear spades.py quast.py cegma BUSCO_v1.22.py bwa samtools blastn blobtools multiqc)
+for program in "${exes[@]}" ; done
     check_exe "$program"
 done
 
