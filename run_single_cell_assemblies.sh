@@ -349,7 +349,7 @@ function ncbi_nt () {
 }
 
 function ncbi_taxonomy () {
-	if [ ! -f "$NCBI_TAX/" ] ; then
+	if [ ! -f "$NCBI_TAX/taxdb.btd" ] ; then
 		echo "[ERROR]: Missing NCBI Taxonomy Libraries. Is your path correct?\n$NCBI_TAX\n"
 		exit 1
 	fi
