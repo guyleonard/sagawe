@@ -345,7 +345,7 @@ function check_exe () {
 
 function cores () {
     cores=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu)
-    echo $(("$cores" / 2))
+    echo $(($cores / 2))
 }
 
 function export_cegma () {
@@ -362,7 +362,7 @@ function export_cegma () {
 }
 
 function ncbi_nt () {
-    if [ ! -f "$NCBI_NT/nt.pal" ] ; then
+    if [ ! -f "$NCBI_NT/nt.nal" ] ; then
         echo "[ERROR]: Missing NCBI NT Libraries. Is your path correct?"
         echo "$NCBI_NT"
         exit 1
@@ -415,7 +415,7 @@ THREADS=$(cores)
 
 # Check that we have the required programs
 exes=(pigz clumpify.sh trim_galore pear spades.py quast.py cegma BUSCO_v1.22.py bwa samtools blastn blobtools multiqc)
-for program in "${exes[@]}" ; done
+for program in ${exes[@]} ; do
     check_exe "$program"
 done
 
