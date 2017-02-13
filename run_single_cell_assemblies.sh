@@ -16,63 +16,9 @@ BUSCO_DB="/home/ubuntu/busco/eukaryota"
 AUGUSTUS_CONFIG_PATH="/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/config"
 
 
-###########################################
-## Program Options - Do Not Change Below ##
-###########################################
-while getopts f:r:o:ptsqcbBmh FLAG; do
-    case $FLAG in
-        f)
-            READ1=$OPTARG
-            ;;
-        r)
-            READ2=$OPTARG
-            ;;
-        o)
-            output_dir=$OPTARG
-            ;;
-        p)
-            run_pear
-            ;;
-        t)
-            trim_galore
-            ;;
-        s)
-            assembly_spades
-            ;;
-        q)
-            report_quast
-            ;;
-        c)
-            report_cegma
-            ;;
-        b)
-            report_busco
-            ;;
-        B)
-            blobtools_bwa
-            blobtools_samtools
-            blobtools_blast
-            blobtools_create
-            blobtools_table
-            blobtools_image
-            ;;
-        m)
-            report_multiqc
-            ;;
-        h)
-            help_message
-            ;;
-        \?)
-            echo -e "Option -$OPTARG not allowed."
-            help_message
-            ;;
-    esac
-done
-
-
-#######################
-## Program Functions ##
-#######################
+#############################################
+## Program Functions - Do Not Change Below ##
+#############################################
 
 ## Run Pear Overlapper
 # default settings
@@ -405,6 +351,58 @@ function help_message () {
     exit 1
 }
 
+#####################
+## Program Options ##
+#####################
+while getopts f:r:o:ptsqcbBmh FLAG; do
+    case $FLAG in
+        f)
+            READ1=$OPTARG
+            ;;
+        r)
+            READ2=$OPTARG
+            ;;
+        o)
+            output_dir=$OPTARG
+            ;;
+        p)
+            run_pear
+            ;;
+        t)
+            trim_galore
+            ;;
+        s)
+            assembly_spades
+            ;;
+        q)
+            report_quast
+            ;;
+        c)
+            report_cegma
+            ;;
+        b)
+            report_busco
+            ;;
+        B)
+            blobtools_bwa
+            blobtools_samtools
+            blobtools_blast
+            blobtools_create
+            blobtools_table
+            blobtools_image
+            ;;
+        m)
+            report_multiqc
+            ;;
+        h)
+            help_message
+            ;;
+        \?)
+            echo -e "Option -$OPTARG not allowed."
+            help_message
+            ;;
+    esac
+done
 
 ###########################
 ## Main Pipeline Actions ##
