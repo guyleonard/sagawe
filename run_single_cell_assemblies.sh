@@ -1,32 +1,24 @@
 #!/usr/bin/env bash
-# Guy Leonard MMXVI
 
-##
-# This is a suggested workflow, this will work on a new Amazon AMI of Ubuntu Xenial
-# after using the bundles install_dependancies.sh script.
-##
-
-##
-# User Defined Variables
-##
+############################
+## User Defined Variables ##
+############################
 
 # NCBI 'nt' Database Location and name (no extension)
-NCBI_NT=/home/ubuntu/blast/nt/nt
-
+NCBI_NT="/home/ubuntu/blast/nt/nt"
 # NCBI Taxonomy Location
-NCBI_TAX=/home/ubuntu/blast/taxonomy
-
+NCBI_TAX="/home/ubuntu/blast/taxonomy"
 # CEGMA DIR
-CEGMA_DIR=/home/ubuntu/single_cell_workflow/build/CEGMA_v2.5
-export_cegma
-
+CEGMA_DIR="/home/ubuntu/single_cell_workflow/build/CEGMA_v2.5"
 # BUSCO Lineage Location
-BUSCO_DB=/home/ubuntu/busco/eukaryota
-
+BUSCO_DB="/home/ubuntu/busco/eukaryota"
 # Augustus Config Path
-export AUGUSTUS_CONFIG_PATH=/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/config
+AUGUSTUS_CONFIG_PATH="/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/config"
 
-while getopts f:r:o:pth FLAG; do
+###########################################
+## Program Options - Do Not Change Below ##
+###########################################
+while getopts f:r:o:ptsqcbBmh FLAG; do
     case $FLAG in
         f)
 	        READ1=$OPTARG
@@ -35,22 +27,37 @@ while getopts f:r:o:pth FLAG; do
 	        READ2=$OPTARG
 	        ;;
 	    o)
-            $current_dir=$OPTARG
+            $output_dir=$OPTARG
             ;;
 	    p)
-			overlapped_dir=$current_dir/overlapped
-            mkdir -p "$overlapped_dir"
             run_pear
             ;;
         t)
-			trimmed_dir=$current_dir/trimmed
-			mkdir -p "$trimmed_dir"
 		    trim_galore
 		    ;;
 		s)
-			assembly_dir=$current_dir/assembly
-			mkdir -p "$assembly_dir"
 			assembly_spades
+			;;
+		q)
+			report_quast
+			;;
+		c)
+			report_cegma
+			;;
+		b)
+			report_busco
+			;;
+		B)
+			blobtools_bwa
+			blobtools_samtools
+			blobtools_blast
+			blobtools_create
+			blobtools_table
+			blobtools_image
+			;;
+		m)
+			report_multiqc
+			;;
 	    h)
 	        help
 	        ;;
@@ -70,14 +77,16 @@ done
 # default settings
 ## deprecate for bbmerge?
 function run_pear () {
-    echo "Running PEAR Assembler"
-    pear -f $overlapped_dir/$READ1 \
-    -r $overlapped_dir/$READ2 \
-    -o pear_overlap -j $THREADS | tee $overlapped_dir/pear.log
+	overlapped_dir="$output_dir/overlapped"
+    mkdir -p "$overlapped_dir"
 
-    ln -s $trimmed_dir/pear_overlap.assembled.fastq.gz $trimmed_dir/assembled.fastq.gz
-    ln -s $trimmed_dir/pear_overlap.unassembled.forward.fastq.gz $trimmed_dir/unassembled.forward.fastq.gz
-    ln -s $trimmed_dir/pear_overlap.unassembled.reverse.fastq.gz $trimmed_dir/unassembled.reverse.fastq.gz
+    echo "Running PEAR Assembler"
+    pear -f $READ1 -r $READ2 \
+    -o $overlapped_dir/pear_overlap -j $THREADS | tee $overlapped_dir/pear.log
+
+    ln -s $overlapped_dir/pear_overlap.assembled.fastq.gz $overlapped_dir/assembled.fastq.gz
+    ln -s $overlapped_dir/pear_overlap.unassembled.forward.fastq.gz $overlapped_dir/unassembled.forward.fastq.gz
+    ln -s $overlapped_dir/pear_overlap.unassembled.reverse.fastq.gz $overlapped_dir/unassembled.reverse.fastq.gz
 }
 
 ## Run Trim Galore!
@@ -89,14 +98,16 @@ function run_pear () {
 # run FASTQC on trimmed
 # GZIP output
 function trim_galore () {
+	trimmed_dir="$output_dir/trimmed"
+	mkdir -p "$trimmed_dir"
+
 	echo "Running Trim Galore! on Untrimmed Assembled Reads"
 	trim_galore -q 20 --fastqc --gzip --length 150 \
-	$trimmed_dir/assembled.fastq.gz
+	$overlapped_dir/assembled.fastq.gz
 
 	echo "Running Trim Galore! on Untrimmed Un-assembled Reads"
 	trim_galore -q 20 --fastqc --gzip --length 150 --paired --retain_unpaired \
-	$trimmed_dir/unassembled.forward.fastq.gz \
-	$trimmed_dir/unassembled.reverse.fastq.gz
+	$overlapped_dir/unassembled.forward.fastq.gz $overlapped_dir/unassembled.reverse.fastq.gz
 }
 
 ## Run SPAdes
@@ -107,6 +118,9 @@ function trim_galore () {
 # 2 x unassembled
 # 2 x unpaired
 function assembly_spades () {
+	assembly_dir="$output_dir/assembly"
+	mkdir -p "$assembly_dir"
+
 	echo "Running SPAdes"
 	spades.py --sc --careful -t $THREADS \
 	--s1 $trimmed_dir/assembled_trimmed.fq.gz \
@@ -128,6 +142,8 @@ function assembly_spades () {
 # eukaryote mode
 # glimmer protein predictions
 function report_quast () {
+	quast_dir="$output_dir/reports/quast"
+	mkdir -p "$quast_dir"
 
 	if [ ! -f $assembly_dir/overlapped_and_paired/scaffolds.fasta ] ; then
 		echo -e "[ERROR]: SPAdes scaffolds cannot be found."
@@ -143,6 +159,9 @@ function report_quast () {
 # Run CEGMA
 # Genome mode
 function report_cegma () {
+	cegma_dir="$output_dir/reports/cegma"
+	mkdir -p "$cegma_dir"
+
 	if [ ! -f $assembly_dir/overlapped_and_paired/scaffolds.fasta ] ; then
 		echo -e "[ERROR]: SPAdes scaffolds cannot be found."
 		exit 1
@@ -155,6 +174,9 @@ function report_cegma () {
 
 # Run BUSCO
 function report_busco () {
+	busco_dir="$output_dir/reports/busco"
+	mkdir -p "$busco_dir"
+
 	if [ ! -f $assembly_dir/overlapped_and_paired/scaffolds.fasta ] ; then
 		echo -e "[ERROR]: SPAdes scaffolds cannot be found."
 		exit 1
@@ -166,10 +188,13 @@ function report_busco () {
 }
 
 function report_multiqc () {
-	multiqc $current_dir
+	multiqc $output_dir
 }
 
 function blobtools_bwa () {
+	blobtools_dir="$output_dir/reports/blobtools"
+	mkdir -p "$blobtools_dir"
+
 	ln -s $assembly_dir/overlapped_and_paired/scaffolds.fasta $blobtools_map/scaffolds.fasta
 
 	# index assembly (scaffolds.fa) with BWA
@@ -304,10 +329,15 @@ function cores () {
 }
 
 function export_cegma () {
-    export CEGMA=$CEGMA_DIR
-    export PATH=$PATH:$CEGMA_DIR/bin
-    export PERL5LIB=$PERL5LIB:$CEGMA_DIR/lib
-    export WISECONFIGDIR=/usr/share/wise/
+    if [ ! -d "$CEGMA_DIR"] ; then
+		echo "[ERROR]: Incorrect CEGMA Path. Is your path correct?\n$CEGMA_DIR\n"
+		exit 1
+	else
+	    export CEGMA=$CEGMA_DIR
+	    export PATH=$PATH:$CEGMA_DIR/bin
+	    export PERL5LIB=$PERL5LIB:$CEGMA_DIR/lib
+	    export WISECONFIGDIR=/usr/share/wise/
+	fi
 }
 
 function HELP {
@@ -319,11 +349,42 @@ function HELP {
     exit 1
 }
 
+function ncbi_nt () {
+	if [ ! -f "$NCBI_NT/nt.pal"] ; then
+		echo "[ERROR]: Missing NCBI NT Libraries. Is your path correct?\n$NCBI_NT\n"
+		exit 1
+	fi
+}
+
+function ncbi_taxonomy () {
+	if [ ! -f "$NCBI_TAX/"] ; then
+		echo "[ERROR]: Missing NCBI Taxonomy Libraries. Is your path correct?\n$NCBI_TAX\n"
+		exit 1
+	fi
+}
+
+function busco () {
+	if [ ! -d "$BUSCO_DB"] ; then
+		echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?\n$BUSCO_DB\n"
+		exit 1
+	fi
+}
+
+function augustus () {
+	if [ ! -d "AUGUSTUS_CONFIG_PATH"] ; then
+		echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?\n$BUSCO_DB\n"
+		exit 1
+	else
+		export AUGUSTUS_CONFIG_PATH="$AUGUSTUS_CONFIG_PATH"
+	fi
+}
+
 
 ###########################
 ## Main Pipeline Actions ##
 ###########################
 
+# Set Cores
 THREADS=$(cores)
 
 # Check that we have the required programs
@@ -331,3 +392,10 @@ exes=('pigz' 'clumpify.sh' 'trim_galore' 'pear' 'spades.py' 'quast.py' 'cegma' '
 for program in "${exes[@]}" ; do
     check_exe "$program"
 done
+
+# Check for correct Paths and exports
+export_cegma
+ncbi_taxonomy
+ncbi_nt
+busco
+augustus
