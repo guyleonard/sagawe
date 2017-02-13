@@ -60,11 +60,11 @@ while getopts f:r:o:ptsqcbBmh FLAG; do
             report_multiqc
             ;;
         h)
-            help
+            help_message
             ;;
         \?)
             echo -e "Option -$OPTARG not allowed."
-            help
+            help_message
             ;;
     esac
 done
@@ -395,7 +395,7 @@ function augustus () {
     fi
 }
 
-function HELP {
+function help_message () {
     echo -e "Basic Usage:"
     echo -e "Required Parameters:"
     echo -e "-f Read 1 FASTQ"
