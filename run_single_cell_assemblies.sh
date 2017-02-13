@@ -331,7 +331,8 @@ function cores () {
 
 function export_cegma () {
     if [ ! -d "$CEGMA_DIR" ] ; then
-		echo "[ERROR]: Incorrect CEGMA Path. Is your path correct?\n$CEGMA_DIR\n"
+		echo "[ERROR]: Incorrect CEGMA Path. Is your path correct?"
+		echo "$CEGMA_DIR"
 		exit 1
 	else
 	    export CEGMA=$CEGMA_DIR
@@ -343,28 +344,32 @@ function export_cegma () {
 
 function ncbi_nt () {
 	if [ ! -f "$NCBI_NT/nt.pal" ] ; then
-		echo "[ERROR]: Missing NCBI NT Libraries. Is your path correct?\n$NCBI_NT\n"
+		echo "[ERROR]: Missing NCBI NT Libraries. Is your path correct?"
+		echo "$NCBI_NT"
 		exit 1
 	fi
 }
 
 function ncbi_taxonomy () {
 	if [ ! -f "$NCBI_TAX/taxdb.btd" ] ; then
-		echo "[ERROR]: Missing NCBI Taxonomy Libraries. Is your path correct?\n$NCBI_TAX\n"
+		echo "[ERROR]: Missing NCBI Taxonomy Libraries. Is your path correct?"
+		echo "$NCBI_TAX"
 		exit 1
 	fi
 }
 
 function busco_db () {
 	if [ ! -d "$BUSCO_DB" ] ; then
-		echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?\n$BUSCO_DB\n"
+		echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?"
+		echo "$BUSCO_DB"
 		exit 1
 	fi
 }
 
 function augustus () {
 	if [ ! -d "AUGUSTUS_CONFIG_PATH" ] ; then
-		echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?\n$BUSCO_DB\n"
+		echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?"
+		echo "$AUGUSTUS_CONFIG_PATH"
 		exit 1
 	else
 		export AUGUSTUS_CONFIG_PATH="$AUGUSTUS_CONFIG_PATH"
