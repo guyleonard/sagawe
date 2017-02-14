@@ -110,24 +110,29 @@ function run_trim_galore () {
 # 2 x unassembled
 # 2 x unpaired
 function assembly_spades () {
-    assembly_dir="$output_dir/assembly"
-    mkdir -p "$assembly_dir"
+    trimmed_dir="$output_dir/trimmed"
 
-    echo "Running SPAdes"
-    spades.py --sc --careful -t "$THREADS" \
-    --s1 "$trimmed_dir/assembled_trimmed.fq.gz" \
-    --s2 "$trimmed_dir/unassembled.forward_unpaired_1.fq.gz" \
-    --s3 "$trimmed_dir/unassembled.reverse_unpaired_2.fq.gz" \
-    --pe1-1 "$trimmed_dir/unassembled.forward_val_1.fq.gz" \
-    --pe1-2 "$trimmed_dir/unassembled.reverse_val_2.fq.gz" \
-    -o overlapped_and_paired | tee "$assembly_dir/spades_overlapped_and_paired.log"
+    if [ ! -f "$trimmed_dir/assembled_trimmed.fq.gz" ] ; then
+        echo "Read Overlapper Was/Did Not Run. Please use -p option."
+    else
+        assembly_dir="$output_dir/assembly"
+        mkdir -p "$assembly_dir"
+        echo "Running SPAdes"
+        spades.py --sc --careful -t "$THREADS" \
+        --s1 "$trimmed_dir/assembled_trimmed.fq.gz" \
+        --s2 "$trimmed_dir/unassembled.forward_unpaired_1.fq.gz" \
+        --s3 "$trimmed_dir/unassembled.reverse_unpaired_2.fq.gz" \
+        --pe1-1 "$trimmed_dir/unassembled.forward_val_1.fq.gz" \
+        --pe1-2 "$trimmed_dir/unassembled.reverse_val_2.fq.gz" \
+        -o "$assembly_dir" | tee "$assembly_dir/spades_overlapped_and_paired.log"
 
-    # Sometimes SPAdes, even though it is aware of the memory limits, will request more memory than is available
-    # and then crash, we don't want the rest of the workflow to run through, and it would be nice to have an error message
-    #if [ ! -f $assembly_dir/overlapped_and_paired/scaffolds.fasta ] ; then
-    #   echo -e "[ERROR]: SPAdes did not build scaffolds. This is possibly a memory error."
-    #   exit 1
-    #fi
+        # Sometimes SPAdes, even though it is aware of the memory limits, will request more memory than is available
+        # and then crash, we don't want the rest of the workflow to run through, and it would be nice to have an error message
+        #if [ ! -f $assembly_dir/overlapped_and_paired/scaffolds.fasta ] ; then
+        #   echo -e "[ERROR]: SPAdes did not build scaffolds. This is possibly a memory error."
+        #   exit 1
+        #fi
+    fi
 }
 
 # Run QUAST
