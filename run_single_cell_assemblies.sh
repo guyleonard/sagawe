@@ -342,12 +342,24 @@ function augustus () {
 }
 
 function help_message () {
+    echo -e "Single Amplified Genome Assembly Pipeline"
     echo -e "Basic Usage:"
     echo -e "Required Parameters:"
     echo -e "-f Read 1 FASTQ"
     echo -e "-r Read 2 FASTQ"
     echo -e "-o Output Directory"
-    echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir"
+    echo -e "-a Run All Options Below (ptsqcbBm)"
+    echo -e "Pipeline Parameters:"
+    echo -e "-p Overlap Reads"
+    echo -e "-t Trim Overlapped Reads"
+    echo -e "-s Assemble Trimmed Reads"
+    echo -e "Reports:"
+    echo -e "-q Run QUAST"
+    echo -e "-c Run CEGMA"
+    echo -e "-b Run BUSCO"
+    echo -e "-B Run BlobTools"
+    echo -e "-m Run MultiQC"
+    echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -a"
     exit 1
 }
 
@@ -394,19 +406,34 @@ while getopts f:r:o:ptsqcbBmh FLAG; do
         m)
             report_multiqc
             ;;
+        a)
+            run_pear
+            trim_galore
+            assembly_spades
+            report_quast
+            report_cegma
+            report_busco
+            blobtools_bwa
+            blobtools_samtools
+            blobtools_blast
+            blobtools_create
+            blobtools_table
+            blobtools_image
+            report_multiqc
+            ;;
         h)
             help_message
             ;;
         \?)
-            echo -e "Option -$OPTARG not allowed."
+            echo -e "Option not allowed."
             help_message
             ;;
     esac
 done
 
-###########################
-## Main Pipeline Actions ##
-###########################
+##############################
+## Initial Pipeline Actions ##
+##############################
 
 # Set Cores
 THREADS=$(cores)
@@ -417,7 +444,7 @@ for program in ${exes[@]} ; do
     check_exe "$program"
 done
 
-# Check for correct Paths and exports
+# Check for correct Paths and Exports
 export_cegma
 ncbi_taxonomy
 ncbi_nt
