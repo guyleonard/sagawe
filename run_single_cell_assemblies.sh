@@ -368,9 +368,29 @@ function help_message () {
     exit 1
 }
 
-#####################
-## Program Options ##
-#####################
+##############################
+## Initial Pipeline Actions ##
+##############################
+
+# Set Cores
+THREADS=$(cores)
+
+# Check that we have the required programs
+exes=(pigz clumpify.sh trim_galore pear spades.py quast.py cegma BUSCO_v1.22.py bwa samtools blastn blobtools multiqc)
+for program in ${exes[@]} ; do
+    check_exe "$program"
+done
+
+# Check for correct Paths and Exports
+export_cegma
+ncbi_taxonomy
+ncbi_nt
+busco_db
+augustus
+
+######################
+## Pipeline Options ##
+######################
 while getopts f:r:o:ptsqcbBmah FLAG; do
     case $FLAG in
         f)
@@ -436,23 +456,3 @@ while getopts f:r:o:ptsqcbBmah FLAG; do
             ;;
     esac
 done
-
-##############################
-## Initial Pipeline Actions ##
-##############################
-
-# Set Cores
-THREADS=$(cores)
-
-# Check that we have the required programs
-exes=(pigz clumpify.sh trim_galore pear spades.py quast.py cegma BUSCO_v1.22.py bwa samtools blastn blobtools multiqc)
-for program in ${exes[@]} ; do
-    check_exe "$program"
-done
-
-# Check for correct Paths and Exports
-export_cegma
-ncbi_taxonomy
-ncbi_nt
-busco_db
-augustus
