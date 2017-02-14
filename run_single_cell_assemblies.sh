@@ -94,9 +94,11 @@ function run_trim_galore () {
         "$overlapped_dir/unassembled.forward.fastq.gz" "$overlapped_dir/unassembled.reverse.fastq.gz" \
         -o "$trimmed_dir" | tee "$trimmed_dir/trim_galore_unassembled.log"
 
-        mv "$trimmed_dir/*.html" "$fastqc_dir"
-        mv "$trimmed_dir/*.zip" "$fastqc_dir"
-        mv "$trimmed_dir/*.txt" "$fastqc_dir"
+        absolute_path="$( cd "$trimmed_dir" && pwd )"
+
+        mv "$absolute_path/"*".html" "$absolute_path/fastqc"
+        mv "$absolute_path/"*".zip" "$absolute_path/fastqc"
+        mv "$absolute_path/"*".txt" "$absolute_path/fastqc"
     fi
 }
 
