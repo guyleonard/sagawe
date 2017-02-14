@@ -44,7 +44,8 @@ function gzip_fastq () {
     overlapped_dir="$output_dir/overlapped"
     absolute_path="$( cd "$overlapped_dir" && pwd )"
 
-    if [command -v "clumpify.sh" >/dev/null 2>&1] ; then
+    if command -v "clumpify.sh" >/dev/null 2>&1 ; then
+        echo "Running clumpify.sh"
         clumpify.sh in="$absolute_path/pear_overlap.assembled.fastq" \
         out="$absolute_path/pear_overlap.assembled.fastq.gz"
 
@@ -52,12 +53,16 @@ function gzip_fastq () {
         in2="$absolute_path/pear_overlap.unassembled.reverse.fastq" \
         out="$absolute_path/pear_overlap.unassembled.forward.fastq.gz" \
         out2="$absolute_path/pear_overlap.unassembled.reverse.fastq.gz"
-
-    elif [command -v "pigz" >/dev/null 2>&1] ; then
-        pigz -9 -R "$absolute_path/*.fastq"
-
+    elif command -v "pigz" >/dev/null 2>&1 ; then
+        echo "Running pigz"
+        pigz -9 -R "$absolute_path/pear_overlap.assembled.fastq"
+        pigz -9 -R "$absolute_path/pear_overlap.unassembled.forward.fastq"
+        pigz -9 -R "$absolute_path/pear_overlap.unassembled.reverse.fastq"
     else
-        gzip -9 --rsyncable "$absolute_path/*.fastq"
+        echo "Running gzip"
+        gzip -9 --rsyncable "$absolute_path/pear_overlap.assembled.fastq"
+        gzip -9 --rsyncable "$absolute_path/pear_overlap.unassembled.forward.fastq"
+        gzip -9 --rsyncable "$absolute_path/pear_overlap.unassembled.reverse.fastq"
     fi
 }
 
@@ -71,6 +76,7 @@ function gzip_fastq () {
 # GZIP output
 function trim_galore () {
     overlapped_dir="$output_dir/overlapped"
+
     if [ ! -f "$overlapped_dir/assembled.fastq.gz" ] ; then
         echo "Read Overlapper Was/Did Not Run. Please use -p option."
     else
@@ -78,11 +84,11 @@ function trim_galore () {
         mkdir -p "$trimmed_dir"
 
         echo "Running Trim Galore! on Untrimmed Assembled Reads"
-        trim_galore -q 20 --fastqc --gzip --length 150 \
+        trim_galore -q 20 --fastqc --gzip --length 100 \
         "$overlapped_dir/assembled.fastq.gz"
 
         echo "Running Trim Galore! on Untrimmed Un-assembled Reads"
-        trim_galore -q 20 --fastqc --gzip --length 150 --paired --retain_unpaired \
+        trim_galore -q 20 --fastqc --gzip --length 100 --paired --retain_unpaired \
         "$overlapped_dir/unassembled.forward.fastq.gz" "$overlapped_dir/unassembled.reverse.fastq.gz"
     fi
 }
@@ -147,7 +153,6 @@ function report_cegma () {
         cegma -T "$THREADS" -g "$assembly_dir/overlapped_and_paired/scaffolds.fasta" -o "$cegma_dir/cegma"
     fi
 }
-
 
 # Run BUSCO
 function report_busco () {
@@ -414,7 +419,7 @@ busco_db
 augustus
 
 NUMARGS=$#
-if [ $NUMARGS -eq 0 ]; then
+if [ "$NUMARGS" -eq 0 ]; then
   help_message
 fi
 
