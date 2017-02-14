@@ -33,9 +33,32 @@ function run_pear () {
 
     absolute_path="$( cd "$overlapped_dir" && pwd )"
 
-    ln -s "$absolute_path/pear_overlap.assembled.fastq" "$absolute_path/assembled.fastq"
-    ln -s "$absolute_path/pear_overlap.unassembled.forward.fastq" "$absolute_path/unassembled.forward.fastq"
-    ln -s "$absolute_path/pear_overlap.unassembled.reverse.fastq" "$absolute_path/unassembled.reverse.fastq"
+    gzip_fastq
+
+    ln -s "$absolute_path/pear_overlap.assembled.fastq.gz" "$absolute_path/assembled.fastq.gz"
+    ln -s "$absolute_path/pear_overlap.unassembled.forward.fastq.gz" "$absolute_path/unassembled.forward.fastq.gz"
+    ln -s "$absolute_path/pear_overlap.unassembled.reverse.fastq.gz" "$absolute_path/unassembled.reverse.fastq.gz"
+}
+
+function gzip_fastq () {
+    overlapped_dir="$output_dir/overlapped"
+    absolute_path="$( cd "$overlapped_dir" && pwd )"
+
+    if [command -v "clumpify.sh" >/dev/null 2>&1] ; then
+        clumpify.sh in="$absolute_path/pear_overlap.assembled.fastq" \
+        out="$absolute_path/pear_overlap.assembled.fastq.gz"
+
+        clumpify.sh in="$absolute_path/pear_overlap.unassembled.forward.fastq" \
+        in2="$absolute_path/pear_overlap.unassembled.reverse.fastq" \
+        out="$absolute_path/pear_overlap.unassembled.forward.fastq.gz" \
+        out2="$absolute_path/pear_overlap.unassembled.reverse.fastq.gz"
+
+    elif [command -v "pigz" >/dev/null 2>&1] ; then
+        pigz -9 -R "$absolute_path/*.fastq"
+
+    else
+        gzip -9 --rsyncable "$absolute_path/*.fastq"
+    fi
 }
 
 ## Run Trim Galore!
