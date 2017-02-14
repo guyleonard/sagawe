@@ -31,9 +31,11 @@ function run_pear () {
     pear -f "$READ1" -r "$READ2" \
     -o "$overlapped_dir/pear_overlap" -j "$THREADS" | tee "$overlapped_dir/pear.log"
 
-    ln -s "$overlapped_dir/pear_overlap.assembled.fastq.gz" "$overlapped_dir/assembled.fastq.gz"
-    ln -s "$overlapped_dir/pear_overlap.unassembled.forward.fastq.gz" "$overlapped_dir/unassembled.forward.fastq.gz"
-    ln -s "$overlapped_dir/pear_overlap.unassembled.reverse.fastq.gz" "$overlapped_dir/unassembled.reverse.fastq.gz"
+    absolute_path="$( cd "$overlapped_dir" && pwd )"
+
+    ln -s "$absolute_path/pear_overlap.assembled.fastq" "$absolute_path/assembled.fastq"
+    ln -s "$absolute_path/pear_overlap.unassembled.forward.fastq" "$absolute_path/unassembled.forward.fastq"
+    ln -s "$absolute_path/pear_overlap.unassembled.reverse.fastq" "$absolute_path/unassembled.reverse.fastq"
 }
 
 ## Run Trim Galore!
@@ -387,6 +389,11 @@ ncbi_taxonomy
 ncbi_nt
 busco_db
 augustus
+
+NUMARGS=$#
+if [ $NUMARGS -eq 0 ]; then
+  help_message
+fi
 
 ######################
 ## Pipeline Options ##
