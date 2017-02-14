@@ -124,7 +124,7 @@ function assembly_spades () {
         --s3 "$trimmed_dir/unassembled.reverse_unpaired_2.fq.gz" \
         --pe1-1 "$trimmed_dir/unassembled.forward_val_1.fq.gz" \
         --pe1-2 "$trimmed_dir/unassembled.reverse_val_2.fq.gz" \
-        -o "$assembly_dir" | tee "$assembly_dir/spades_overlapped_and_paired.log"
+        -o "$assembly_dir"
 
         # Sometimes SPAdes, even though it is aware of the memory limits, will request more memory than is available
         # and then crash, we don't want the rest of the workflow to run through, and it would be nice to have an error message
