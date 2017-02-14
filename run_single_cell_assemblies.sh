@@ -70,11 +70,11 @@ function gzip_fastq () {
 # Two sets of trimming:
 # Assembled/overlapped reads
 # Unassembled paired reads.
-# Minimum length of 150
+# Minimum length of 100
 # Minimum quality of Q20
 # run FASTQC on trimmed
 # GZIP output
-function trim_galore () {
+function run_trim_galore () {
     overlapped_dir="$output_dir/overlapped"
 
     if [ ! -f "$overlapped_dir/assembled.fastq.gz" ] ; then
@@ -82,14 +82,21 @@ function trim_galore () {
     else
         trimmed_dir="$output_dir/trimmed"
         mkdir -p "$trimmed_dir"
+        fastqc_dir="$trimmed_dir/fastqc"
+        mkdir -p "$fastqc_dir"
 
         echo "Running Trim Galore! on Untrimmed Assembled Reads"
-        trim_galore -q 20 --fastqc --gzip --length 100 \
-        "$overlapped_dir/assembled.fastq.gz"
+        trim_galore -q 20 --fastqc --'gzip' --length 100 \
+        "$overlapped_dir/assembled.fastq.gz" -o "$trimmed_dir" | tee "$trimmed_dir/trim_galore_assembled.log"
 
         echo "Running Trim Galore! on Untrimmed Un-assembled Reads"
-        trim_galore -q 20 --fastqc --gzip --length 100 --paired --retain_unpaired \
-        "$overlapped_dir/unassembled.forward.fastq.gz" "$overlapped_dir/unassembled.reverse.fastq.gz"
+        trim_galore -q 20 --fastqc --'gzip' --length 100 --paired --retain_unpaired \
+        "$overlapped_dir/unassembled.forward.fastq.gz" "$overlapped_dir/unassembled.reverse.fastq.gz" \
+        -o "$trimmed_dir" | tee "$trimmed_dir/trim_galore_unassembled.log"
+
+        mv "$trimmed_dir/*.html" "$fastqc_dir"
+        mv "$trimmed_dir/*.zip" "$fastqc_dir"
+        mv "$trimmed_dir/*.txt" "$fastqc_dir"
     fi
 }
 
@@ -442,7 +449,7 @@ while getopts f:r:o:ptsqcbBmah FLAG; do
             run_pear
             ;;
         t)
-            trim_galore
+            run_trim_galore
             ;;
         s)
             assembly_spades
