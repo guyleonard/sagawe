@@ -45,16 +45,21 @@ function run_pear () {
 # run FASTQC on trimmed
 # GZIP output
 function trim_galore () {
-    trimmed_dir="$output_dir/trimmed"
-    mkdir -p "$trimmed_dir"
+    overlapped_dir="$output_dir/overlapped"
+    if [ ! -f "$overlapped_dir/assembled.fastq.gz" ] ; then
+        echo "Read Overlapper Was/Did Not Run. Please use -p option."
+    else
+        trimmed_dir="$output_dir/trimmed"
+        mkdir -p "$trimmed_dir"
 
-    echo "Running Trim Galore! on Untrimmed Assembled Reads"
-    trim_galore -q 20 --fastqc --gzip --length 150 \
-    "$overlapped_dir/assembled.fastq.gz"
+        echo "Running Trim Galore! on Untrimmed Assembled Reads"
+        trim_galore -q 20 --fastqc --gzip --length 150 \
+        "$overlapped_dir/assembled.fastq.gz"
 
-    echo "Running Trim Galore! on Untrimmed Un-assembled Reads"
-    trim_galore -q 20 --fastqc --gzip --length 150 --paired --retain_unpaired \
-    "$overlapped_dir/unassembled.forward.fastq.gz" "$overlapped_dir/unassembled.reverse.fastq.gz"
+        echo "Running Trim Galore! on Untrimmed Un-assembled Reads"
+        trim_galore -q 20 --fastqc --gzip --length 150 --paired --retain_unpaired \
+        "$overlapped_dir/unassembled.forward.fastq.gz" "$overlapped_dir/unassembled.reverse.fastq.gz"
+    fi
 }
 
 ## Run SPAdes
@@ -345,20 +350,20 @@ function help_message () {
     echo -e "Single Amplified Genome Assembly Pipeline"
     echo -e "Basic Usage:"
     echo -e "Required Parameters:"
-    echo -e "-f Read 1 FASTQ"
-    echo -e "-r Read 2 FASTQ"
-    echo -e "-o Output Directory"
-    echo -e "-a Run All Options Below (ptsqcbBm)"
+    echo -e "  -f Read 1 FASTQ"
+    echo -e "  -r Read 2 FASTQ"
+    echo -e "  -o Output Directory"
     echo -e "Pipeline Parameters:"
-    echo -e "-p Overlap Reads"
-    echo -e "-t Trim Overlapped Reads"
-    echo -e "-s Assemble Trimmed Reads"
+    echo -e "  -a Run All Options Below (ptsqcbBm)"
+    echo -e "  -p Overlap Reads"
+    echo -e "  -t Trim Overlapped Reads"
+    echo -e "  -s Assemble Trimmed Reads"
     echo -e "Reports:"
-    echo -e "-q Run QUAST"
-    echo -e "-c Run CEGMA"
-    echo -e "-b Run BUSCO"
-    echo -e "-B Run BlobTools"
-    echo -e "-m Run MultiQC"
+    echo -e "  -q Run QUAST"
+    echo -e "  -c Run CEGMA"
+    echo -e "  -b Run BUSCO"
+    echo -e "  -B Run BlobTools"
+    echo -e " -m Run MultiQC"
     echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -a"
     exit 1
 }
@@ -366,7 +371,7 @@ function help_message () {
 #####################
 ## Program Options ##
 #####################
-while getopts f:r:o:ptsqcbBmh FLAG; do
+while getopts f:r:o:ptsqcbBmah FLAG; do
     case $FLAG in
         f)
             READ1=$OPTARG
@@ -376,6 +381,7 @@ while getopts f:r:o:ptsqcbBmh FLAG; do
             ;;
         o)
             output_dir=$OPTARG
+            mkdir -p "$output_dir"
             ;;
         p)
             run_pear
