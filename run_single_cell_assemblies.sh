@@ -336,11 +336,11 @@ function blobtools_table () {
 
     # Standard Output - Phylum
     echo "Running BlobTools View"
-    blobtools view -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" \
+    blobtools view -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
     --out "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_phylum_table.csv" | tee -a "$blobtools_dir/blobtools.log"
 
     # Other Output - Species
-    blobtools view -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" \
+    blobtools view -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
     --out "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_superkingdom_table.csv" \
     --rank superkingdom | tee -a "$blobtools_dir/blobtools.log"
 }
@@ -351,18 +351,18 @@ function blobtools_image () {
 
     # Standard Output - Phylum, 7 Taxa
     echo "Running BlobTools Plots - Standard + SVG"
-    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" | tee -a "$blobtools_dir/blobtools.log"
+    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" | tee -a "$blobtools_dir/blobtools.log"
 
-    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" \
+    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
     --format svg | tee -a "$blobtools_dir/blobtools.log"
 
 
     # Other Output - Species, 15 Taxa
     echo "Running BlobTools Plots - SuperKingdom + SVG"
-    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" \
+    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
     -r superkingdom | tee -a "$blobtools_dir/blobtools.log"
 
-    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.BlobDB.json" \
+    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
     -r superkingdom --format svg | tee -a "$blobtools_dir/blobtools.log"
 }
 
