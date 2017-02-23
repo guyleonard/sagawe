@@ -20,9 +20,18 @@ AUGUSTUS_CONFIG_PATH="/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/con
 ## Program Functions - Do Not Change Below ##
 #############################################
 
+function run_overlapper () {
+    if $overlap_option eq "bbmerge" ; then
+        run_bbmerge
+    elif $overlap_option eq "pear" ; then
+        run_pear
+    else
+        run_pear
+    fi
+}
+
 ## Run Pear Overlapper
 # default settings
-## deprecate for bbmerge?
 function run_pear () {
     overlapped_dir="$output_dir/overlapped"
     mkdir -p "$overlapped_dir"
@@ -38,6 +47,22 @@ function run_pear () {
     ln -s "$absolute_path/pear_overlap.assembled.fastq.gz" "$absolute_path/assembled.fastq.gz"
     ln -s "$absolute_path/pear_overlap.unassembled.forward.fastq.gz" "$absolute_path/unassembled.forward.fastq.gz"
     ln -s "$absolute_path/pear_overlap.unassembled.reverse.fastq.gz" "$absolute_path/unassembled.reverse.fastq.gz"
+}
+
+## Run BBMerge
+# Roughly same settings as PEAR
+function run_bbmerge () {
+    overlapped_dir="$output_dir/overlapped"
+    mkdir -p "$overlapped_dir"
+
+    absolute_path="$( cd "$overlapped_dir" && pwd )"
+
+    echo "Running BBMerge"
+    bbmerge.sh in1="$READ1" in2="$READ2" \
+    out="$absolute_path/assembled.fastq.gz" \
+    outu1="$absolute_path/unassembled.forward.fastq.gz" \
+    outu2="$absolute_path/unassembled.reverse.fastq.gz" \
+    minoverlap=10 ziplevel=9
 }
 
 function gzip_fastq () {
@@ -109,7 +134,7 @@ function run_trim_galore () {
 # 1 x assembled
 # 2 x unassembled
 # 2 x unpaired
-function assembly_spades () {
+function run_assembly_spades () {
     trimmed_dir="$output_dir/trimmed"
 
     if [ ! -f "$trimmed_dir/assembled_trimmed.fq.gz" ] ; then
@@ -158,8 +183,13 @@ function report_cegma () {
     else
         cegma_dir="$output_dir/reports/cegma"
         mkdir -p "$cegma_dir"
+
         echo "Running CEGMA"
         cegma -T "$THREADS" -g "$assembly_dir/scaffolds.fasta" -o "$cegma_dir" | tee "$cegma_dir/cegma.log"
+
+        # Tidy up, CEGMA's -o option doesn't seem to output to a dir!?
+        absolute_path="$( cd "$output_dir" && pwd )"
+        mv "$absolute_path/cegma."* "$absolute_path/reports/cegma"
     fi
 }
 
@@ -173,6 +203,7 @@ function report_busco () {
     else
         busco_dir="$output_dir/reports/busco"
         mkdir -p "$busco_dir"
+        
         BUSCO_v1.22.py \
         -g "$assembly_dir/scaffolds.fasta" \
         -c "$THREADS" -l "$BUSCO_DB" -o "$busco_dir" -f | tee "$busco_dir/busco.log"
@@ -399,20 +430,20 @@ function help_message () {
     echo -e "Single Amplified Genome Assembly Pipeline"
     echo -e "Basic Usage:"
     echo -e "Required Parameters:"
-    echo -e "  -f Read 1 FASTQ"
-    echo -e "  -r Read 2 FASTQ"
-    echo -e "  -o Output Directory"
+    echo -e "  -f <forward.fastq>"
+    echo -e "  -r <reverse.fastq>"
+    echo -e "  -o <./output_dir>"
     echo -e "Pipeline Parameters:"
-    echo -e "  -a Run All Options Below (ptsqcbBm)"
-    echo -e "  -p Overlap Reads"
-    echo -e "  -t Trim Overlapped Reads"
-    echo -e "  -s Assemble Trimmed Reads"
+    echo -e "  -a 	Run All Options Below (ptsqcbBm)"
+    echo -e "  -p <pear|bbmerge>	Overlap Reads"
+    echo -e "  -t 	Trim Overlapped Reads"
+    echo -e "  -s   Assemble Trimmed Reads"
     echo -e "Reports:"
-    echo -e "  -q Run QUAST"
-    echo -e "  -c Run CEGMA"
-    echo -e "  -b Run BUSCO"
-    echo -e "  -B Run BlobTools"
-    echo -e " -m Run MultiQC"
+    echo -e "  -q 	Run QUAST"
+    echo -e "  -c 	Run CEGMA"
+    echo -e "  -b 	Run BUSCO"
+    echo -e "  -B 	Run BlobTools"
+    echo -e "  -m 	Run MultiQC"
     echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -a"
     exit 1
 }
@@ -445,7 +476,7 @@ fi
 ######################
 ## Pipeline Options ##
 ######################
-while getopts f:r:o:ptsqcbBmah FLAG; do
+while getopts f:r:o:p:tsqcbBmah FLAG; do
     case $FLAG in
         f)
             READ1=$OPTARG
@@ -458,13 +489,14 @@ while getopts f:r:o:ptsqcbBmah FLAG; do
             mkdir -p "$output_dir"
             ;;
         p)
-            run_pear
+            overlap_option=$OPTARG
+            run_overlapper
             ;;
         t)
             run_trim_galore
             ;;
         s)
-            assembly_spades
+            run_assembly_spades
             ;;
         q)
             report_quast
@@ -488,8 +520,8 @@ while getopts f:r:o:ptsqcbBmah FLAG; do
             ;;
         a)
             run_pear
-            trim_galore
-            assembly_spades
+            run_trim_galore
+            run_assembly_spades
             report_quast
             report_cegma
             report_busco
@@ -510,3 +542,5 @@ while getopts f:r:o:ptsqcbBmah FLAG; do
             ;;
     esac
 done
+
+exit 0
