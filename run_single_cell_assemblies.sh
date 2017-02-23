@@ -6,8 +6,13 @@
 
 # NCBI 'nt' Database Location and name (no extension)
 NCBI_NT="/home/ubuntu/blast/nt"
-# NCBI Taxonomy Location
-NCBI_TAX="/home/ubuntu/blast/taxonomy"
+# NCBI Taxonomy Dump
+# ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
+NCBI_TAXDMP="/home/ubuntu/blast/taxonomy"
+# NCBI Taxonomy DB Location
+# ftp://ftp.ncbi.nlm.nih.gov/blast/db/taxdb.tar.gz
+NCBI_TAXDB="/home/ubuntu/blast/taxdb"
+export BLASTDB=$NCBI_TAXDB
 # CEGMA DIR
 CEGMA_DIR="/home/ubuntu/single_cell_workflow/build/CEGMA_v2.5"
 # BUSCO Lineage Location
@@ -297,7 +302,10 @@ function blobtools_samtools () {
     samtools index "$blobtools_map/scaffolds_mapped_all_reads.bam" | tee -a "$blobtools_map/samtools.log"
 
     # delete sam files
-    rm "$blobtools_map/*.sam"
+    rm "$blobtools_map/scaffolds_mapped_assembled_reads.sam"
+    rm "$blobtools_map/scaffolds_mapped_unassembled_paired_reads.sam"
+    rm "$blobtools_map/scaffolds_mapped_unassembled_unpaired_forward_reads.sam"
+    rm "$blobtools_map/scaffolds_mapped_unassembled_unpaired_reverse_reads.sam"
 }
 
 function blobtools_blast () {
@@ -325,7 +333,7 @@ function blobtools_create () {
 
     echo "Running BlobTools CREATE - slow"
     blobtools create -i "$blobtools_map/scaffolds.fasta" \
-    --nodes "$NCBI_TAX/nodes.dmp" --names "$NCBI_TAX/names.dmp" \
+    --nodes "$NCBI_TAXDMP/nodes.dmp" --names "$NCBI_TAXDMP/names.dmp" \
     -t "$blobtools_blast/scaffolds_vs_nt_1e-10.megablast" \
     -b "$blobtools_map/scaffolds_mapped_all_reads.bam" \
     -o "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools" | tee -a "$blobtools_dir/blobtools.log"
@@ -402,10 +410,10 @@ function ncbi_nt () {
     fi
 }
 
-function ncbi_taxonomy () {
-    if [ ! -f "$NCBI_TAX/nodes.dmp" ] ; then
+function NCBI_TAXDMPonomy () {
+    if [ ! -f "$NCBI_TAXDMP/nodes.dmp" ] ; then
         echo "[ERROR]: Missing NCBI Taxonomy Libraries. Is your path correct?"
-        echo "$NCBI_TAX"
+        echo "$NCBI_TAXDMP"
         exit 1
     fi
 }
@@ -465,7 +473,7 @@ done
 
 # Check for correct Paths and Exports
 export_cegma
-ncbi_taxonomy
+NCBI_TAXDMPonomy
 ncbi_nt
 busco_db
 augustus
