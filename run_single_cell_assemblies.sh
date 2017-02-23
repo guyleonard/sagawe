@@ -228,6 +228,8 @@ function blobtools_bwa () {
         mkdir -p "$blobtools_map"
 
         absolute_path="$( cd "$output_dir" && pwd )"
+        
+        trimmed_dir="$absolute_dir/trimmed"
 
         ln -s "$absolute_path/assembly/scaffolds.fasta" "$absolute_path/reports/blobtools/mapping/scaffolds.fasta"
 
