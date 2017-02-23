@@ -5,7 +5,7 @@
 ############################
 
 # NCBI 'nt' Database Location and name (no extension)
-NCBI_NT="/home/ubuntu/blast/nt/nt"
+NCBI_NT="/home/ubuntu/blast/nt"
 # NCBI Taxonomy Location
 NCBI_TAX="/home/ubuntu/blast/taxonomy"
 # CEGMA DIR
@@ -310,7 +310,7 @@ function blobtools_blast () {
     echo "Running BLAST"
     blastn -task megablast \
     -query "$blobtools_map/scaffolds.fasta" \
-    -db "$NCBI_NT" \
+    -db "$NCBI_NT/nt" \
     -evalue 1e-10 \
     -num_threads "$THREADS" \
     -outfmt '6 qseqid staxids bitscore std sscinames sskingdoms stitle' \
