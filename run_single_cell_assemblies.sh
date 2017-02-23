@@ -190,7 +190,7 @@ function report_cegma () {
         mkdir -p "$cegma_dir"
 
         echo "Running CEGMA"
-        cegma -T "$THREADS" -g "$assembly_dir/scaffolds.fasta" -o "$cegma_dir" | tee "$cegma_dir/cegma.log"
+        cegma -T "$THREADS" -g "$assembly_dir/scaffolds.fasta" -o "$cegma_dir/cegma" | tee "$cegma_dir/cegma.log"
 
         # Tidy up, CEGMA's -o option doesn't seem to output to a dir!?
         absolute_path="$( cd "$output_dir" && pwd )"
