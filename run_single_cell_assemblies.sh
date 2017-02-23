@@ -403,7 +403,7 @@ function ncbi_nt () {
 }
 
 function ncbi_taxonomy () {
-    if [ ! -f "$NCBI_TAX/taxdb.btd" ] ; then
+    if [ ! -f "$NCBI_TAX/nodes.dmp" ] ; then
         echo "[ERROR]: Missing NCBI Taxonomy Libraries. Is your path correct?"
         echo "$NCBI_TAX"
         exit 1
