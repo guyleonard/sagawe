@@ -341,37 +341,41 @@ function blobtools_create () {
 
 function blobtools_table () {
     blobtools_dir="$output_dir/reports/blobtools"
+    mkdir -p "$blobtools_dir/table"
 
     # Standard Output - Phylum
     echo "Running BlobTools View"
     blobtools view -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
-    --out "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_phylum_table.csv" | tee -a "$blobtools_dir/blobtools.log"
+    --out "$blobtools_dir/table/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_phylum_table.csv" | tee -a "$blobtools_dir/blobtools.log"
 
     # Other Output - Species
     blobtools view -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
-    --out "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_superkingdom_table.csv" \
+    --out "$blobtools_dir/table/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_superkingdom_table.csv" \
     --rank superkingdom | tee -a "$blobtools_dir/blobtools.log"
 }
 
 # run blobtools plot - image output
 function blobtools_image () {
     blobtools_dir="$output_dir/reports/blobtools"
+    mkdir -p "$blobtools_dir/images/png"
+    mkdir -p "$blobtools_dir/images/svg"
 
     # Standard Output - Phylum, 7 Taxa
     echo "Running BlobTools Plots - Standard + SVG"
-    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" | tee -a "$blobtools_dir/blobtools.log"
+    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
+    -o "$blobtools_dir/images/png/" | tee -a "$blobtools_dir/blobtools.log"
 
     blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
-    --format svg | tee -a "$blobtools_dir/blobtools.log"
+    --format svg -o "$blobtools_dir/images/svg/" | tee -a "$blobtools_dir/blobtools.log"
 
 
-    # Other Output - Species, 15 Taxa
+    # Other Output - Super Kingdom, 7 Taxa
     echo "Running BlobTools Plots - SuperKingdom + SVG"
     blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
-    -r superkingdom | tee -a "$blobtools_dir/blobtools.log"
+    -r superkingdom -o "$blobtools_dir/images/png/" | tee -a "$blobtools_dir/blobtools.log"
 
     blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
-    -r superkingdom --format svg | tee -a "$blobtools_dir/blobtools.log"
+    -r superkingdom --format svg -o "$blobtools_dir/images/svg/" | tee -a "$blobtools_dir/blobtools.log"
 }
 
 
@@ -410,7 +414,7 @@ function ncbi_nt () {
     fi
 }
 
-function NCBI_TAXDMPonomy () {
+function ncbi_taxonomy () {
     if [ ! -f "$NCBI_TAXDMP/nodes.dmp" ] ; then
         echo "[ERROR]: Missing NCBI Taxonomy Libraries. Is your path correct?"
         echo "$NCBI_TAXDMP"
@@ -473,7 +477,7 @@ done
 
 # Check for correct Paths and Exports
 export_cegma
-NCBI_TAXDMPonomy
+ncbi_taxonomy
 ncbi_nt
 busco_db
 augustus
