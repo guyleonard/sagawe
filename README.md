@@ -24,7 +24,9 @@ This is a suggested workflow for the assembly of [MDA](https://en.wikipedia.org/
 10. MultiQC - Aggregate results from bioinformatics analyses across many samples into a single report
 
 ### Example Usage / Help
-    
+
+Program parameters are order based, n must come before a, p before t, etc...
+
     Single Amplified Genome Assembly Pipeline
     Basic Usage:
     Required Parameters:
@@ -32,11 +34,11 @@ This is a suggested workflow for the assembly of [MDA](https://en.wikipedia.org/
       -r <reverse.fastq>
       -o <./output_dir>
     Pipeline Parameters:
+      -n  Read Normalisation (optional)
       -a 	Run All Options Below (ptsqcbBm)
-      -p <pear|bbmerge>	Overlap Reads
+      -p  <pear|bbmerge>	Overlap Reads (pear is default)
       -t 	Trim Overlapped Reads
-      -s   Assemble Trimmed Reads
-      -n   (use|perform) Read Normalisation
+      -s  Assemble Trimmed Reads
     Reports:
       -q 	Run QUAST
       -c 	Run CEGMA
@@ -44,7 +46,7 @@ This is a suggested workflow for the assembly of [MDA](https://en.wikipedia.org/
       -B 	Run BlobTools
       -m 	Run MultiQC
     
-    Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -a -n
+    Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -n -a
 
 ## Gene Prediction Workflow
 
