@@ -26,17 +26,19 @@ AUGUSTUS_CONFIG_PATH="/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/con
 ##         Roughly In Order of Use         ##
 #############################################
 
-## Run bbnorm to digitally normalise your
+## Run bbnorm 
+# This is to digitally normalise your
 # data if it will not assemble, remember
-# you want to map back the original reads to an
-# assembly not the normalised reads
+# you should map the original reads to an
+# assembly and not the normalised reads,
+# this script does not currently do that
+# so as to to preserve overlap/trimmed reads 
+# used in the assembly for normal analysis...
 function run_normalisation () {
     normalised_dir="$output_dir/normalised"
     mkdir -p "$normalised_dir"
 
-    absolute_path="$( cd "$overlapped_dir" && pwd )"
-
-    echo "Running BBMerge"
+    echo "Running BBNorm"
     bbnorm.sh in1="$READ1" in2="$READ2" \
     out1="$normalised_dir/$READ1{}" \
     out2="$normalised_dir/$READ2{}" \
@@ -494,13 +496,14 @@ function help_message () {
     echo -e "  -p <pear|bbmerge>	Overlap Reads"
     echo -e "  -t 	Trim Overlapped Reads"
     echo -e "  -s   Assemble Trimmed Reads"
+    echo -e "  -n   (use|perform) Read Normalisation"
     echo -e "Reports:"
     echo -e "  -q 	Run QUAST"
     echo -e "  -c 	Run CEGMA"
     echo -e "  -b 	Run BUSCO"
     echo -e "  -B 	Run BlobTools"
     echo -e "  -m 	Run MultiQC"
-    echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -a"
+    echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -a -n"
     exit 1
 }
 
@@ -532,7 +535,7 @@ fi
 ######################
 ## Pipeline Options ##
 ######################
-while getopts f:r:o:p:tsqcbBmah FLAG; do
+while getopts f:r:o:np:tsqcbBmah FLAG; do
     case $FLAG in
         f)
             READ1=$OPTARG
@@ -543,6 +546,9 @@ while getopts f:r:o:p:tsqcbBmah FLAG; do
         o)
             output_dir=$OPTARG
             mkdir -p "$output_dir"
+            ;;
+        n)
+            run_normalisation
             ;;
         p)
             overlap_option=$OPTARG
