@@ -23,8 +23,30 @@ AUGUSTUS_CONFIG_PATH="/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/con
 
 #############################################
 ## Program Functions - Do Not Change Below ##
+##         Roughly In Order of Use         ##
 #############################################
 
+## Run bbnorm to digitally normalise your
+# data if it will not assemble, remember
+# you want to map back the original reads to an
+# assembly not the normalised reads
+function run_normalisation () {
+    normalised_dir="$output_dir/normalised"
+    mkdir -p "$normalised_dir"
+
+    absolute_path="$( cd "$overlapped_dir" && pwd )"
+
+    echo "Running BBMerge"
+    bbnorm.sh in1="$READ1" in2="$READ2" \
+    out1="$normalised_dir/$READ1{}" \
+    out2="$normalised_dir/$READ2{}" \
+    outt="$normalised_dir/excluded_reads.fastq.gz" \
+    hist="$normalised_dir/input_kmer_depth.hist" \
+    histout="$normalised_dir/output_kmer_depth.hist" \
+    threads="$THREADS"
+}
+
+## Function to control which overlapper is used
 function run_overlapper () {
     if $overlap_option eq "bbmerge" ; then
         run_bbmerge
