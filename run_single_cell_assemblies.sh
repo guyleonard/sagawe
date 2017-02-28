@@ -36,16 +36,22 @@ AUGUSTUS_CONFIG_PATH="/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/con
 # used in the assembly for normal analysis...
 function run_normalisation () {
     normalised_dir="$output_dir/normalised"
-    mkdir -p "$normalised_dir"
+        
+    if [ -d $normalised_dir ] ; then
+        echo "Normalisation Previously Run, next..."
+        normalised="true"
+    else
+        mkdir -p "$normalised_dir"
 
-    echo "Running BBNorm"
-    bbnorm.sh in1="$READ1" in2="$READ2" \
-    out1="$normalised_dir/$READ1{}" \
-    out2="$normalised_dir/$READ2{}" \
-    outt="$normalised_dir/excluded_reads.fastq.gz" \
-    hist="$normalised_dir/input_kmer_depth.hist" \
-    histout="$normalised_dir/output_kmer_depth.hist" \
-    threads="$THREADS"
+        echo "Running BBNorm"
+        bbnorm.sh in1="$READ1" in2="$READ2" \
+        out1="$normalised_dir/${READ1/.gz/.norm.gz}" \
+        out2="$normalised_dir/${READ2/.gz/.norm.gz}" \
+        outt="$normalised_dir/excluded_reads.fastq.gz" \
+        hist="$normalised_dir/input_kmer_depth.hist" \
+        histout="$normalised_dir/output_kmer_depth.hist" \
+        threads="$THREADS"
+    fi
 }
 
 ## Function to control which overlapper is used
@@ -65,9 +71,15 @@ function run_pear () {
     overlapped_dir="$output_dir/overlapped"
     mkdir -p "$overlapped_dir"
 
-    echo "Running PEAR Assembler"
-    pear -f "$READ1" -r "$READ2" \
-    -o "$overlapped_dir/pear_overlap" -j "$THREADS" | tee "$overlapped_dir/pear.log"
+    if [ "$normalised" == "true" ] ; then
+        echo "Running PEAR Assembler with Normalised Reads"
+        pear -f "$normalised_dir/${READ1/.gz/.norm.gz}" -r "$normalised_dir/${READ2/.gz/.norm.gz}" \
+        -o "$overlapped_dir/pear_overlap" -j "$THREADS" | tee "$overlapped_dir/pear.log"
+    else
+        echo "Running PEAR Assembler"
+        pear -f "$READ1" -r "$READ2" \
+        -o "$overlapped_dir/pear_overlap" -j "$THREADS" | tee "$overlapped_dir/pear.log"
+    fi
 
     absolute_path="$( cd "$overlapped_dir" && pwd )"
 
@@ -520,6 +532,8 @@ for program in ${exes[@]} ; do
     check_exe "$program"
 done
 
+normalised="false"
+
 # Check for correct Paths and Exports
 export_cegma
 ncbi_taxonomy
@@ -549,6 +563,7 @@ while getopts f:r:o:np:tsqcbBmah FLAG; do
             ;;
         n)
             run_normalisation
+            normalised="true"
             ;;
         p)
             overlap_option=$OPTARG
