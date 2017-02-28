@@ -1,4 +1,4 @@
-# Single Cell Genome Assembly Workflow
+# Single Amplified Genome Assembly Workflow
 
 This is a suggested workflow for the assembly of [MDA](https://en.wikipedia.org/wiki/Multiple_displacement_amplification) sequenced Single Amplified Genomes from Illumina Hi/MiSeq libraries.
 
