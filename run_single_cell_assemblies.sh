@@ -26,17 +26,17 @@ AUGUSTUS_CONFIG_PATH="/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/con
 ##         Roughly In Order of Use         ##
 #############################################
 
-## Run bbnorm 
+## Run bbnorm
 # This is to digitally normalise your
 # data if it will not assemble, remember
 # you should map the original reads to an
 # assembly and not the normalised reads,
 # this script does not currently do that
-# so as to to preserve overlap/trimmed reads 
+# so as to to preserve overlap/trimmed reads
 # used in the assembly for normal analysis...
 function run_normalisation () {
     normalised_dir="$output_dir/normalised"
-        
+ 
     if [ -d $normalised_dir ] ; then
         echo "Normalisation Previously Run, next..."
         normalised="true"
@@ -56,9 +56,9 @@ function run_normalisation () {
 
 ## Function to control which overlapper is used
 function run_overlapper () {
-    if $overlap_option eq "bbmerge" ; then
+    if [ $overlap_option == "bbmerge" ] ; then
         run_bbmerge
-    elif $overlap_option eq "pear" ; then
+    elif [ $overlap_option == "pear" ] ; then
         run_pear
     else
         run_pear
@@ -71,7 +71,7 @@ function run_pear () {
     overlapped_dir="$output_dir/overlapped"
     mkdir -p "$overlapped_dir"
 
-    if [ "$normalised" == "true" ] ; then
+    if [ "$normalised" == 'true' ] ; then
         echo "Running PEAR Assembler with Normalised Reads"
         pear -f "$normalised_dir/${READ1/.gz/.norm.gz}" -r "$normalised_dir/${READ2/.gz/.norm.gz}" \
         -o "$overlapped_dir/pear_overlap" -j "$THREADS" | tee "$overlapped_dir/pear.log"
@@ -504,7 +504,7 @@ function help_message () {
     echo -e "  -r <reverse.fastq>"
     echo -e "  -o <./output_dir>"
     echo -e "Pipeline Parameters:"
-    echo -e "  -a 	Run All Options Below (ptsqcbBm)"
+    echo -e "  -a 	Run All Options Below (p[pear]tsqcbBm)"
     echo -e "  -p <pear|bbmerge>	Overlap Reads"
     echo -e "  -t 	Trim Overlapped Reads"
     echo -e "  -s   Assemble Trimmed Reads"
@@ -515,7 +515,7 @@ function help_message () {
     echo -e "  -b 	Run BUSCO"
     echo -e "  -B 	Run BlobTools"
     echo -e "  -m 	Run MultiQC"
-    echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -a -n"
+    echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -n -a"
     exit 1
 }
 
@@ -591,7 +591,7 @@ while getopts f:r:o:np:tsqcbBmah FLAG; do
             report_multiqc
             ;;
         a)
-            overlap_option=$OPTARG
+            overlap_option=pear
             run_overlapper
             run_trim_galore
             run_assembly_spades
