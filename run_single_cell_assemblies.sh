@@ -221,7 +221,7 @@ function report_busco () {
 }
 
 function report_multiqc () {
-    multiqc -i "$output_dir/reports" -z --pdf "$output_dir"
+    multiqc -i "$output_dir/reports" -z "$output_dir"
 }
 
 function blobtools_bwa () {
