@@ -208,10 +208,15 @@ function report_busco () {
     else
         busco_dir="$output_dir/reports/busco"
         mkdir -p "$busco_dir"
-        
+
+        absolute_path="$( cd "$output_dir" && pwd )"
+
         BUSCO_v1.22.py \
         -g "$assembly_dir/scaffolds.fasta" \
-        -c "$THREADS" -l "$BUSCO_DB" -o "$busco_dir" -f | tee "$busco_dir/busco.log"
+        -c "$THREADS" -l "$BUSCO_DB" -t "$absolute_path/reports/busco" -o "$absolute_path/reports/busco" -f | tee "$busco_dir/busco.log"
+
+        # Tidy up busco
+        mv "$absolute_path/reports/busco."* "$absolute_path/reports/busco"
     fi
 }
 
