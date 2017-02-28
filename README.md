@@ -1,9 +1,6 @@
 # Single Cell Genome Assembly Workflow
 
-This is a suggested workflow for the assembly of [MDA](https://en.wikipedia.org/wiki/Multiple_displacement_amplification) sequenced Single Cells from the Illumina MiSeq platform. These are sometimes also described as Single-cell Amplified Genomes (SAGs).
-
-## Initial Paper Citation
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.192677.svg)](https://doi.org/10.5281/zenodo.192677)
+This is a suggested workflow for the assembly of [MDA](https://en.wikipedia.org/wiki/Multiple_displacement_amplification) sequenced Single Amplified Genomes from Illumina Hi/MiSeq libraries.
 
 ## SAG Assembly Workflow Diagram
 ![SAGA Workflow](https://github.com/guyleonard/single_cell_workflow/blob/master/single_cell_workflow.png)
@@ -53,6 +50,10 @@ A suggested workflow for predicting genes from your assembly.
 3. Protocol for fully automated Decontamination of Genomes - [ProDeGe](http://www.nature.com/ismej/journal/v10/n1/full/ismej2015100a.html)
 4. [CheckM](https://ecogenomics.github.io/CheckM/) - CheckM provides a set of tools for assessing the quality of genomes recovered from isolates, single cells, or metagenomes.
   * Looks like a nice tool, huge selection of options though and bac/arch oriented but can do ~euk.
+  
+## Initial Paper Citation
+This work was initially started from [insert paper here] for which the original scripts are available as a release with the below DOI. The repository and scripts have subsequently changed quite significantly, although the workflow remains much the same.
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.192677.svg)](https://doi.org/10.5281/zenodo.192677)
 
 ## Footnotes
 <a name="footnote1">1</a>: Originally I had steps 1 and 2 in the reverse order (trimming and then overlapping), on some read libraries this caused issues (I think where paired reads would become unordered and so overlapping would not run), however I don't think this is the problem with the order. Reads should be overlapped first, prior to trimming, as we should end up with a set of longer reads - due to the better quality scores over-riding the lower qualities within the overlapped areas, where this would not have happened if the lower quality reads were already trimmed.
