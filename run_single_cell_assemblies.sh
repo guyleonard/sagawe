@@ -383,6 +383,21 @@ function blobtools_image () {
     -r superkingdom --format svg -o "$blobtools_dir/images/svg/" | tee -a "$blobtools_dir/blobtools.log"
 }
 
+function report_blobtools () {
+    blobtools_dir="$output_dir/reports/blobtools"
+
+    blobtools_bwa
+    blobtools_samtools
+    blobtools_blast
+    blobtools_create
+    blobtools_table
+    blobtools_image
+
+    absolute_path="$( cd "$output_dir" && cd ../ && pwd )"
+
+    # tidy up one file blobtools creates in wrong folder
+    mv "$absolute_path/scaffolds_mapped_all_reads.bam.cov" "$blobtools_dir"
+}
 
 #########################
 ## Accessory Functions ##
@@ -527,12 +542,7 @@ while getopts f:r:o:p:tsqcbBmah FLAG; do
             report_busco
             ;;
         B)
-            blobtools_bwa
-            blobtools_samtools
-            blobtools_blast
-            blobtools_create
-            blobtools_table
-            blobtools_image
+            report_blobtools
             ;;
         m)
             report_multiqc
@@ -544,12 +554,7 @@ while getopts f:r:o:p:tsqcbBmah FLAG; do
             report_quast
             report_cegma
             report_busco
-            blobtools_bwa
-            blobtools_samtools
-            blobtools_blast
-            blobtools_create
-            blobtools_table
-            blobtools_image
+            report_blobtools
             report_multiqc
             ;;
         h)
