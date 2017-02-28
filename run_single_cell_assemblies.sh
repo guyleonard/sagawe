@@ -548,7 +548,8 @@ while getopts f:r:o:p:tsqcbBmah FLAG; do
             report_multiqc
             ;;
         a)
-            run_pear
+            overlap_option=$OPTARG
+            run_overlapper
             run_trim_galore
             run_assembly_spades
             report_quast
