@@ -37,7 +37,7 @@ AUGUSTUS_CONFIG_PATH="/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/con
 # used in the assembly for normal analysis...
 function run_normalisation () {
     normalised_dir="$output_dir/normalised"
- 
+
     if [ -d $normalised_dir ] ; then
         echo "Normalisation Previously Run, next..."
         normalised="true"
@@ -283,7 +283,7 @@ function report_busco_v1 () {
             # resorts to the basename dir of the current dir the script
             # is run from for out in a "run_" folder - somewhat annoying.
             mv "$absolute_path/run_$x" "$absolute_path/reports/busco"
-            
+
             ln -s "$absolute_path/reports/busco/short_summary_$x.txt" "$busco_dir/summaries"
         done
 
