@@ -258,7 +258,7 @@ function report_busco_v1 () {
 }
 
 # Run BUSCO v2
-function report_busco_v1 () {
+function report_busco_v2 () {
     assembly_dir="$output_dir/assembly"
 
     if [ ! -f "$assembly_dir/scaffolds.fasta" ] ; then
@@ -270,6 +270,7 @@ function report_busco_v1 () {
         mkdir -p "$busco_dir/summaries"
 
         absolute_path="$( cd "$output_dir" && pwd )"
+        current_dir=$(pwd)
 
         IFS=\, read -a current_db <<<"$busco_v2_dbs"
 
@@ -277,14 +278,14 @@ function report_busco_v1 () {
 
             BUSCO.py \
             -i "$assembly_dir/scaffolds.fasta" -m genome \
-            -c "$THREADS" -l "$BUSCO_V2_DB/$x" -o "${current_db[@]}" -f | tee "$busco_dir/busco_$x.log"
+            -c "$THREADS" -l "$BUSCO_V2_DB/$x" -o "$x" -f | tee "$busco_dir/busco_$x.log"
 
             # Tidy up busco, it won't take a path as an output, so
             # resorts to the basename dir of the current dir the script
             # is run from for out in a "run_" folder - somewhat annoying.
-            mv "$absolute_path/run_$x" "$absolute_path/reports/busco"
+            mv "$current_dir/run_$x" "$absolute_path/reports/busco"
 
-            ln -s "$absolute_path/reports/busco/short_summary_$x.txt" "$busco_dir/summaries"
+            ln -s "$absolute_path/reports/busco/run_$x/short_summary_$x.txt" "$busco_dir/summaries"
         done
 
         BUSCO_plot.py \
@@ -565,7 +566,7 @@ function help_message () {
 THREADS=$(cores)
 
 # Check that we have the required programs
-exes=(pigz clumpify.sh trim_galore pear spades.py quast.py cegma BUSCO_v1.22.py BUSCO.py BUSCO_plots.py bwa samtools blastn blobtools multiqc)
+exes=(pigz clumpify.sh trim_galore pear spades.py quast.py cegma BUSCO_v1.22.py BUSCO.py BUSCO_plot.py bwa samtools blastn blobtools multiqc)
 for program in ${exes[@]} ; do
     check_exe "$program"
 done
