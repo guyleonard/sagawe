@@ -16,7 +16,8 @@ export BLASTDB=$NCBI_TAXDB
 # CEGMA DIR
 CEGMA_DIR="/home/ubuntu/single_cell_workflow/build/CEGMA_v2.5"
 # BUSCO Lineage Location
-BUSCO_DB="/home/ubuntu/busco/eukaryota"
+BUSCO_V1_DB="/home/ubuntu/busco/v1/eukaryota"
+BUSCO_V2_DB="/home/ubuntu/busco/v2"
 # Augustus Config Path
 AUGUSTUS_CONFIG_PATH="/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/config"
 
@@ -234,8 +235,8 @@ function report_cegma () {
     fi
 }
 
-# Run BUSCO
-function report_busco () {
+# Run BUSCO v1 - LEGACY
+function report_busco_v1 () {
     assembly_dir="$output_dir/assembly"
 
     if [ ! -f "$assembly_dir/scaffolds.fasta" ] ; then
@@ -249,10 +250,45 @@ function report_busco () {
 
         BUSCO_v1.22.py \
         -g "$assembly_dir/scaffolds.fasta" \
-        -c "$THREADS" -l "$BUSCO_DB" -t "$absolute_path/reports/busco" -o "$absolute_path/reports/busco" -f | tee "$busco_dir/busco.log"
+        -c "$THREADS" -l "$BUSCO_V1_DB" -t "$absolute_path/reports/busco" -o "$absolute_path/reports/busco" -f | tee "$busco_dir/busco.log"
 
         # Tidy up busco
         mv "$absolute_path/reports/busco."* "$absolute_path/reports/busco"
+    fi
+}
+
+# Run BUSCO v2
+function report_busco_v1 () {
+    assembly_dir="$output_dir/assembly"
+
+    if [ ! -f "$assembly_dir/scaffolds.fasta" ] ; then
+        echo -e "[ERROR]: SPAdes scaffolds cannot be found. Aborting."
+        exit 1
+    else
+        busco_dir="$output_dir/reports/busco"
+        mkdir -p "$busco_dir"
+        mkdir -p "$busco_dir/summaries"
+
+        absolute_path="$( cd "$output_dir" && pwd )"
+
+        IFS=\, read -a current_db <<<"$busco_v2_dbs"
+
+        for x in "${current_db[@]}";do
+
+            BUSCO.py \
+            -i "$assembly_dir/scaffolds.fasta" -m genome \
+            -c "$THREADS" -l "$BUSCO_V2_DB/$x" -o "${current_db[@]}" -f | tee "$busco_dir/busco_$x.log"
+
+            # Tidy up busco, it won't take a path as an output, so
+            # resorts to the basename dir of the current dir the script
+            # is run from for out in a "run_" folder - somewhat annoying.
+            mv "$absolute_path/run_$x" "$absolute_path/reports/busco"
+            
+            ln -s "$absolute_path/reports/busco/short_summary_$x.txt" "$busco_dir/summaries"
+        done
+
+        BUSCO_plot.py \
+        -wd "$busco_dir/summaries"
     fi
 }
 
@@ -479,9 +515,9 @@ function ncbi_taxonomy () {
 }
 
 function busco_db () {
-    if [ ! -d "$BUSCO_DB" ] ; then
+    if [ ! -d "$BUSCO_V1_DB" ] ; then
         echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?"
-        echo "$BUSCO_DB"
+        echo "$BUSCO_V1_DB"
         exit 1
     fi
 }
@@ -508,11 +544,13 @@ function help_message () {
     echo -e "  -p <pear|bbmerge>	Overlap Reads"
     echo -e "  -t 	Trim Overlapped Reads"
     echo -e "  -s   Assemble Trimmed Reads"
+    echo -e "Optional Parameters:"
     echo -e "  -n   (use|perform) Read Normalisation"
     echo -e "Reports:"
     echo -e "  -q 	Run QUAST"
     echo -e "  -c 	Run CEGMA"
-    echo -e "  -b 	Run BUSCO"
+    echo -e "  -l   Run BUSCO v1 - legacy"
+    echo -e "  -b <db1,db2,...>	Run BUSCO v2"
     echo -e "  -B 	Run BlobTools"
     echo -e "  -m 	Run MultiQC"
     echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -n -a"
@@ -527,7 +565,7 @@ function help_message () {
 THREADS=$(cores)
 
 # Check that we have the required programs
-exes=(pigz clumpify.sh trim_galore pear spades.py quast.py cegma BUSCO_v1.22.py bwa samtools blastn blobtools multiqc)
+exes=(pigz clumpify.sh trim_galore pear spades.py quast.py cegma BUSCO_v1.22.py BUSCO.py BUSCO_plots.py bwa samtools blastn blobtools multiqc)
 for program in ${exes[@]} ; do
     check_exe "$program"
 done
@@ -549,7 +587,7 @@ fi
 ######################
 ## Pipeline Options ##
 ######################
-while getopts f:r:o:np:tsqcbBmah FLAG; do
+while getopts f:r:o:np:tsqclb:Bmah FLAG; do
     case $FLAG in
         f)
             READ1=$OPTARG
@@ -581,8 +619,12 @@ while getopts f:r:o:np:tsqcbBmah FLAG; do
         c)
             report_cegma
             ;;
+        l)
+            report_busco_v1
+            ;;
         b)
-            report_busco
+            busco_v2_dbs=$OPTARG
+            report_busco_v2
             ;;
         B)
             report_blobtools
@@ -597,7 +639,7 @@ while getopts f:r:o:np:tsqcbBmah FLAG; do
             run_assembly_spades
             report_quast
             report_cegma
-            report_busco
+            report_busco_v2
             report_blobtools
             report_multiqc
             ;;
