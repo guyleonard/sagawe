@@ -3,7 +3,7 @@
 This is a suggested workflow for the assembly of [MDA](https://en.wikipedia.org/wiki/Multiple_displacement_amplification) sequenced Single Amplified Genomes from Illumina Hi/MiSeq libraries.
 
 ## SAG Assembly Workflow Diagram
-![SAGA Workflow](https://github.com/guyleonard/single_cell_workflow/blob/master/single_cell_workflow.png)
+![SAGA Workflow](https://github.com/guyleonard/single_cell_workflow/blob/master/images/single_cell_workflow.png)
 
 ## SAG Assembly Workflow
 1. Read Normalisation - Optional!! [BBNORM](http://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbnorm-guide/)
@@ -52,7 +52,7 @@ Program parameters are order based, n must come before a, p before t, etc...
 
 A suggested workflow for predicting genes from your assembly.
 
-![SAGA Workflow](https://github.com/guyleonard/single_cell_workflow/blob/master/gene_prediction.png)
+![SAGA Workflow](https://github.com/guyleonard/single_cell_workflow/blob/master/images/gene_prediction.png)
 
 ## Other Thoughts on Assembly & Downstream/Other Analyses
 
