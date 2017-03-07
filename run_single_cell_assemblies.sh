@@ -201,7 +201,7 @@ function run_assembly_spades () {
 function report_quast () {
     assembly_dir="$output_dir/assembly"
 
-    if [ ! -f "$assembly_dir/scaffolds.fasta" ] ; then
+    if [ ! -f "$assembly_dir/$ASSEMBLY" ] ; then
         echo -e "[ERROR]: SPAdes scaffolds cannot be found. Aborting."
         exit 1
     else
@@ -209,8 +209,8 @@ function report_quast () {
         mkdir -p "$quast_dir"
         echo "Running QUAST"
         quast.py -o "$quast_dir" -t "$THREADS" \
-        --min-contig 100 -f --eukaryote --scaffolds \
-        --glimmer "$assembly_dir/scaffolds.fasta" | tee "$quast_dir/quast.log"
+        --min-contig 100 -f --eukaryote $SCAFFOLDS \
+        --glimmer "$assembly_dir/$ASSEMBLY" | tee "$quast_dir/quast.log"
     fi
 }
 
@@ -219,7 +219,7 @@ function report_quast () {
 function report_cegma () {
     assembly_dir="$output_dir/assembly"
 
-    if [ ! -f "$assembly_dir/scaffolds.fasta" ] ; then
+    if [ ! -f "$assembly_dir/$ASSEMBLY" ] ; then
         echo -e "[ERROR]: SPAdes scaffolds cannot be found. Aborting."
         exit 1
     else
@@ -227,7 +227,7 @@ function report_cegma () {
         mkdir -p "$cegma_dir"
 
         echo "Running CEGMA"
-        cegma -T "$THREADS" -g "$assembly_dir/scaffolds.fasta" -o "$cegma_dir/cegma" | tee "$cegma_dir/cegma.log"
+        cegma -T "$THREADS" -g "$assembly_dir/$ASSEMBLY" -o "$cegma_dir/cegma" | tee "$cegma_dir/cegma.log"
 
         # Tidy up, CEGMA's -o option doesn't seem to output to a dir!?
         absolute_path="$( cd "$output_dir" && pwd )"
@@ -239,7 +239,7 @@ function report_cegma () {
 function report_busco_v1 () {
     assembly_dir="$output_dir/assembly"
 
-    if [ ! -f "$assembly_dir/scaffolds.fasta" ] ; then
+    if [ ! -f "$assembly_dir/$ASSEMBLY" ] ; then
         echo -e "[ERROR]: SPAdes scaffolds cannot be found. Aborting."
         exit 1
     else
@@ -254,7 +254,7 @@ function report_busco_v1 () {
         for x in "${current_db[@]}";do
 
             BUSCO_v1.22.py \
-            -g "$assembly_dir/scaffolds.fasta" \
+            -g "$assembly_dir/$ASSEMBLY" \
             -c "$THREADS" -l "$BUSCO_V1_DB/$y" -o "$y" -f | tee "$busco_dir/busco.log"
 
             # Tidy up busco
@@ -267,7 +267,7 @@ function report_busco_v1 () {
 function report_busco_v2 () {
     assembly_dir="$output_dir/assembly"
 
-    if [ ! -f "$assembly_dir/scaffolds.fasta" ] ; then
+    if [ ! -f "$assembly_dir/$ASSEMBLY" ] ; then
         echo -e "[ERROR]: SPAdes scaffolds cannot be found. Aborting."
         exit 1
     else
@@ -283,7 +283,7 @@ function report_busco_v2 () {
         for x in "${current_db[@]}";do
 
             BUSCO.py \
-            -i "$assembly_dir/scaffolds.fasta" -m genome \
+            -i "$assembly_dir/$ASSEMBLY" -m genome \
             -c "$THREADS" -l "$BUSCO_V2_DB/$x" -o "$x" -f | tee "$busco_dir/busco_$x.log"
 
             # Tidy up busco, it won't take a path as an output, so
@@ -306,7 +306,7 @@ function report_multiqc () {
 function blobtools_bwa () {
     assembly_dir="$output_dir/assembly"
 
-    if [ ! -f "$assembly_dir/scaffolds.fasta" ] ; then
+    if [ ! -f "$assembly_dir/$ASSEMBLY" ] ; then
         echo -e "[ERROR]: SPAdes scaffolds cannot be found. Aborting."
         exit 1
     else
@@ -320,31 +320,31 @@ function blobtools_bwa () {
 
         trimmed_dir="$absolute_dir/trimmed"
 
-        ln -s "$absolute_path/assembly/scaffolds.fasta" "$absolute_path/reports/blobtools/mapping/scaffolds.fasta"
+        ln -s "$absolute_path/assembly/$ASSEMBLY" "$absolute_path/reports/blobtools/mapping/$ASSEMBLY"
 
         # index assembly (scaffolds.fa) with BWA
         echo "Indexing Assembly"
-        bwa index -a bwtsw "$blobtools_map/scaffolds.fasta" | tee "$blobtools_map/bwa.log"
+        bwa index -a bwtsw "$blobtools_map/$ASSEMBLY" | tee "$blobtools_map/bwa.log"
 
         # map reads to assembly with BWA MEM
         # we will have to do this for all 5 sets of reads and then merge
         echo "Mapping Assembled reads to Assembly"
-        bwa mem -t "$THREADS" "$blobtools_map/scaffolds.fasta" \
+        bwa mem -t "$THREADS" "$blobtools_map/$ASSEMBLY" \
         "$trimmed_dir/assembled_trimmed.fq.gz" \
         > "$blobtools_map/scaffolds_mapped_assembled_reads.sam" | tee -a "$blobtools_map/bwa.log"
 
         echo "Mapping Un-assembled & Un-Paired reads to Assembly - Forward"
-        bwa mem -t "$THREADS" "$blobtools_map/scaffolds.fasta" \
+        bwa mem -t "$THREADS" "$blobtools_map/$ASSEMBLY" \
         "$trimmed_dir/unassembled.forward_unpaired_1.fq.gz" \
         > "$blobtools_map/scaffolds_mapped_unassembled_unpaired_forward_reads.sam" | tee -a "$blobtools_map/bwa.log"
 
         echo "Mapping Un-assembled & Un-Paired reads to Assembly - Reverse"
-        bwa mem -t "$THREADS" "$blobtools_map/scaffolds.fasta" \
+        bwa mem -t "$THREADS" "$blobtools_map/$ASSEMBLY" \
         "$trimmed_dir/unassembled.reverse_unpaired_2.fq.gz" \
         > "$blobtools_map/scaffolds_mapped_unassembled_unpaired_reverse_reads.sam" | tee -a "$blobtools_map/bwa.log"
 
         echo "Mapping Un-assembled but still Paired reads to Assembly"
-        bwa mem -t "$THREADS" "$blobtools_map/scaffolds.fasta" \
+        bwa mem -t "$THREADS" "$blobtools_map/$ASSEMBLY" \
         "$trimmed_dir/unassembled.forward_val_1.fq.gz" \
         "$trimmed_dir/unassembled.reverse_val_2.fq.gz" \
         > "$blobtools_map/scaffolds_mapped_unassembled_paired_reads.sam" | tee -a "$blobtools_map/bwa.log"
@@ -401,7 +401,7 @@ function blobtools_blast () {
 
     echo "Running BLAST"
     blastn -task megablast \
-    -query "$blobtools_map/scaffolds.fasta" \
+    -query "$blobtools_map/$ASSEMBLY" \
     -db "$NCBI_NT/nt" \
     -evalue 1e-10 \
     -num_threads "$THREADS" \
@@ -416,7 +416,7 @@ function blobtools_create () {
     blobtools_blast="$blobtools_dir/blast"
 
     echo "Running BlobTools CREATE - slow"
-    blobtools create -i "$blobtools_map/scaffolds.fasta" \
+    blobtools create -i "$blobtools_map/$ASSEMBLY" \
     --nodes "$NCBI_TAXDMP/nodes.dmp" --names "$NCBI_TAXDMP/names.dmp" \
     -t "$blobtools_blast/scaffolds_vs_nt_1e-10.megablast" \
     -b "$blobtools_map/scaffolds_mapped_all_reads.bam" \
@@ -546,13 +546,14 @@ function help_message () {
     echo -e "  -f <forward.fastq>"
     echo -e "  -r <reverse.fastq>"
     echo -e "  -o <./output_dir>"
+    echo -e "Optional Parameters (must come first):"
+    echo -e "  -S   use scaffolds instead of contigs"
+    echo -e "  -n   (use|perform) Read Normalisation"
     echo -e "Pipeline Parameters:"
     echo -e "  -a 	Run All Options Below (p[pear]tsqcbBm)"
     echo -e "  -p <pear|bbmerge>	Overlap Reads"
     echo -e "  -t 	Trim Overlapped Reads"
     echo -e "  -s   Assemble Trimmed Reads"
-    echo -e "Optional Parameters:"
-    echo -e "  -n   (use|perform) Read Normalisation"
     echo -e "Reports:"
     echo -e "  -q 	Run QUAST"
     echo -e "  -c 	Run CEGMA"
@@ -560,7 +561,7 @@ function help_message () {
     echo -e "  -b <db1,db2,...>	Run BUSCO v2"
     echo -e "  -B 	Run BlobTools"
     echo -e "  -m 	Run MultiQC"
-    echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -n -a"
+    echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -n -S -a"
     exit 1
 }
 
@@ -591,10 +592,15 @@ if [ "$NUMARGS" -eq 0 ]; then
   help_message
 fi
 
+# defaulting to using contigs over scaffolds
+# mainly to remove the Ns as inflation from 
+# statistics
+ASSEMBLY="contigs.fasta"
+
 ######################
 ## Pipeline Options ##
 ######################
-while getopts f:r:o:np:tsqclb:Bmah FLAG; do
+while getopts f:r:o:np:tsSqclb:Bmah FLAG; do
     case $FLAG in
         f)
             READ1=$OPTARG
@@ -639,6 +645,10 @@ while getopts f:r:o:np:tsqclb:Bmah FLAG; do
             ;;
         m)
             report_multiqc
+            ;;
+        S)
+            ASSEMBLY="scaffolds.fasta"
+            SCAFFOLDS="--scaffolds"
             ;;
         a)
             overlap_option=pear
