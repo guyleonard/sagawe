@@ -16,7 +16,7 @@ export BLASTDB=$NCBI_TAXDB
 # CEGMA DIR
 CEGMA_DIR="/home/ubuntu/single_cell_workflow/build/CEGMA_v2.5"
 # BUSCO Lineage Location
-BUSCO_V1_DB="/home/ubuntu/busco/v1/eukaryota"
+BUSCO_V1_DB="/home/ubuntu/busco/v1"
 BUSCO_V2_DB="/home/ubuntu/busco/v2"
 # Augustus Config Path
 AUGUSTUS_CONFIG_PATH="/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/config"
@@ -247,13 +247,19 @@ function report_busco_v1 () {
         mkdir -p "$busco_dir"
 
         absolute_path="$( cd "$output_dir" && pwd )"
+        current_dir=$(pwd)
 
-        BUSCO_v1.22.py \
-        -g "$assembly_dir/scaffolds.fasta" \
-        -c "$THREADS" -l "$BUSCO_V1_DB" -t "$absolute_path/reports/busco" -o "$absolute_path/reports/busco" -f | tee "$busco_dir/busco.log"
+        IFS=\, read -a current_db <<<"$busco_v2_dbs"
 
-        # Tidy up busco
-        mv "$absolute_path/reports/busco."* "$absolute_path/reports/busco"
+        for x in "${current_db[@]}";do
+
+            BUSCO_v1.22.py \
+            -g "$assembly_dir/scaffolds.fasta" \
+            -c "$THREADS" -l "$BUSCO_V1_DB/$y" -o "$y" -f | tee "$busco_dir/busco.log"
+
+            # Tidy up busco
+            mv "$current_dir/run_$y" "$absolute_path/reports/busco"
+        done
     fi
 }
 
@@ -621,6 +627,7 @@ while getopts f:r:o:np:tsqclb:Bmah FLAG; do
             report_cegma
             ;;
         l)
+            busco_v1_dbs=$OPTARG
             report_busco_v1
             ;;
         b)
