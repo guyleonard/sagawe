@@ -17,9 +17,10 @@ NB - There are seven paths, relating to database locations, that must be set in 
       -o <./output_dir>
     Pipeline Parameters:
       -n  Read Normalisation (optional)
-      -a 	Run All Options Below (ptsqcbBm)
-      -p  <pear|bbmerge>	Overlap Reads (pear is default)
-      -t 	Trim Overlapped Reads
+      -S  Use scaffolds instead of contigs
+      -a  Run All Options Below (ptsqcbBm)
+      -p  <pear|bbmerge>  Overlap Reads (pear is default)
+      -t  Trim Overlapped Reads
       -s  Assemble Trimmed Reads
     Reports:
       -q 	Run QUAST
