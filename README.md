@@ -49,14 +49,7 @@ NB - There are seven paths, relating to database locations, that must be set in 
 9. Genome 'Completeness' Tests [CEGMA](http://korflab.ucdavis.edu/datasets/cegma/) & [BUSCO v1](http://busco.ezlab.org/v1/) - V2.0 Coming Soon!
 10. MultiQC - Aggregate results from bioinformatics analyses across many samples into a single report
 
-## Gene Prediction Workflow
-
-A suggested workflow for predicting genes from your assembly.
-
-![SAGA Workflow](https://github.com/guyleonard/single_cell_workflow/blob/master/images/gene_prediction.png)
-
 ## Other Thoughts on Assembly & Downstream/Other Analyses
-
 1. ESOM?
 2. Contig Integrator for Sequence Assembly - [CISA](http://sb.nhri.org.tw/CISA/en/CISA)
 3. Protocol for fully automated Decontamination of Genomes - [ProDeGe](http://www.nature.com/ismej/journal/v10/n1/full/ismej2015100a.html)
@@ -69,4 +62,3 @@ This work was initially completed for [in prep - paper here] for which the origi
 
 The repository and scripts however, have changed quite significantly since the initial release, any further citations should be to the below DOI.
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.438690.svg)](https://doi.org/10.5281/zenodo.438690)
-
