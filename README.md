@@ -63,6 +63,10 @@ A suggested workflow for predicting genes from your assembly.
 4. [CheckM](https://ecogenomics.github.io/CheckM/) - CheckM provides a set of tools for assessing the quality of genomes recovered from isolates, single cells, or metagenomes.
   * Looks like a nice tool, huge selection of options though and bac/arch oriented but can do ~euk.
   
-## Initial Paper Citation
-This work was initially started from [insert paper here] for which the original scripts are available as a release with the below DOI. The repository and scripts have subsequently changed quite significantly, although the workflow remains much the same.
+## Citation
+This work was initially completed for [in prep - paper here] for which the original scripts are available as a pre-release with the below DOI.
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.192677.svg)](https://doi.org/10.5281/zenodo.192677)
+
+The repository and scripts however, have changed quite significantly since the initial release, any further citations should be to the below DOI.
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.438690.svg)](https://doi.org/10.5281/zenodo.438690)
+
