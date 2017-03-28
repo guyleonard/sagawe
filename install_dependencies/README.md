@@ -1,5 +1,5 @@
 # Install Dependencies
-A bash script to install the required software:
+A bash script to install the required software - assumes sudo...
 
 1. [PEAR](http://sco.h-its.org/exelixis/web/software/pear/doc.html)
 2. [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
