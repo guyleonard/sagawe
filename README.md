@@ -6,8 +6,11 @@ A suggested workflow for the assembly of [MDA](https://en.wikipedia.org/wiki/Mul
 ![SAGA Workflow](https://cdn.rawgit.com/guyleonard/single_cell_workflow/master/images/single_cell_workflow.svg)
 
 ## Example Usage / Help
-Program parameters are order based; e.g. -n must come before -a and -p before -t etc...
-NB - There are seven paths, relating to database locations, that must be set in the top of the run_single_cell_assemblies.sh script - these vary depending on your system set up.
+Program parameters are order based; e.g. '-n' must come before '-a' and '-p' must come before '-t' etc...
+
+Dependecnies are checked before running, please make sure they are in your PATH.
+
+NB - There are several paths, relating to database locations, that must be manually set in the top of the run_single_cell_assemblies.sh script - these vary depending on your system set up.
 
     Single Amplified Genome Assembly Pipeline
     Basic Usage:
@@ -30,6 +33,53 @@ NB - There are seven paths, relating to database locations, that must be set in 
       -m 	Run MultiQC
     
     Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -n -a
+
+### Output
+Standard output, some folders/files have been truncated. Folder structure is assumed...
+
+    output/
+    ├── normalised
+    ├── overlapped
+    │   ├── assembled.fastq.gz
+    │   ├── discarded.fastq.gz
+    │   ├── unassembled.forward.fastq.gz
+    │   └── unassembled.reverse.fastq.gz
+    ├── trimmed
+    │   ├── assembled_trimmed.fq.gz
+    │   ├── unassembled.forward_val_1.fq.gz
+    │   ├── unassembled.reverse_val_2.fq.gz
+    │   ├── unassembled.forward_unpaired_1.fq.gz
+    │   ├── unassembled.reverse_unpaired_2.fq.gz
+    │   └── fastqc
+    ├── assembly
+    │   ├── contigs.fasta
+    │   └── scaffolds.fasta
+    └── reports
+        ├── blobtools
+        │   ├── blast
+        │   │   └── scaffolds_vs_nt_1e-10.megablast
+        │   ├── images
+        │   │   ├── png
+        │   │   └── svg
+        │   ├── mapping
+        │   │   └── scaffolds_mapped_all_reads.bam
+        │   └── table
+        ├── busco
+        │   ├── run_bacteria_odb9
+        │   │   └── short_summary_bacteria_odb9.txt
+        │   ├── run_eukaryota_odb9
+        │   │   └── short_summary_eukaryota_odb9.txt
+        │   ├── run_protists_ensembl
+        │   │   └── short_summary_protists_ensembl.txt
+        │   └── summaries
+        │       └── busco_figure.png
+        ├── cegma
+        │   └── cegma.completeness_report
+        ├── multiqc_report.html
+        └── quast
+            ├── report.html
+            ├── report.pdf
+            └── report.txt
 
 ## SAG Assembly Workflow
 1. Read Normalisation - Optional!! [BBNORM](http://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbnorm-guide/)
