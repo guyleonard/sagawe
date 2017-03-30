@@ -40,7 +40,7 @@ function run_normalisation () {
 
     if [ -d $normalised_dir ] ; then
         echo "Normalisation Previously Run, next..."
-        normalised="true"
+        NORMALISED="true"
     else
         mkdir -p "$normalised_dir"
 
@@ -209,7 +209,7 @@ function report_quast () {
         mkdir -p "$quast_dir"
         echo "Running QUAST"
         quast.py -o "$quast_dir" -t "$THREADS" \
-        --min-contig 100 -f --eukaryote $SCAFFOLDS \
+        --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
         --glimmer "$assembly_dir/$ASSEMBLY" | tee "$quast_dir/quast.log"
     fi
 }
@@ -277,6 +277,8 @@ function report_busco_v2 () {
 
         absolute_path="$( cd "$output_dir" && pwd )"
         current_dir=$(pwd)
+
+        # this needs a default!!! eukaryota_odb9,protists_ensembl
 
         IFS=\, read -a current_db <<<"$busco_v2_dbs"
 
@@ -540,33 +542,33 @@ function augustus () {
 }
 
 function help_message () {
-    echo -e "Single Amplified Genome Assembly Pipeline"
-    echo -e "Basic Usage:"
-    echo -e "Required Parameters:"
+    echo -e "Single Amplified Genome Assembly Workflow"
+    echo -e "Required Option:"
+    echo -e "  -o <output_dir>"
+    echo -e "File Options:"
     echo -e "  -f <forward.fastq>"
     echo -e "  -r <reverse.fastq>"
-    echo -e "  -o <./output_dir>"
-    echo -e "Optional Parameters (must come first):"
-    echo -e "  -S   use scaffolds instead of contigs"
-    echo -e "  -n   (use|perform) Read Normalisation"
-    echo -e "Pipeline Parameters:"
-    echo -e "  -a 	Run All Options Below (p[pear]tsqcbBm)"
-    echo -e "  -p <pear|bbmerge>	Overlap Reads"
-    echo -e "  -t 	Trim Overlapped Reads"
-    echo -e "  -s   Assemble Trimmed Reads"
+    echo -e "Optional Parameters (ordered):"
+    echo -e "  -S \tUse Scaffolds Instead of Contigs"
+    echo -e "  -n \tRead Normalisation"
+    echo -e "Workflow Parameters:"
+    echo -e "  -a \tRun All Options Below (p[pear]tsqcb{eukaryota_odb9}Bm)"
+    echo -e "  -p <pear|bbmerge>\tOverlap Reads"
+    echo -e "  -t \tTrim Overlapped Reads"
+    echo -e "  -s \tAssemble Trimmed Reads"
     echo -e "Reports:"
-    echo -e "  -q 	Run QUAST"
-    echo -e "  -c 	Run CEGMA"
-    echo -e "  -l   Run BUSCO v1 - legacy"
-    echo -e "  -b <db1,db2,...>	Run BUSCO v2"
-    echo -e "  -B 	Run BlobTools"
-    echo -e "  -m 	Run MultiQC"
+    echo -e "  -q \tRun QUAST"
+    echo -e "  -c \tRun CEGMA"
+    echo -e "  -l \tRun BUSCO v1 - legacy"
+    echo -e "  -b <db1,db2,...>\tRun BUSCO v2"
+    echo -e "  -B \tRun BlobTools"
+    echo -e "  -m \tRun MultiQC"
     echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -n -S -a"
     exit 1
 }
 
 ##############################
-## Initial Pipeline Actions ##
+## Initial Workflow Actions ##
 ##############################
 
 # Set Cores
@@ -578,7 +580,7 @@ for program in ${exes[@]} ; do
     check_exe "$program"
 done
 
-normalised="false"
+NORMALISED="false"
 
 # Check for correct Paths and Exports
 export_cegma
@@ -611,10 +613,14 @@ while getopts f:r:o:np:tsSqclb:Bmah FLAG; do
         o)
             output_dir=$OPTARG
             mkdir -p "$output_dir"
+            echo "Single Amplified Genome Assembly Workflow" > $output_dir/$output_dir.log
+            echo -e "\thttps://github.com/guyleonard/single_cell_workflow\n" >> $output_dir/$output_dir.log
+            echo "Run: $(date +%F+%R)" >> $output_dir/$output_dir.log
+            echo "Command: ${0} ${@}" >> $output_dir/$output_dir.log
             ;;
         n)
             run_normalisation
-            normalised="true"
+            NORMALISED="true"
             ;;
         p)
             overlap_option=$OPTARG
@@ -648,15 +654,16 @@ while getopts f:r:o:np:tsSqclb:Bmah FLAG; do
             ;;
         S)
             ASSEMBLY="scaffolds.fasta"
-            SCAFFOLDS="--scaffolds"
+            QUAST_SCAFFOLDS="--scaffolds"
             ;;
         a)
-            overlap_option=pear
+             overlap_option="pear"
             run_overlapper
             run_trim_galore
             run_assembly_spades
             report_quast
             report_cegma
+             busco_v2_dbs="eukaryota_odb9"
             report_busco_v2
             report_blobtools
             report_multiqc
@@ -665,10 +672,16 @@ while getopts f:r:o:np:tsSqclb:Bmah FLAG; do
             help_message
             ;;
         \?)
-            echo -e "Option not allowed."
+            echo -e "Unknown Option."
             help_message
             ;;
     esac
 done
+
+if [ ! "$output_dir" ]
+then
+    echo "No output directory set. Please indicate -o" >&2
+    exit 1
+fi
 
 exit 0
