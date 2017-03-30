@@ -72,6 +72,8 @@ function run_pear () {
     overlapped_dir="$output_dir/overlapped"
     mkdir -p "$overlapped_dir"
 
+    absolute_path="$( cd "$overlapped_dir" && pwd )"
+
     if [ "$normalised" == 'true' ] ; then
         echo "Running PEAR Assembler with Normalised Reads"
         pear -f "$normalised_dir/${READ1/.gz/.norm.gz}" -r "$normalised_dir/${READ2/.gz/.norm.gz}" \
@@ -81,8 +83,6 @@ function run_pear () {
         pear -f "$READ1" -r "$READ2" \
         -o "$overlapped_dir/pear_overlap" -j "$THREADS" | tee "$overlapped_dir/pear.log"
     fi
-
-    absolute_path="$( cd "$overlapped_dir" && pwd )"
 
     gzip_fastq
 
@@ -99,12 +99,21 @@ function run_bbmerge () {
 
     absolute_path="$( cd "$overlapped_dir" && pwd )"
 
-    echo "Running BBMerge"
-    bbmerge.sh in1="$READ1" in2="$READ2" \
-    out="$absolute_path/assembled.fastq.gz" \
-    outu1="$absolute_path/unassembled.forward.fastq.gz" \
-    outu2="$absolute_path/unassembled.reverse.fastq.gz" \
-    minoverlap=10 ziplevel=9
+    if [ "$normalised" == 'true' ] ; then
+        echo "Running BBMerge with Normalised Reads"
+        bbmerge.sh in1="$normalised_dir/${READ1/.gz/.norm.gz}" in2="$normalised_dir/${READ2/.gz/.norm.gz}" \
+        out="$absolute_path/assembled.fastq.gz" \
+        outu1="$absolute_path/unassembled.forward.fastq.gz" \
+        outu2="$absolute_path/unassembled.reverse.fastq.gz" \
+        minoverlap=10 ziplevel=9
+    else
+        echo "Running BBMerge"
+        bbmerge.sh in1="$READ1" in2="$READ2" \
+        out="$absolute_path/assembled.fastq.gz" \
+        outu1="$absolute_path/unassembled.forward.fastq.gz" \
+        outu2="$absolute_path/unassembled.reverse.fastq.gz" \
+        minoverlap=10 ziplevel=9
+    fi
 }
 
 function gzip_fastq () {
