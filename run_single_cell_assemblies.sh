@@ -175,16 +175,22 @@ function run_trim_galore () {
         mv "$absolute_path/"*".html" "$absolute_path/fastqc"
         mv "$absolute_path/"*".zip" "$absolute_path/fastqc"
         mv "$absolute_path/"*".txt" "$absolute_path/fastqc"
+
+        # for spades, we should include the now unpaired reads as one library
+        # it makes sense but at the same time freezes my brain
+        # you can cat .gz files together!
+        cat "$trimmed_dir/unassembled.forward_unpaired_1.fq.gz" \
+        "$trimmed_dir/unassembled.reverse_unpaired_2.fq.gz" > "$trimmed_dir/unassembled_unpaired.fq.gz"
     fi
 }
 
 ## Run SPAdes
 # single cell mode - default kmers 21,33,55
 # careful mode - runs mismatch corrector
-# use all 5 sets of output reads
-# 1 x assembled
-# 2 x unassembled
-# 2 x unpaired
+# use all 4 sets of output reads
+# 1 x overlapped
+# 2 x unoverlapped paired
+# 1 x unpaired
 function run_assembly_spades () {
     trimmed_dir="$output_dir/trimmed"
 
@@ -196,10 +202,9 @@ function run_assembly_spades () {
         echo "Running SPAdes"
         spades.py --sc --careful -t "$THREADS" \
         --s1 "$trimmed_dir/assembled_trimmed.fq.gz" \
-        --s2 "$trimmed_dir/unassembled.forward_unpaired_1.fq.gz" \
-        --s3 "$trimmed_dir/unassembled.reverse_unpaired_2.fq.gz" \
         --pe1-1 "$trimmed_dir/unassembled.forward_val_1.fq.gz" \
         --pe1-2 "$trimmed_dir/unassembled.reverse_val_2.fq.gz" \
+        --pe1-s "$trimmed_dir/unassembled_unpaired.fq.gz" \
         -o "$assembly_dir"
     fi
 }
