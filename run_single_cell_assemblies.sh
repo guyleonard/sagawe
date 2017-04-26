@@ -74,7 +74,7 @@ function run_pear () {
 
     absolute_path="$( cd "$overlapped_dir" && pwd )"
 
-    if [ "$normalised" == 'true' ] ; then
+    if [ "$NORMALISED" == 'true' ] ; then
         echo "Running PEAR Assembler with Normalised Reads"
         pear -f "$normalised_dir/${READ1/.gz/.norm.gz}" -r "$normalised_dir/${READ2/.gz/.norm.gz}" \
         -o "$overlapped_dir/pear_overlap" -j "$THREADS" | tee "$overlapped_dir/pear.log"
@@ -99,7 +99,7 @@ function run_bbmerge () {
 
     absolute_path="$( cd "$overlapped_dir" && pwd )"
 
-    if [ "$normalised" == 'true' ] ; then
+    if [ "$NORMALISED" == 'true' ] ; then
         echo "Running BBMerge with Normalised Reads"
         bbmerge.sh in1="$normalised_dir/${READ1/.gz/.norm.gz}" in2="$normalised_dir/${READ2/.gz/.norm.gz}" \
         out="$absolute_path/assembled.fastq.gz" \
