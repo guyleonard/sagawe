@@ -12,27 +12,29 @@ Dependecnies are checked before running, please make sure they are in your PATH.
 
 NB - There are several paths, relating to database locations, that must be manually set in the top of the run_single_cell_assemblies.sh script - these vary depending on your system set up.
 
-    Single Amplified Genome Assembly Pipeline
-    Basic Usage:
-    Required Parameters:
-      -f <forward.fastq>
-      -r <reverse.fastq>
-      -o <./output_dir>
-    Pipeline Parameters:
-      -n  Read Normalisation (optional)
-      -S  Use scaffolds instead of contigs
-      -a  Run All Options Below (ptsqcbBm)
-      -p  <pear|bbmerge>  Overlap Reads (pear is default)
-      -t  Trim Overlapped Reads
-      -s  Assemble Trimmed Reads
+    Single Amplified Genome Assembly Workflow
+    Required Option:
+      -o <output_dir>	Output Directory
+    File Options:
+      -f <forward.fastq>	Forward Reads
+      -r <reverse.fastq>	Reverse Reads
+    Optional Parameters (ordered):
+      -n 	Read Normalisation
+      -S 	Use Scaffolds Instead of Contigs
+      -a 	Run All Options Below (p{pear}tsqcb{eukaryota_odb9}Bm)
+    Workflow Parameters:
+      -p <pear|bbmerge>	Overlap Reads
+      -t 	Trim Overlapped Reads
+      -s 	Assemble Trimmed Reads
     Reports:
       -q 	Run QUAST
       -c 	Run CEGMA
-      -b 	Run BUSCO
+      -b <db1,db2,...>	Run BUSCO v2
       -B 	Run BlobTools
       -m 	Run MultiQC
-    
-    Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -n -a
+    Legacy (soon to be deprecated):
+      -l 	Run BUSCO v1 - legacy
+    Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -n -S -a
 
 ### Output
 Standard output, some folders/files have been truncated. Folder structure is assumed...

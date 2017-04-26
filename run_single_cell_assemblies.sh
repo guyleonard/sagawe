@@ -332,11 +332,11 @@ function blobtools_bwa () {
         blobtools_map="$blobtools_dir/mapping"
         mkdir -p "$blobtools_map"
 
-        absolute_path="$( cd "$output_dir" && pwd )"
+        absolute_dir="$( cd "$output_dir" && pwd )"
 
         trimmed_dir="$absolute_dir/trimmed"
 
-        ln -s "$absolute_path/assembly/$ASSEMBLY" "$absolute_path/reports/blobtools/mapping/$ASSEMBLY"
+        ln -s "$absolute_dir/assembly/$ASSEMBLY" "$absolute_dir/reports/blobtools/mapping/$ASSEMBLY"
 
         # index assembly (scaffolds.fa) with BWA
         echo "Indexing Assembly"
