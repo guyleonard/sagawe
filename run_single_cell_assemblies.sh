@@ -34,7 +34,7 @@ AUGUSTUS_CONFIG_PATH="/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/con
 # assembly and not the normalised reads,
 # this script does not currently do that
 # so as to to preserve overlap/trimmed reads
-# used in the assembly for normal analysis...
+# used in the assembly for normal analysis.
 function run_normalisation () {
     normalised_dir="$output_dir/normalised"
 
