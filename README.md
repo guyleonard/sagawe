@@ -103,7 +103,10 @@ Standard output, some folders/files have been truncated. Folder structure is ass
 
 ## Other Thoughts on Assembly & Downstream/Other Analyses
 1. ESOM?
-2. Contig Integrator for Sequence Assembly - [CISA](http://sb.nhri.org.tw/CISA/en/CISA)
+2. Merging Scaffolds (Reconcillition instead of Co-assembly??)
+  * [Metassembler](https://sourceforge.net/projects/metassembler/)
+  * Comparative Analysis and Merging of Scaffold Assemblies - [CAMSA](https://cblab.org/camsa/)
+  * Contig Integrator for Sequence Assembly - [CISA](http://sb.nhri.org.tw/CISA/en/CISA)
 3. Protocol for fully automated Decontamination of Genomes - [ProDeGe](http://www.nature.com/ismej/journal/v10/n1/full/ismej2015100a.html)
 4. [CheckM](https://ecogenomics.github.io/CheckM/) - CheckM provides a set of tools for assessing the quality of genomes recovered from isolates, single cells, or metagenomes.
   * Looks like a nice tool, huge selection of options though and bac/arch oriented but can do ~euk.
