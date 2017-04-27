@@ -103,6 +103,9 @@ Standard output, some folders/files have been truncated. Folder structure is ass
 
 ## Other Thoughts on Assembly & Downstream/Other Analyses
 1. ESOM?
+2. Co-assembly?
+  * [HyDA](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4876485/)
+  * Concat seq libraries + use pipeline with normalisation?
 2. Merging Scaffolds (Reconcillition instead of Co-assembly??)
   * [Metassembler](https://sourceforge.net/projects/metassembler/)
   * Comparative Analysis and Merging of Scaffold Assemblies - [CAMSA](https://cblab.org/camsa/)
