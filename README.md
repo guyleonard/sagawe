@@ -21,7 +21,7 @@ NB - There are several paths, relating to database locations, that must be manua
     Optional Parameters (ordered):
       -n 	Read Normalisation
       -S 	Use Scaffolds Instead of Contigs
-      -a 	Run All Options Below (p{pear}tsqcb{eukaryota_odb9}Bm)
+      -a 	Run All Options Below (p{bbmerge}tsqcb{eukaryota_odb9}Bm)
     Workflow Parameters:
       -p <pear|bbmerge>	Overlap Reads
       -t 	Trim Overlapped Reads
@@ -85,7 +85,7 @@ Standard output, some folders/files have been truncated. Folder structure is ass
 
 ## SAG Assembly Workflow
 1. Read Normalisation - Optional!! [BBNORM](http://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbnorm-guide/)
-2. Overlapping of Read Libraries [PEAR](http://sco.h-its.org/exelixis/web/software/pear/doc.html) or [BBMERGE](http://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbmerge-guide/)
+2. Overlapping of Read Libraries [BBMERGE](http://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbmerge-guide/) or [PEAR](http://sco.h-its.org/exelixis/web/software/pear/doc.html) but since it's not easily accesible anymore, I will phase it out.
 3. Trimming and Adaptor Cleaning [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
   * Remove any Illumina Sequencing Adaptors, poly-A tails, sequence quality score <20, etc.
 4. Assembly of Prepared Reads [SPAdes](http://bioinf.spbau.ru/en/spades)
