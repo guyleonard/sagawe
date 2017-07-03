@@ -29,16 +29,16 @@ cd $build_dir
 
 
 # PEAR
-echo "Downloading PEAR"
-git clone https://github.com/xflouris/PEAR.git
-cd PEAR
-echo "Building PEAR"
-./autogen.sh
-./configure
-make
-sudo make install
-echo "Done PEAR"
-cd $build_dir
+#echo "Downloading PEAR"
+#git clone https://github.com/xflouris/PEAR.git
+#cd PEAR
+#echo "Building PEAR"
+#./autogen.sh
+#./configure
+#make
+#sudo make install
+#echo "Done PEAR"
+#cd $build_dir
 #
 
 
