@@ -62,7 +62,7 @@ function run_overlapper () {
     elif [ $overlap_option == "pear" ] ; then
         run_pear
     else
-        run_pear
+        run_bbmerge
     fi
 }
 
@@ -672,7 +672,7 @@ while getopts f:r:o:np:tsSqclb:Bmah FLAG; do
             QUAST_SCAFFOLDS="--scaffolds"
             ;;
         a)
-             overlap_option="pear"
+             overlap_option="bbmerge"
             run_overlapper
             run_trim_galore
             run_assembly_spades
