@@ -39,18 +39,20 @@ AUGUSTUS_CONFIG_PATH="/home/cs02gl/single_cell_workflow/install_dependencies/bui
 function run_normalisation () {
     normalised_dir="$output_dir/normalised"
 
-    absolute_path="$( cd "$normalised_dir" && pwd )"
-
     if [ -d $normalised_dir ] ; then
         echo "Normalisation Previously Run, next..."
         NORMALISED="true"
     else
         mkdir -p "$normalised_dir"
 
+        absolute_path="$( cd "$normalised_dir" && pwd )"
+        out_read1=$(basename $READ1)
+        out_read2=$(basename $READ2)
+
         echo "Running BBNorm"
         bbnorm.sh in1="$READ1" in2="$READ2" \
-        out1="$absolute_path/${READ1/.gz/.norm.gz}" \
-        out2="$absolute_path/${READ2/.gz/.norm.gz}" \
+        out1="$absolute_path/${out_read1/.gz/.norm.gz}" \
+        out2="$absolute_path/${out_read2/.gz/.norm.gz}" \
         outt="$absolute_path/excluded_reads.fastq.gz" \
         hist="$absolute_path/input_kmer_depth.hist" \
         histout="$absolute_path/output_kmer_depth.hist" \
