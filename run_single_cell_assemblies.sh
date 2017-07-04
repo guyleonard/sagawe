@@ -5,21 +5,22 @@
 ############################
 
 # NCBI 'nt' Database Location and name (no extension)
-NCBI_NT="/home/ubuntu/blast/nt"
+NCBI_NT="/storage/ncbi/nt"
 # NCBI Taxonomy Dump
 # ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
-NCBI_TAXDMP="/home/ubuntu/blast/taxonomy"
+NCBI_TAXDMP="/storage/ncbi/taxdump"
 # NCBI Taxonomy DB Location
 # ftp://ftp.ncbi.nlm.nih.gov/blast/db/taxdb.tar.gz
-NCBI_TAXDB="/home/ubuntu/blast/taxdb"
+NCBI_TAXDB="/storage/ncbi/taxdb"
 export BLASTDB=$NCBI_TAXDB
 # CEGMA DIR
-CEGMA_DIR="/home/ubuntu/single_cell_workflow/build/CEGMA_v2.5"
+CEGMA_DIR="/home/cs02gl/single_cell_workflow/install_dependencies/build/CEGMA_v2.5"
 # BUSCO Lineage Location
-BUSCO_V1_DB="/home/ubuntu/busco/v1"
-BUSCO_V2_DB="/home/ubuntu/busco/v2"
+BUSCO_V1_DB="/storage/databases/BUSCO/v1/eukaryota"
+BUSCO_V2_DB="/storage/databases/BUSCO/v2/eukaryota_odb9"
 # Augustus Config Path
-AUGUSTUS_CONFIG_PATH="/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/config"
+AUGUSTUS_CONFIG_PATH="/home/cs02gl/single_cell_workflow/install_dependencies/build/augustus-3.2.3/config"
+
 
 
 #############################################
@@ -38,6 +39,8 @@ AUGUSTUS_CONFIG_PATH="/home/ubuntu/single_cell_workflow/build/augustus-3.2.2/con
 function run_normalisation () {
     normalised_dir="$output_dir/normalised"
 
+    absolute_path="$( cd "$normalised_dir" && pwd )"
+
     if [ -d $normalised_dir ] ; then
         echo "Normalisation Previously Run, next..."
         NORMALISED="true"
@@ -46,11 +49,11 @@ function run_normalisation () {
 
         echo "Running BBNorm"
         bbnorm.sh in1="$READ1" in2="$READ2" \
-        out1="$normalised_dir/${READ1/.gz/.norm.gz}" \
-        out2="$normalised_dir/${READ2/.gz/.norm.gz}" \
-        outt="$normalised_dir/excluded_reads.fastq.gz" \
-        hist="$normalised_dir/input_kmer_depth.hist" \
-        histout="$normalised_dir/output_kmer_depth.hist" \
+        out1="$absolute_path/${READ1/.gz/.norm.gz}" \
+        out2="$absolute_path/${READ2/.gz/.norm.gz}" \
+        outt="$absolute_path/excluded_reads.fastq.gz" \
+        hist="$absolute_path/input_kmer_depth.hist" \
+        histout="$absolute_path/output_kmer_depth.hist" \
         threads="$THREADS"
     fi
 }
@@ -97,6 +100,7 @@ function run_bbmerge () {
     overlapped_dir="$output_dir/overlapped"
     mkdir -p "$overlapped_dir"
 
+	echo "XXX $absolute_path XXX"
     absolute_path="$( cd "$overlapped_dir" && pwd )"
 
     if [ "$NORMALISED" == 'true' ] ; then
@@ -628,10 +632,12 @@ while getopts f:r:o:np:tsSqclb:Bmah FLAG; do
         o)
             output_dir=$OPTARG
             mkdir -p "$output_dir"
-            echo "Single Amplified Genome Assembly Workflow" > $output_dir/$output_dir.log
-            echo -e "\thttps://github.com/guyleonard/single_cell_workflow\n" >> $output_dir/$output_dir.log
-            echo "Run: $(date +%F+%R)" >> $output_dir/$output_dir.log
-            echo "Command: ${0} ${@}" >> $output_dir/$output_dir.log
+            absolute_path="$( cd "$output_dir" && pwd )"
+            echo "Single Amplified Genome Assembly Workflow" > $absolute_path/$output_dir.log
+            echo -e "\thttps://github.com/guyleonard/single_cell_workflow\n" >> "$absolute_path/$output_dir.log"
+            echo "Output Dir: $absolute_path" >> "$absolute_path/$output_dir.log"
+            echo "Run: $(date +%F+%R)" >> "$absolute_path/$output_dir.log"
+            echo "Command: ${0} ${@}" >> "$absolute_path/$output_dir.log"
             ;;
         n)
             run_normalisation
