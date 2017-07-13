@@ -640,8 +640,11 @@ while getopts f:r:o:np:tsSqclb:Bmah FLAG; do
             absolute_path="$( cd "$output_dir" && pwd )"
             echo "Single Amplified Genome Assembly Workflow" > $absolute_path/$output_dir.log
             echo -e "\thttps://github.com/guyleonard/single_cell_workflow\n" >> "$absolute_path/$output_dir.log"
+            echo "Please cite:"
+            echo "Guy Leonard. (2017, March 28). guyleonard/single_cell_workflow: Updated workflow, introducing normalisation and CLI. Zenodo. http://doi.org/10.5281/zenodo.438690"
+            echo "and [In Prep]"
             echo "Output Dir: $absolute_path" >> "$absolute_path/$output_dir.log"
-            echo "Run: $(date +%F+%R)" >> "$absolute_path/$output_dir.log"
+            echo "Run: $(date +"%Y-%m-%d %T)" >> "$absolute_path/$output_dir.log"
             echo "Command: ${0} ${@}" >> "$absolute_path/$output_dir.log"
             ;;
         n)
