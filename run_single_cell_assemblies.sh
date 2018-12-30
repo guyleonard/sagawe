@@ -5,13 +5,13 @@
 ############################
 
 # NCBI 'nt' Database Location and name (no extension)
-NCBI_NT="/storage/ncbi/nt"
+NCBI_NT="/storage/databases/ncbi/nt_2018"
 # NCBI Taxonomy Dump
 # ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
-NCBI_TAXDMP="/storage/ncbi/taxdump"
+NCBI_TAXDMP="/storage/databases/ncbi/taxdump"
 # NCBI Taxonomy DB Location
 # ftp://ftp.ncbi.nlm.nih.gov/blast/db/taxdb.tar.gz
-NCBI_TAXDB="/storage/ncbi/taxdb"
+NCBI_TAXDB="/storage/databases/ncbi/taxdb"
 export BLASTDB=$NCBI_TAXDB
 # CEGMA DIR
 CEGMA_DIR="/home/cs02gl/single_cell_workflow/install_dependencies/build/CEGMA_v2.5"
@@ -19,7 +19,7 @@ CEGMA_DIR="/home/cs02gl/single_cell_workflow/install_dependencies/build/CEGMA_v2
 BUSCO_V1_DB="/storage/databases/BUSCO/v1/eukaryota"
 BUSCO_V2_DB="/storage/databases/BUSCO/v2/eukaryota_odb9"
 # Augustus Config Path
-AUGUSTUS_CONFIG_PATH="/home/cs02gl/single_cell_workflow/install_dependencies/build/augustus-3.2.3/config"
+#AUGUSTUS_CONFIG_PATH="/home/cs02gl/single_cell_workflow/install_dependencies/build/augustus-3.2.3/config"
 
 
 
@@ -210,7 +210,7 @@ function run_assembly_spades () {
         mkdir -p "$assembly_dir"
         echo "Running SPAdes"
         spades.py --sc --careful -t "$THREADS" \
-        --s1 "$trimmed_dir/assembled_trimmed.fq.gz" \
+        --pe1-m "$trimmed_dir/assembled_trimmed.fq.gz" \
         --pe1-1 "$trimmed_dir/unassembled.forward_val_1.fq.gz" \
         --pe1-2 "$trimmed_dir/unassembled.reverse_val_2.fq.gz" \
         --pe1-s "$trimmed_dir/unassembled_unpaired.fq.gz" \
