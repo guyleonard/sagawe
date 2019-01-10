@@ -258,34 +258,6 @@ function report_cegma () {
     fi
 }
 
-# Run BUSCO v1 - LEGACY
-function report_busco_v1 () {
-    assembly_dir="$output_dir/assembly"
-
-    if [ ! -f "$assembly_dir/$ASSEMBLY" ] ; then
-        echo -e "[ERROR]: SPAdes scaffolds cannot be found. Aborting."
-        exit 1
-    else
-        busco_dir="$output_dir/reports/busco"
-        mkdir -p "$busco_dir"
-
-        absolute_path="$( cd "$output_dir" && pwd )"
-        current_dir=$(pwd)
-
-        IFS=\, read -a current_db <<<"$busco_v2_dbs"
-
-        for x in "${current_db[@]}";do
-
-            BUSCO_v1.22.py \
-            -g "$assembly_dir/$ASSEMBLY" \
-            -c "$THREADS" -l "$BUSCO_V1_DB/$y" -o "$y" -f | tee "$busco_dir/busco.log"
-
-            # Tidy up busco
-            mv "$current_dir/run_$y" "$absolute_path/reports/busco"
-        done
-    fi
-}
-
 # Run BUSCO v2
 function report_busco_v2 () {
     assembly_dir="$output_dir/assembly"
@@ -586,7 +558,6 @@ function help_message () {
     echo -e "  -B \tRun BlobTools"
     echo -e "  -m \tRun MultiQC"
     echo -e "Legacy (soon to be deprecated):"
-    echo -e "  -l \tRun BUSCO v1 - legacy"
     echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -n -S -a"
     exit 1
 }
@@ -599,7 +570,7 @@ function help_message () {
 THREADS=$(cores)
 
 # Check that we have the required programs
-exes=(pigz clumpify.sh trim_galore pear spades.py quast.py cegma BUSCO_v1.22.py BUSCO.py BUSCO_plot.py bwa samtools blastn blobtools multiqc)
+exes=(pigz clumpify.sh trim_galore pear spades.py quast.py cegma BUSCO.py BUSCO_plot.py bwa samtools blastn blobtools multiqc)
 for program in ${exes[@]} ; do
     check_exe "$program"
 done
@@ -666,10 +637,6 @@ while getopts f:r:o:np:tsSqclb:Bmah FLAG; do
             ;;
         c)
             report_cegma
-            ;;
-        l)
-            busco_v1_dbs=$OPTARG
-            report_busco_v1
             ;;
         b)
             busco_v2_dbs=$OPTARG
