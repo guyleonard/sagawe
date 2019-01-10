@@ -85,32 +85,6 @@ function run_bbmerge () {
     fi
 }
 
-function gzip_fastq () {
-    overlapped_dir="$output_dir/overlapped"
-    absolute_path="$( cd "$overlapped_dir" && pwd )"
-
-    if command -v "clumpify.sh" >/dev/null 2>&1 ; then
-        echo "Running clumpify.sh"
-        clumpify.sh in="$absolute_path/pear_overlap.assembled.fastq" \
-        out="$absolute_path/pear_overlap.assembled.fastq.gz"
-
-        clumpify.sh in="$absolute_path/pear_overlap.unassembled.forward.fastq" \
-        in2="$absolute_path/pear_overlap.unassembled.reverse.fastq" \
-        out="$absolute_path/pear_overlap.unassembled.forward.fastq.gz" \
-        out2="$absolute_path/pear_overlap.unassembled.reverse.fastq.gz"
-    elif command -v "pigz" >/dev/null 2>&1 ; then
-        echo "Running pigz"
-        pigz -9 -R "$absolute_path/pear_overlap.assembled.fastq"
-        pigz -9 -R "$absolute_path/pear_overlap.unassembled.forward.fastq"
-        pigz -9 -R "$absolute_path/pear_overlap.unassembled.reverse.fastq"
-    else
-        echo "Running gzip"
-        gzip -9 --rsyncable "$absolute_path/pear_overlap.assembled.fastq"
-        gzip -9 --rsyncable "$absolute_path/pear_overlap.unassembled.forward.fastq"
-        gzip -9 --rsyncable "$absolute_path/pear_overlap.unassembled.reverse.fastq"
-    fi
-}
-
 ## Run Trim Galore!
 # Two sets of trimming:
 # Assembled/overlapped reads
