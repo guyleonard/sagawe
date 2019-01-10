@@ -21,21 +21,19 @@ BUSCO_V2_DB="/storage/databases/BUSCO/v2/eukaryota_odb9"
 # Augustus Config Path
 #AUGUSTUS_CONFIG_PATH="/home/cs02gl/single_cell_workflow/install_dependencies/build/augustus-3.2.3/config"
 
-
-
-#############################################
-## Program Functions - Do Not Change Below ##
-##         Roughly In Order of Use         ##
-#############################################
+#######################
+## Program Functions ##
+#######################
 
 ## Run bbnorm
-# This is to digitally normalise your
-# data if it will not assemble, remember
-# you should map the original reads to an
-# assembly and not the normalised reads,
-# this script does not currently do that
-# so as to to preserve overlap/trimmed reads
-# used in the assembly for normal analysis.
+# Digitally normalise your data
+# if it will not assemble in good time,
+# or you have limited resources, remember
+# you should map the original trimmed reads
+# to an assembly and not the normalised reads,
+## this script does not currently do that
+## so as to to preserve overlap/trimmed reads
+## used in the assembly for normal analysis.
 function run_normalisation () {
     normalised_dir="$output_dir/normalised"
 
@@ -58,44 +56,6 @@ function run_normalisation () {
         histout="$absolute_path/output_kmer_depth.hist" \
         threads="$THREADS"
     fi
-}
-
-## Function to control which overlapper is used
-function run_overlapper () {
-    if [ $overlap_option == "bbmerge" ] ; then
-        run_bbmerge
-    elif [ $overlap_option == "pear" ] ; then
-        run_pear
-    else
-        run_bbmerge
-    fi
-}
-
-## Run Pear Overlapper
-# default settings
-function run_pear () {
-    overlapped_dir="$output_dir/overlapped"
-    mkdir -p "$overlapped_dir"
-
-    absolute_path="$( cd "$overlapped_dir" && pwd )"
-    out_read1=$(basename $READ1)
-    out_read2=$(basename $READ2)
-
-    if [ "$NORMALISED" == 'true' ] ; then
-        echo "Running PEAR Assembler with Normalised Reads"
-        pear -f "$normalised_dir/${out_read1/.gz/.norm.gz}" -r "$normalised_dir/${out_read2/.gz/.norm.gz}" \
-        -o "$overlapped_dir/pear_overlap" -j "$THREADS" | tee "$overlapped_dir/pear.log"
-    else
-        echo "Running PEAR Assembler"
-        pear -f "$READ1" -r "$READ2" \
-        -o "$overlapped_dir/pear_overlap" -j "$THREADS" | tee "$overlapped_dir/pear.log"
-    fi
-
-    gzip_fastq
-
-    ln -s "$absolute_path/pear_overlap.assembled.fastq.gz" "$absolute_path/assembled.fastq.gz"
-    ln -s "$absolute_path/pear_overlap.unassembled.forward.fastq.gz" "$absolute_path/unassembled.forward.fastq.gz"
-    ln -s "$absolute_path/pear_overlap.unassembled.reverse.fastq.gz" "$absolute_path/unassembled.reverse.fastq.gz"
 }
 
 ## Run BBMerge
@@ -546,9 +506,9 @@ function help_message () {
     echo -e "Optional Parameters (ordered):"
     echo -e "  -n \tRead Normalisation"
     echo -e "  -S \tUse Scaffolds Instead of Contigs"
-    echo -e "  -a \tRun All Options Below (p{pear}tsqcb{eukaryota_odb9}Bm)"
+    echo -e "  -a \tRun All Options Below (ptsqcb{eukaryota_odb9}Bm)"
     echo -e "Workflow Parameters:"
-    echo -e "  -p <pear|bbmerge>\tOverlap Reads"
+    echo -e "  -p \tOverlap Reads"
     echo -e "  -t \tTrim Overlapped Reads"
     echo -e "  -s \tAssemble Trimmed Reads"
     echo -e "Reports:"
@@ -557,7 +517,6 @@ function help_message () {
     echo -e "  -b <db1,db2,...>\tRun BUSCO v2"
     echo -e "  -B \tRun BlobTools"
     echo -e "  -m \tRun MultiQC"
-    echo -e "Legacy (soon to be deprecated):"
     echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -n -S -a"
     exit 1
 }
@@ -570,7 +529,7 @@ function help_message () {
 THREADS=$(cores)
 
 # Check that we have the required programs
-exes=(pigz clumpify.sh trim_galore pear spades.py quast.py cegma BUSCO.py BUSCO_plot.py bwa samtools blastn blobtools multiqc)
+exes=(pigz clumpify.sh trim_galore spades.py quast.py cegma BUSCO.py BUSCO_plot.py bwa samtools blastn blobtools multiqc)
 for program in ${exes[@]} ; do
     check_exe "$program"
 done
@@ -623,8 +582,7 @@ while getopts f:r:o:np:tsSqclb:Bmah FLAG; do
             NORMALISED="true"
             ;;
         p)
-            overlap_option=$OPTARG
-            run_overlapper
+            run_bbmerge
             ;;
         t)
             run_trim_galore
@@ -653,13 +611,12 @@ while getopts f:r:o:np:tsSqclb:Bmah FLAG; do
             QUAST_SCAFFOLDS="--scaffolds"
             ;;
         a)
-             overlap_option="bbmerge"
-            run_overlapper
+            run_bbmerge
             run_trim_galore
             run_assembly_spades
             report_quast
             report_cegma
-             busco_v2_dbs="eukaryota_odb9"
+            busco_v2_dbs="eukaryota_odb9"
             report_busco_v2
             report_blobtools
             report_multiqc
