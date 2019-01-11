@@ -59,7 +59,6 @@ function run_normalisation () {
 }
 
 ## Run BBMerge
-# Roughly same settings as PEAR
 function run_bbmerge () {
     overlapped_dir="$output_dir/overlapped"
     mkdir -p "$overlapped_dir"
@@ -71,16 +70,16 @@ function run_bbmerge () {
     if [ "$NORMALISED" == 'true' ] ; then
         echo "Running BBMerge with Normalised Reads"
         bbmerge.sh in1="$normalised_dir/${out_read1/.gz/.norm.gz}" in2="$normalised_dir/${out_read2/.gz/.norm.gz}" \
-        out="$absolute_path/assembled.fastq.gz" \
-        outu1="$absolute_path/unassembled.forward.fastq.gz" \
-        outu2="$absolute_path/unassembled.reverse.fastq.gz" \
+        out="$absolute_path/merged.fastq.gz" \
+        outu1="$absolute_path/unmerged.forward.fastq.gz" \
+        outu2="$absolute_path/unmerged.reverse.fastq.gz" \
         minoverlap=10 ziplevel=9
     else
         echo "Running BBMerge"
         bbmerge.sh in1="$READ1" in2="$READ2" \
-        out="$absolute_path/assembled.fastq.gz" \
-        outu1="$absolute_path/unassembled.forward.fastq.gz" \
-        outu2="$absolute_path/unassembled.reverse.fastq.gz" \
+        out="$absolute_path/merged.fastq.gz" \
+        outu1="$absolute_path/unmerged.forward.fastq.gz" \
+        outu2="$absolute_path/unmerged.reverse.fastq.gz" \
         minoverlap=10 ziplevel=9
     fi
 }
@@ -88,7 +87,7 @@ function run_bbmerge () {
 ## Run Trim Galore!
 # Two sets of trimming:
 # Assembled/overlapped reads
-# Unassembled paired reads.
+# Unmerged paired reads.
 # Minimum length of 100
 # Minimum quality of Q20
 # run FASTQC on trimmed
@@ -96,7 +95,7 @@ function run_bbmerge () {
 function run_trim_galore () {
     overlapped_dir="$output_dir/overlapped"
 
-    if [ ! -f "$overlapped_dir/assembled.fastq.gz" ] ; then
+    if [ ! -f "$overlapped_dir/merged.fastq.gz" ] ; then
         echo "Read Overlapper Was/Did Not Run. Please use -p option."
     else
         trimmed_dir="$output_dir/trimmed"
@@ -106,12 +105,12 @@ function run_trim_galore () {
 
         echo "Running Trim Galore! on Untrimmed Assembled Reads"
         trim_galore -q 20 --fastqc --'gzip' --length 100 \
-        "$overlapped_dir/assembled.fastq.gz" -o "$trimmed_dir" | tee "$trimmed_dir/trim_galore_assembled.log"
+        "$overlapped_dir/merged.fastq.gz" -o "$trimmed_dir" | tee "$trimmed_dir/trim_galore_merged.log"
 
-        echo "Running Trim Galore! on Untrimmed Un-assembled Reads"
+        echo "Running Trim Galore! on Untrimmed Un-merged Reads"
         trim_galore -q 20 --fastqc --'gzip' --length 100 --paired --retain_unpaired \
-        "$overlapped_dir/unassembled.forward.fastq.gz" "$overlapped_dir/unassembled.reverse.fastq.gz" \
-        -o "$trimmed_dir" | tee "$trimmed_dir/trim_galore_unassembled.log"
+        "$overlapped_dir/unmerged.forward.fastq.gz" "$overlapped_dir/unmerged.reverse.fastq.gz" \
+        -o "$trimmed_dir" | tee "$trimmed_dir/trim_galore_unmerged.log"
 
         absolute_path="$( cd "$trimmed_dir" && pwd )"
 
@@ -122,8 +121,8 @@ function run_trim_galore () {
         # for spades, we should include the now unpaired reads as one library
         # it makes sense but at the same time freezes my brain
         # you can cat .gz files together!
-        cat "$trimmed_dir/unassembled.forward_unpaired_1.fq.gz" \
-        "$trimmed_dir/unassembled.reverse_unpaired_2.fq.gz" > "$trimmed_dir/unassembled_unpaired.fq.gz"
+        cat "$trimmed_dir/unmerged.forward_unpaired_1.fq.gz" \
+        "$trimmed_dir/unmerged.reverse_unpaired_2.fq.gz" > "$trimmed_dir/unmerged_unpaired.fq.gz"
     fi
 }
 
@@ -137,17 +136,17 @@ function run_trim_galore () {
 function run_assembly_spades () {
     trimmed_dir="$output_dir/trimmed"
 
-    if [ ! -f "$trimmed_dir/assembled_trimmed.fq.gz" ] ; then
+    if [ ! -f "$trimmed_dir/merged_trimmed.fq.gz" ] ; then
         echo "Read Overlapper Was/Did Not Run. Please use -p option."
     else
         assembly_dir="$output_dir/assembly"
         mkdir -p "$assembly_dir"
         echo "Running SPAdes"
         spades.py --sc --careful -t "$THREADS" \
-        --pe1-m "$trimmed_dir/assembled_trimmed.fq.gz" \
-        --pe1-1 "$trimmed_dir/unassembled.forward_val_1.fq.gz" \
-        --pe1-2 "$trimmed_dir/unassembled.reverse_val_2.fq.gz" \
-        --pe1-s "$trimmed_dir/unassembled_unpaired.fq.gz" \
+        --pe1-m "$trimmed_dir/merged_trimmed.fq.gz" \
+        --pe1-1 "$trimmed_dir/unmerged.forward_val_1.fq.gz" \
+        --pe1-2 "$trimmed_dir/unmerged.reverse_val_2.fq.gz" \
+        --pe1-s "$trimmed_dir/unmerged_unpaired.fq.gz" \
         -o "$assembly_dir"
     fi
 }
@@ -259,8 +258,8 @@ function blobtools_minimap2 () {
         # we will have to do this for all 5 sets of reads and then merge
         echo "Mapping Assembled reads to Assembly"
         minimap2 -t "$THREADS" -ax sr "$blobtools_map/${ASSEMBLY/.fasta/.mmi}" \
-        "$trimmed_dir/assembled_trimmed.fq.gz" \
-        > "$blobtools_map/scaffolds_mapped_assembled_reads.sam" | tee -a "$blobtools_map/minimap2.log"
+        "$trimmed_dir/merged_trimmed.fq.gz" \
+        > "$blobtools_map/scaffolds_mapped_merged_reads.sam" | tee -a "$blobtools_map/minimap2.log"
 
 
    fi
@@ -293,24 +292,24 @@ function blobtools_bwa () {
         # we will have to do this for all 5 sets of reads and then merge
         echo "Mapping Assembled reads to Assembly"
         bwa mem -t "$THREADS" "$blobtools_map/$ASSEMBLY" \
-        "$trimmed_dir/assembled_trimmed.fq.gz" \
-        > "$blobtools_map/scaffolds_mapped_assembled_reads.sam" | tee -a "$blobtools_map/bwa.log"
+        "$trimmed_dir/merged_trimmed.fq.gz" \
+        > "$blobtools_map/scaffolds_mapped_merged_reads.sam" | tee -a "$blobtools_map/bwa.log"
 
-        echo "Mapping Un-assembled & Un-Paired reads to Assembly - Forward"
+        echo "Mapping Un-merged & Un-Paired reads to Assembly - Forward"
         bwa mem -t "$THREADS" "$blobtools_map/$ASSEMBLY" \
-        "$trimmed_dir/unassembled.forward_unpaired_1.fq.gz" \
-        > "$blobtools_map/scaffolds_mapped_unassembled_unpaired_forward_reads.sam" | tee -a "$blobtools_map/bwa.log"
+        "$trimmed_dir/unmerged.forward_unpaired_1.fq.gz" \
+        > "$blobtools_map/scaffolds_mapped_unmerged_unpaired_forward_reads.sam" | tee -a "$blobtools_map/bwa.log"
 
-        echo "Mapping Un-assembled & Un-Paired reads to Assembly - Reverse"
+        echo "Mapping Un-merged & Un-Paired reads to Assembly - Reverse"
         bwa mem -t "$THREADS" "$blobtools_map/$ASSEMBLY" \
-        "$trimmed_dir/unassembled.reverse_unpaired_1.fq.gz" \
-        > "$blobtools_map/scaffolds_mapped_unassembled_unpaired_reverse_reads.sam" | tee -a "$blobtools_map/bwa.log"
+        "$trimmed_dir/unmerged.reverse_unpaired_1.fq.gz" \
+        > "$blobtools_map/scaffolds_mapped_unmerged_unpaired_reverse_reads.sam" | tee -a "$blobtools_map/bwa.log"
 
-        echo "Mapping Un-assembled but still Paired reads to Assembly"
+        echo "Mapping Un-merged but still Paired reads to Assembly"
         bwa mem -t "$THREADS" "$blobtools_map/$ASSEMBLY" \
-        "$trimmed_dir/unassembled.forward_val_1.fq.gz" \
-        "$trimmed_dir/unassembled.reverse_val_2.fq.gz" \
-        > "$blobtools_map/scaffolds_mapped_unassembled_paired_reads.sam" | tee -a "$blobtools_map/bwa.log"
+        "$trimmed_dir/unmerged.forward_val_1.fq.gz" \
+        "$trimmed_dir/unmerged.reverse_val_2.fq.gz" \
+        > "$blobtools_map/scaffolds_mapped_unmerged_paired_reads.sam" | tee -a "$blobtools_map/bwa.log"
     fi
 }
 
@@ -320,39 +319,39 @@ function blobtools_samtools () {
 
     # sort and convert sam to bam with SAMTOOLS
     echo "Sorting Assembled SAM File and Converting to BAM"
-    samtools sort -@ "$THREADS" -o "$blobtools_map/scaffolds_mapped_assembled_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_assembled_reads.sam" | tee -a "$blobtools_map/samtools.log"
+    samtools sort -@ "$THREADS" -o "$blobtools_map/scaffolds_mapped_merged_reads.bam" \
+    "$blobtools_map/scaffolds_mapped_merged_reads.sam" | tee -a "$blobtools_map/samtools.log"
 
     # sort and convert sam to bam with SAMTOOLS
-    echo "Sorting Un-assembled & Un-Paired SAM Files and Converting to BAM - Forward"
-    samtools sort -@ "$THREADS" -o "$blobtools_map/scaffolds_mapped_unassembled_unpaired_forward_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_unassembled_unpaired_forward_reads.sam" | tee -a "$blobtools_map/samtools.log"
+    echo "Sorting Un-merged & Un-Paired SAM Files and Converting to BAM - Forward"
+    samtools sort -@ "$THREADS" -o "$blobtools_map/scaffolds_mapped_unmerged_unpaired_forward_reads.bam" \
+    "$blobtools_map/scaffolds_mapped_unmerged_unpaired_forward_reads.sam" | tee -a "$blobtools_map/samtools.log"
 
-    echo "Sorting Un-assembled & Un-Paired SAM Files and Converting to BAM - Reverse"
-    samtools sort -@ "$THREADS" -o "$blobtools_map/scaffolds_mapped_unassembled_unpaired_reverse_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_unassembled_unpaired_reverse_reads.sam" | tee -a "$blobtools_map/samtools.log"
+    echo "Sorting Un-merged & Un-Paired SAM Files and Converting to BAM - Reverse"
+    samtools sort -@ "$THREADS" -o "$blobtools_map/scaffolds_mapped_unmerged_unpaired_reverse_reads.bam" \
+    "$blobtools_map/scaffolds_mapped_unmerged_unpaired_reverse_reads.sam" | tee -a "$blobtools_map/samtools.log"
 
     # sort and convert sam to bam with SAMTOOLS
-    echo "Sorting Un-assembled & Paired SAM File and Converting to BAM"
-    samtools sort -@ "$THREADS" -o "$blobtools_map/scaffolds_mapped_unassembled_paired_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_unassembled_paired_reads.sam" | tee -a "$blobtools_map/samtools.log"
+    echo "Sorting Un-merged & Paired SAM File and Converting to BAM"
+    samtools sort -@ "$THREADS" -o "$blobtools_map/scaffolds_mapped_unmerged_paired_reads.bam" \
+    "$blobtools_map/scaffolds_mapped_unmerged_paired_reads.sam" | tee -a "$blobtools_map/samtools.log"
 
     # Merge SAM files
     echo "Merging 4 BAM files"
     samtools merge -@ "$THREADS" -f "$blobtools_map/scaffolds_mapped_all_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_assembled_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_unassembled_paired_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_unassembled_unpaired_forward_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_unassembled_unpaired_reverse_reads.bam" | tee -a "$blobtools_map/samtools.log"
+    "$blobtools_map/scaffolds_mapped_merged_reads.bam" \
+    "$blobtools_map/scaffolds_mapped_unmerged_paired_reads.bam" \
+    "$blobtools_map/scaffolds_mapped_unmerged_unpaired_forward_reads.bam" \
+    "$blobtools_map/scaffolds_mapped_unmerged_unpaired_reverse_reads.bam" | tee -a "$blobtools_map/samtools.log"
 
     echo "Indexing Bam"
     samtools index "$blobtools_map/scaffolds_mapped_all_reads.bam" | tee -a "$blobtools_map/samtools.log"
 
     # delete sam files
-    rm "$blobtools_map/scaffolds_mapped_assembled_reads.sam"
-    rm "$blobtools_map/scaffolds_mapped_unassembled_paired_reads.sam"
-    rm "$blobtools_map/scaffolds_mapped_unassembled_unpaired_forward_reads.sam"
-    rm "$blobtools_map/scaffolds_mapped_unassembled_unpaired_reverse_reads.sam"
+    rm "$blobtools_map/scaffolds_mapped_merged_reads.sam"
+    rm "$blobtools_map/scaffolds_mapped_unmerged_paired_reads.sam"
+    rm "$blobtools_map/scaffolds_mapped_unmerged_unpaired_forward_reads.sam"
+    rm "$blobtools_map/scaffolds_mapped_unmerged_unpaired_reverse_reads.sam"
 }
 
 function blobtools_blast () {
