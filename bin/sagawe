@@ -234,6 +234,38 @@ function report_multiqc () {
     multiqc -o "$output_dir/reports" -z "$output_dir"
 }
 
+function blobtools_minimap2 () {
+    assembly_dir="$output_dir/assembly"
+
+  if [ ! -f "$assembly_dir/$ASSEMBLY" ] ; then
+        echo -e "[ERROR]: SPAdes scaffolds cannot be found. Aborting."
+        exit 1
+    else
+        blobtools_dir="$output_dir/reports/blobtools"
+        mkdir -p "$blobtools_dir"
+
+        blobtools_map="$blobtools_dir/mapping"
+        mkdir -p "$blobtools_map"
+
+        absolute_dir="$( cd "$output_dir" && pwd )"
+
+        ln -s "$absolute_dir/assembly/$ASSEMBLY" "$absolute_dir/reports/blobtools/mapping/$ASSEMBLY"
+
+        # index assembly (scaffolds.fa) with minimap2
+        echo "Indexing Assembly"
+        minimap2 -t "$THREADS" -d "$blobtools_map/${ASSEMBLY/.fasta/.mmi}" | tee "$blobtools_map/minimap2.log"
+
+        # map reads to assembly with minimap2
+        # we will have to do this for all 5 sets of reads and then merge
+        echo "Mapping Assembled reads to Assembly"
+        minimap2 -t "$THREADS" -ax sr "$blobtools_map/${ASSEMBLY/.fasta/.mmi}" \
+        "$trimmed_dir/assembled_trimmed.fq.gz" \
+        > "$blobtools_map/scaffolds_mapped_assembled_reads.sam" | tee -a "$blobtools_map/minimap2.log"
+
+
+   fi
+}
+
 function blobtools_bwa () {
     assembly_dir="$output_dir/assembly"
 
