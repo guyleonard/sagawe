@@ -303,7 +303,7 @@ function blobtools_bwa () {
 
         echo "Mapping Un-assembled & Un-Paired reads to Assembly - Reverse"
         bwa mem -t "$THREADS" "$blobtools_map/$ASSEMBLY" \
-        "$trimmed_dir/unassembled.reverse_unpaired_2.fq.gz" \
+        "$trimmed_dir/unassembled.reverse_unpaired_1.fq.gz" \
         > "$blobtools_map/scaffolds_mapped_unassembled_unpaired_reverse_reads.sam" | tee -a "$blobtools_map/bwa.log"
 
         echo "Mapping Un-assembled but still Paired reads to Assembly"
