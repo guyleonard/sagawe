@@ -16,14 +16,56 @@ export BLASTDB=$NCBI_TAXDB
 # CEGMA DIR
 CEGMA_DIR="/home/cs02gl/single_cell_workflow/install_dependencies/build/CEGMA_v2.5"
 # BUSCO Lineage Location
-BUSCO_V1_DB="/storage/databases/BUSCO/v1/eukaryota"
 BUSCO_V2_DB="/storage/databases/BUSCO/v2/eukaryota_odb9"
 # Augustus Config Path
-#AUGUSTUS_CONFIG_PATH="/home/cs02gl/single_cell_workflow/install_dependencies/build/augustus-3.2.3/config"
+AUGUSTUS_CONFIG_PATH="/home/cs02gl/single_cell_workflow/install_dependencies/build/augustus-3.2.3/config"
 
 #######################
 ## Program Functions ##
 #######################
+
+## Run Trim Galore!
+# Minimum length of 100
+# Minimum quality of Q20
+# run FASTQC on trimmed
+# GZIP output
+function run_trim_galore () {
+    trimmed_dir="$output_dir/trimmed"
+    mkdir -p "$trimmed_dir"
+    fastqc_dir="$trimmed_dir/fastqc"
+    mkdir -p "$fastqc_dir"
+
+    echo "Running Trim Galore! on Untrimmed Assembled Reads"
+    trim_galore -q 20 --fastqc --'gzip' --length 100 \
+    "$READ1" "$READ2" -o "$trimmed_dir" 2>&1 | tee "$trimmed_dir/trim_galore.log"
+
+    absolute_path="$( cd "$trimmed_dir" && pwd )"
+
+    mv "$absolute_path/"*".html" "$absolute_path/fastqc"
+    mv "$absolute_path/"*".zip" "$absolute_path/fastqc"
+    mv "$absolute_path/"*".txt" "$absolute_path/fastqc"
+
+    normalised_dir="$output_dir/normalised"
+
+    if [ -d $normalised_dir ] ; then
+        echo "Now Processing Normalised Reads"
+
+        absolute_path="$( cd "$normalised_dir" && pwd )"
+
+        read1=$(basename -- "$READ1")
+        read1="${read1%%.*}"
+
+        read2=$(basename -- "$READ2")
+        read2="${read2%%.*}"
+
+        extension="${read1#*.}"
+
+	trim_galore -q 20 --fastqc --'gzip' --length 100 \
+        "${absolute_path/\/normalised/}/$read1\_normalised.$extension" "${absolute_path/\/normalised/}/$read2\_normalised.$extension" \
+        -o "$normalised_dir" 2>&1 | tee "$trimmed_dir/trim_galore.log"
+
+    fi
+}
 
 ## Run bbnorm
 # Digitally normalise your data
@@ -31,9 +73,6 @@ BUSCO_V2_DB="/storage/databases/BUSCO/v2/eukaryota_odb9"
 # or you have limited resources, remember
 # you should map the original trimmed reads
 # to an assembly and not the normalised reads,
-## this script does not currently do that
-## so as to to preserve overlap/trimmed reads
-## used in the assembly for normal analysis.
 function run_normalisation () {
     normalised_dir="$output_dir/normalised"
 
@@ -44,14 +83,19 @@ function run_normalisation () {
         mkdir -p "$normalised_dir"
 
         absolute_path="$( cd "$normalised_dir" && pwd )"
-        out_read1=$(basename $READ1)
-        out_read2=$(basename $READ2)
+	read1=$(basename -- "$READ1")
+	read1="${read1%%.*}"
+
+        read2=$(basename -- "$READ2")
+        read2="${read2%%.*}"
+
+	extension="${read1#*.}"
 
         echo "Running BBNorm"
-        bbnorm.sh in1="$READ1" in2="$READ2" \
-        out1="$absolute_path/${out_read1/.gz/.norm.gz}" \
-        out2="$absolute_path/${out_read2/.gz/.norm.gz}" \
-        outt="$absolute_path/excluded_reads.fastq.gz" \
+        bbnorm.sh in1="${absolute_path/\/normalised/}/$read1\_normalised.$extension" in2="${absolute_path/\/normalised/}/$read2\_normalised.$extension" \
+        out1="$absolute_path/$read1\_normalised.$extension" \
+        out2="$absolute_path/$read2\_normalised.$extension" \
+        outt="$absolute_path/excluded_reads.fq.gz" \
         hist="$absolute_path/input_kmer_depth.hist" \
         histout="$absolute_path/output_kmer_depth.hist" \
         threads="$THREADS"
@@ -81,48 +125,6 @@ function run_bbmerge () {
         outu1="$absolute_path/unmerged.forward.fastq.gz" \
         outu2="$absolute_path/unmerged.reverse.fastq.gz" \
         minoverlap=10 ziplevel=9
-    fi
-}
-
-## Run Trim Galore!
-# Two sets of trimming:
-# Assembled/overlapped reads
-# Unmerged paired reads.
-# Minimum length of 100
-# Minimum quality of Q20
-# run FASTQC on trimmed
-# GZIP output
-function run_trim_galore () {
-    overlapped_dir="$output_dir/overlapped"
-
-    if [ ! -f "$overlapped_dir/merged.fastq.gz" ] ; then
-        echo "Read Overlapper Was/Did Not Run. Please use -p option."
-    else
-        trimmed_dir="$output_dir/trimmed"
-        mkdir -p "$trimmed_dir"
-        fastqc_dir="$trimmed_dir/fastqc"
-        mkdir -p "$fastqc_dir"
-
-        echo "Running Trim Galore! on Untrimmed Assembled Reads"
-        trim_galore -q 20 --fastqc --'gzip' --length 100 \
-        "$overlapped_dir/merged.fastq.gz" -o "$trimmed_dir" | tee "$trimmed_dir/trim_galore_merged.log"
-
-        echo "Running Trim Galore! on Untrimmed Un-merged Reads"
-        trim_galore -q 20 --fastqc --'gzip' --length 100 --paired --retain_unpaired \
-        "$overlapped_dir/unmerged.forward.fastq.gz" "$overlapped_dir/unmerged.reverse.fastq.gz" \
-        -o "$trimmed_dir" | tee "$trimmed_dir/trim_galore_unmerged.log"
-
-        absolute_path="$( cd "$trimmed_dir" && pwd )"
-
-        mv "$absolute_path/"*".html" "$absolute_path/fastqc"
-        mv "$absolute_path/"*".zip" "$absolute_path/fastqc"
-        mv "$absolute_path/"*".txt" "$absolute_path/fastqc"
-
-        # for spades, we should include the now unpaired reads as one library
-        # it makes sense but at the same time freezes my brain
-        # you can cat .gz files together!
-        cat "$trimmed_dir/unmerged.forward_unpaired_1.fq.gz" \
-        "$trimmed_dir/unmerged.reverse_unpaired_2.fq.gz" > "$trimmed_dir/unmerged_unpaired.fq.gz"
     fi
 }
 
@@ -483,14 +485,6 @@ function ncbi_taxonomy () {
     fi
 }
 
-function busco_db () {
-    if [ ! -d "$BUSCO_V1_DB" ] ; then
-        echo "[ERROR]: Missing BUSCO Lineage Directory. Is your path correct?"
-        echo "$BUSCO_V1_DB"
-        exit 1
-    fi
-}
-
 function augustus () {
     if [ ! -d "$AUGUSTUS_CONFIG_PATH" ] ; then
         echo "[ERROR]: Missing AUGUSTUS_CONFIG_PATH Directory. Is your path correct?"
@@ -545,7 +539,6 @@ NORMALISED="false"
 export_cegma
 ncbi_taxonomy
 ncbi_nt
-busco_db
 augustus
 
 NUMARGS=$#
@@ -574,12 +567,9 @@ while getopts f:r:o:np:tsSqclb:Bmah FLAG; do
             mkdir -p "$output_dir"
             absolute_path="$( cd "$output_dir" && pwd )"
             echo "Single Amplified Genome Assembly Workflow" > $absolute_path/$output_dir.log
-            echo -e "\thttps://github.com/guyleonard/single_cell_workflow\n" >> "$absolute_path/$output_dir.log"
-            echo "Please cite:"
-            echo "Guy Leonard. (2017, March 28). guyleonard/single_cell_workflow: Updated workflow, introducing normalisation and CLI. Zenodo. http://doi.org/10.5281/zenodo.438690"
-            echo "and [In Prep]"
+            echo -e "\thttps://github.com/guyleonard/sagawe\n" >> "$absolute_path/$output_dir.log"
             echo "Output Dir: $absolute_path" >> "$absolute_path/$output_dir.log"
-            echo "Run: $(date +%Y-%m-%d %T)" >> "$absolute_path/$output_dir.log"
+            echo "Run: $(date +%Y-%m-%d)" >> "$absolute_path/$output_dir.log"
             echo "Command: ${0} ${@}" >> "$absolute_path/$output_dir.log"
             ;;
         n)
