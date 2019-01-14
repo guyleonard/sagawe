@@ -24,6 +24,41 @@ AUGUSTUS_CONFIG_PATH="/home/cs02gl/single_cell_workflow/install_dependencies/bui
 ## Program Functions ##
 #######################
 
+## Run bbnorm
+# Digitally normalise your data
+# if it will not assemble in good time,
+# or you have limited resources, remember
+# you should map the original trimmed reads
+# to an assembly and not the normalised reads,
+function run_normalisation () {
+    normalised_dir="$output_dir/normalised"
+
+    if [ -d $normalised_dir ] ; then
+        echo "Normalisation Previously Run, next..."
+        NORMALISED="true"
+    else
+        mkdir -p "$normalised_dir"
+
+        absolute_path="$( cd "$normalised_dir" && pwd )"
+        read1=$(basename -- "$READ1")
+        read1="${read1%%.*}"
+
+        read2=$(basename -- "$READ2")
+        read2="${read2%%.*}"
+
+        extension="${read1#*.}"
+
+        echo "Running BBNorm"
+        bbnorm.sh in1="$READ1" in2="$READ2" \
+        out1="$absolute_path/$read1\_normalised.$extension" \
+        out2="$absolute_path/$read2\_normalised.$extension" \
+        outt="$absolute_path/excluded_reads.fq.gz" \
+        hist="$absolute_path/input_kmer_depth.hist" \
+        histout="$absolute_path/output_kmer_depth.hist" \
+        threads="$THREADS"
+    fi
+}
+
 ## Run Trim Galore!
 # Minimum length of 100
 # Minimum quality of Q20
@@ -35,7 +70,7 @@ function run_trim_galore () {
     fastqc_dir="$trimmed_dir/fastqc"
     mkdir -p "$fastqc_dir"
 
-    echo "Running Trim Galore! on Untrimmed Assembled Reads"
+    echo "Running Trim Galore! on Raw Reads"
     trim_galore -q 20 --fastqc --'gzip' --length 100 \
     "$READ1" "$READ2" -o "$trimmed_dir" 2>&1 | tee "$trimmed_dir/trim_galore.log"
 
@@ -48,7 +83,7 @@ function run_trim_galore () {
     normalised_dir="$output_dir/normalised"
 
     if [ -d $normalised_dir ] ; then
-        echo "Now Processing Normalised Reads"
+        echo "Running Trim Galore! on Normalised Reads"
 
         absolute_path="$( cd "$normalised_dir" && pwd )"
 
@@ -67,44 +102,9 @@ function run_trim_galore () {
     fi
 }
 
-## Run bbnorm
-# Digitally normalise your data
-# if it will not assemble in good time,
-# or you have limited resources, remember
-# you should map the original trimmed reads
-# to an assembly and not the normalised reads,
-function run_normalisation () {
-    normalised_dir="$output_dir/normalised"
-
-    if [ -d $normalised_dir ] ; then
-        echo "Normalisation Previously Run, next..."
-        NORMALISED="true"
-    else
-        mkdir -p "$normalised_dir"
-
-        absolute_path="$( cd "$normalised_dir" && pwd )"
-	read1=$(basename -- "$READ1")
-	read1="${read1%%.*}"
-
-        read2=$(basename -- "$READ2")
-        read2="${read2%%.*}"
-
-	extension="${read1#*.}"
-
-        echo "Running BBNorm"
-        bbnorm.sh in1="${absolute_path/\/normalised/}/$read1\_normalised.$extension" in2="${absolute_path/\/normalised/}/$read2\_normalised.$extension" \
-        out1="$absolute_path/$read1\_normalised.$extension" \
-        out2="$absolute_path/$read2\_normalised.$extension" \
-        outt="$absolute_path/excluded_reads.fq.gz" \
-        hist="$absolute_path/input_kmer_depth.hist" \
-        histout="$absolute_path/output_kmer_depth.hist" \
-        threads="$THREADS"
-    fi
-}
-
 ## Run BBMerge
 function run_bbmerge () {
-    overlapped_dir="$output_dir/overlapped"
+    overlapped_dir="$output_dir/merged"
     mkdir -p "$overlapped_dir"
 
     absolute_path="$( cd "$overlapped_dir" && pwd )"
