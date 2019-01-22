@@ -25,38 +25,26 @@ AUGUSTUS_CONFIG_PATH="/home/cs02gl/single_cell_workflow/install_dependencies/bui
 #######################
 
 ## Run bbnorm
-# Digitally normalise your data
-# if it will not assemble in good time,
-# or you have limited resources, remember
-# you should map the original trimmed reads
-# to an assembly and not the normalised reads,
 function run_normalisation () {
     normalised_dir="$output_dir/normalised"
+    mkdir -p "$normalised_dir"
 
-    if [ -d $normalised_dir ] ; then
-        echo "Normalisation Previously Run, next..."
-        NORMALISED="true"
-    else
-        mkdir -p "$normalised_dir"
+    absolute_path="$( cd "$normalised_dir" && pwd )"
+    read1=$(basename "$READ1") # get filename only
+    extension="${read1#*.}" # get extension before trimming
+    read1="${read1%%.*}" # trim off extension
 
-        absolute_path="$( cd "$normalised_dir" && pwd )"
-        read1=$(basename -- "$READ1")
-        read1="${read1%%.*}"
+    read2=$(basename "$READ2")
+    read2="${read2%%.*}"
 
-        read2=$(basename -- "$READ2")
-        read2="${read2%%.*}"
-
-        extension="${read1#*.}"
-
-        echo "Running BBNorm"
-        bbnorm.sh in1="$READ1" in2="$READ2" \
-        out1="$absolute_path/$read1\_normalised.$extension" \
-        out2="$absolute_path/$read2\_normalised.$extension" \
-        outt="$absolute_path/excluded_reads.fq.gz" \
-        hist="$absolute_path/input_kmer_depth.hist" \
-        histout="$absolute_path/output_kmer_depth.hist" \
-        threads="$THREADS"
-    fi
+    echo "[SAGAWE] - Running BBNorm"
+    bbnorm.sh in1="$READ1" in2="$READ2" \
+    out1="$absolute_path/$read1\_normalised.$extension" \
+    out2="$absolute_path/$read2\_normalised.$extension" \
+    outt="$absolute_path/excluded_reads.fq.gz" \
+    hist="$absolute_path/input_kmer_depth.hist" \
+    histout="$absolute_path/output_kmer_depth.hist" \
+    threads="$THREADS" 2>&1 | tee "$normalised_dir/bbnorm.log"
 }
 
 ## Run Trim Galore!
@@ -70,7 +58,7 @@ function run_trim_galore () {
     fastqc_dir="$trimmed_dir/fastqc"
     mkdir -p "$fastqc_dir"
 
-    echo "Running Trim Galore! on Raw Reads"
+    echo "[SAGAWE] - Running Trim Galore! on Raw Reads"
     trim_galore -q 20 --fastqc --'gzip' --length 100 \
     "$READ1" "$READ2" -o "$trimmed_dir" 2>&1 | tee "$trimmed_dir/trim_galore.log"
 
@@ -80,34 +68,44 @@ function run_trim_galore () {
     mv "$absolute_path/"*".zip" "$absolute_path/fastqc"
     mv "$absolute_path/"*".txt" "$absolute_path/fastqc"
 
-    normalised_dir="$output_dir/normalised"
+    if [ $NORMALISED == "TRUE" ] ; then
+        trimmed_dir="$output_dir/normalised/trimmed"
+        mkdir -p "$trimmed_dir"
+        fastqc_dir="$trimmed_dir/fastqc"
+        mkdir -p "$fastqc_dir"
 
-    if [ -d $normalised_dir ] ; then
-        echo "Running Trim Galore! on Normalised Reads"
-
-        absolute_path="$( cd "$normalised_dir" && pwd )"
+        echo "[SAGAWE] - Running Trim Galore! on Normalised Reads"
+        absolute_path="$( cd "$trimmed_dir" && pwd )"
 
         read1=$(basename -- "$READ1")
+        extension="${read1#*.}"
         read1="${read1%%.*}"
 
         read2=$(basename -- "$READ2")
         read2="${read2%%.*}"
 
-        extension="${read1#*.}"
-
 	trim_galore -q 20 --fastqc --'gzip' --length 100 \
         "${absolute_path/\/normalised/}/$read1\_normalised.$extension" "${absolute_path/\/normalised/}/$read2\_normalised.$extension" \
-        -o "$normalised_dir" 2>&1 | tee "$trimmed_dir/trim_galore.log"
+        -o "$trimmed_dir" 2>&1 | tee "$trimmed_dir/normalised_trim_galore.log"
 
+        mv "$absolute_path/"*".html" "$absolute_path/fastqc"
+        mv "$absolute_path/"*".zip" "$absolute_path/fastqc"
+        mv "$absolute_path/"*".txt" "$absolute_path/fastqc"
     fi
 }
 
 ## Run BBMerge
 function run_bbmerge () {
-    overlapped_dir="$output_dir/merged"
-    mkdir -p "$overlapped_dir"
 
-    absolute_path="$( cd "$overlapped_dir" && pwd )"
+    if [ -d $normalised_dir ] ; then
+	merged_dir="$output_dir/normalised/merged"
+        mkdir -p "$merged_dir"
+    else
+	merged_dir="$output_dir/trimming/merged"
+        mkdir -p "$merged_dir"
+    fi
+
+    absolute_path="$( cd "$merged_dir" && pwd )"
     out_read1=$(basename $READ1)
     out_read2=$(basename $READ2)
 
@@ -132,8 +130,8 @@ function run_bbmerge () {
 # single cell mode - default kmers 21,33,55
 # careful mode - runs mismatch corrector
 # use all 4 sets of output reads
-# 1 x overlapped
-# 2 x unoverlapped paired
+# 1 x merged
+# 2 x unmerged paired
 # 1 x unpaired
 function run_assembly_spades () {
     trimmed_dir="$output_dir/trimmed"
@@ -496,20 +494,20 @@ function augustus () {
 }
 
 function help_message () {
-    echo -e "Single Amplified Genome Assembly Workflow"
-    echo -e "Required Option:"
+    echo -e "Single Amplified Genome Assembly Workflow Example (SAG-AWE)"
+    echo -e "Input Options (required):"
+    echo -e "  -f <r1.fastq>\tRead Library Pair 1"
+    echo -e "  -r <r2.fastq>\tRead Library Pair 2"
+    echo -e "Output Option (required):"
     echo -e "  -o <output_dir>\tOutput Directory"
-    echo -e "File Options:"
-    echo -e "  -f <forward.fastq>\tForward Reads"
-    echo -e "  -r <reverse.fastq>\tReverse Reads"
-    echo -e "Optional Parameters (ordered):"
-    echo -e "  -n \tRead Normalisation"
-    echo -e "  -S \tUse Scaffolds Instead of Contigs"
-    echo -e "  -a \tRun All Options Below (ptsqcb{eukaryota_odb9}Bm)"
     echo -e "Workflow Parameters:"
-    echo -e "  -p \tOverlap Reads"
-    echo -e "  -t \tTrim Overlapped Reads"
-    echo -e "  -s \tAssemble Trimmed Reads"
+    echo -e "  -n \tDigitally Normalise Reads"
+    echo -e "  -t \tTrim Normalised Reads (Raw Reads are Always Adaptor Clipped)"
+    echo -e "  -p \tOverlap/Merge Reads"
+    echo -e "  -s \tPerform Assembly"
+    echo -e "Optional Parameters (ordered):"
+    echo -e "  -S \tUse Scaffolds Instead of Contigs for Reports"
+    echo -e "  -a \tRun All Options Below (ntpsqcb{eukaryota_odb9}Bm)"
     echo -e "Reports:"
     echo -e "  -q \tRun QUAST"
     echo -e "  -c \tRun CEGMA"
@@ -547,7 +545,7 @@ if [ "$NUMARGS" -eq 0 ]; then
 fi
 
 # defaulting to using contigs over scaffolds
-# mainly to remove the Ns as inflation from 
+# mainly to remove the Ns as inflation from
 # statistics
 ASSEMBLY="contigs.fasta"
 
@@ -626,8 +624,7 @@ while getopts f:r:o:np:tsSqclb:Bmah FLAG; do
     esac
 done
 
-if [ ! "$output_dir" ]
-then
+if [ ! "$output_dir" ]; then
     echo "No output directory set. Please indicate -o" >&2
     exit 1
 fi
