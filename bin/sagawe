@@ -27,6 +27,10 @@ AUGUSTUS_CONFIG_PATH="/home/cs02gl/single_cell_workflow/install_dependencies/bui
 ## Run bbnorm
 function run_normalisation () {
     normalised_dir="$output_dir/normalised"
+
+    if [ -d "$normalised_dir" ] ; then
+        echo "[SAGAWE] - Normalisation Previously Run"
+    else
     mkdir -p "$normalised_dir"
 
     absolute_path="$( cd "$normalised_dir" && pwd )"
@@ -45,6 +49,7 @@ function run_normalisation () {
     hist="$absolute_path/input_kmer_depth.hist" \
     histout="$absolute_path/output_kmer_depth.hist" \
     threads="$THREADS" 2>&1 | tee "$normalised_dir/bbnorm.log"
+    fi
 }
 
 ## Run Trim Galore!
@@ -54,6 +59,10 @@ function run_normalisation () {
 # GZIP output
 function run_trim_galore () {
     trimmed_dir="$output_dir/trimmed"
+
+    if [ -d "$trimmed_dir" ] ; then
+        echo "[SAGAWE] - Raw Read Trimming Previously Run"
+    else
     mkdir -p "$trimmed_dir"
     fastqc_dir="$trimmed_dir/fastqc"
     mkdir -p "$fastqc_dir"
@@ -67,8 +76,10 @@ function run_trim_galore () {
     mv "$absolute_path/"*".html" "$absolute_path/fastqc"
     mv "$absolute_path/"*".zip" "$absolute_path/fastqc"
     mv "$absolute_path/"*".txt" "$absolute_path/fastqc"
+    fi
 
-    if [ $NORMALISED == "TRUE" ] ; then
+    echo "[SAGAWE] - Normalised = $NORMALISED"
+    if [ "$NORMALISED" == "true" ] ; then
         trimmed_dir="$output_dir/normalised/trimmed"
         mkdir -p "$trimmed_dir"
         fastqc_dir="$trimmed_dir/fastqc"
@@ -84,8 +95,8 @@ function run_trim_galore () {
         read2=$(basename -- "$READ2")
         read2="${read2%%.*}"
 
-	trim_galore -q 20 --fastqc --'gzip' --length 100 \
-        "${absolute_path/\/normalised/}/$read1\_normalised.$extension" "${absolute_path/\/normalised/}/$read2\_normalised.$extension" \
+        trim_galore -q 20 --fastqc --'gzip' --length 100 \
+        "${absolute_path/trimmed/}${read1}_normalised.$extension" "${absolute_path/trimmed/}${read2}_normalised.$extension" \
         -o "$trimmed_dir" 2>&1 | tee "$trimmed_dir/normalised_trim_galore.log"
 
         mv "$absolute_path/"*".html" "$absolute_path/fastqc"
@@ -97,11 +108,11 @@ function run_trim_galore () {
 ## Run BBMerge
 function run_bbmerge () {
 
-    if [ -d $normalised_dir ] ; then
-	merged_dir="$output_dir/normalised/merged"
+    if [ -d "$normalised_dir" ] ; then
+        merged_dir="$output_dir/normalised/merged"
         mkdir -p "$merged_dir"
     else
-	merged_dir="$output_dir/trimming/merged"
+        merged_dir="$output_dir/trimming/merged"
         mkdir -p "$merged_dir"
     fi
 
@@ -236,7 +247,7 @@ function report_multiqc () {
 function blobtools_minimap2 () {
     assembly_dir="$output_dir/assembly"
 
-  if [ ! -f "$assembly_dir/$ASSEMBLY" ] ; then
+    if [ ! -f "$assembly_dir/$ASSEMBLY" ] ; then
         echo -e "[ERROR]: SPAdes scaffolds cannot be found. Aborting."
         exit 1
     else
@@ -262,7 +273,7 @@ function blobtools_minimap2 () {
         > "$blobtools_map/scaffolds_mapped_merged_reads.sam" | tee -a "$blobtools_map/minimap2.log"
 
 
-   fi
+    fi
 }
 
 function blobtools_bwa () {
@@ -541,7 +552,7 @@ augustus
 
 NUMARGS=$#
 if [ "$NUMARGS" -eq 0 ]; then
-  help_message
+    help_message
 fi
 
 # defaulting to using contigs over scaffolds
