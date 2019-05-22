@@ -1,1 +1,42 @@
 #!/usr/bin/env bash
+
+
+#
+# Program Functions
+#
+
+
+#
+# Workflow Functions
+#
+
+function help_message () {
+    echo -e "Single Amplified Genome Assembly Workflow Example (SAG-AWE)"
+    echo -e "Input Options (required):"
+    echo -e " -f <r1.fastq|r1.fastq.gz>\tRead Library Pair 1"
+    echo -e " -r <r2.fastq|r2.fastq.gz>\tRead Library Pair 2"
+    echo -e "Output Options (required):"
+    echo -e " -o <output_dir>\tOutput Directory"
+    echo -e "Program Parameters:"
+    echo -e "Optional Parameters:"
+    echo -e "Reports/Stats:"
+    echo -e "Example: sag_awe"
+    exit 1
+}
+
+#
+# Getopts Workflow
+#
+
+while getopts h FLAG; do
+    case ${FLAG} in
+        h)
+            help_message
+	    ;;
+        \?)
+            echo -e "Unknown option ${FLAG}."
+	    help_message
+    esac
+done
+
+exit 0
