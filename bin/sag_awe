@@ -31,6 +31,17 @@ function cores () {
     echo $(($cores / 2))
 }
 
+function cite_log () {
+    absolute_path=${1}
+    output_dir=${2}
+    echo "Single Amplified Genome Assembly Workflow" > "${absolute_path}/$output_dir.log"
+    echo "Please cite:" >> "${absolute_path}/$output_dir.log"
+    echo -e "\thttps://github.com/guyleonard/sagawe\n" >> "$absolute_path/$output_dir.log"
+    echo -e "\nOutput Dir: $absolute_path" >> "$absolute_path/$output_dir.log"
+    echo "Date Run: $(date +%Y-%m-%d)" >> "$absolute_path/$output_dir.log"
+    echo "Command: ${0} ${@}" >> "$absolute_path/$output_dir.log"
+}
+
 #
 # Workflow Variables
 #
@@ -45,8 +56,19 @@ fi
 #
 # Getopts Workflow
 #
-while getopts h FLAG; do
+while getopts f:r:h FLAG; do
     case ${FLAG} in
+        f)
+            READ1=${optarg}
+	    ;;
+        r)
+            READ2=${optarg}
+            ;;
+        o)
+            OUTDIR=${optarg}
+	    mkdir -p ${OUTDIR}
+            absolute_path="$( cd "${OUTDIR}" && pwd )"
+            cite_log "${absolute_path}" "${OUTDIR}"
         h)
             help_message
 	    ;;
