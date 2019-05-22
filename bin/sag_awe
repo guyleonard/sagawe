@@ -9,7 +9,6 @@
 #
 # Workflow Functions
 #
-
 function help_message () {
     echo -e "Single Amplified Genome Assembly Workflow Example (SAG-AWE)"
     echo -e "Input Options (required):"
@@ -25,9 +24,27 @@ function help_message () {
 }
 
 #
+# Accessory Functions
+#
+function cores () {
+    cores=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu)
+    echo $(($cores / 2))
+}
+
+#
+# Workflow Variables
+#
+THREADS=$(cores)
+NORMALISED="false"
+ASSEMBLY="contigs.fasta"
+NUMARGS=$#
+if [ "$NUMARGS" -eq 0 ]; then
+    help_message
+fi
+
+#
 # Getopts Workflow
 #
-
 while getopts h FLAG; do
     case ${FLAG} in
         h)
