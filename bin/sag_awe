@@ -56,7 +56,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts f:r:h FLAG; do
+while getopts f:r:o:h FLAG; do
     case ${FLAG} in
         f)
             READ1=${optarg}
@@ -69,6 +69,7 @@ while getopts f:r:h FLAG; do
 	    mkdir -p ${OUTDIR}
             absolute_path="$( cd "${OUTDIR}" && pwd )"
             cite_log "${absolute_path}" "${OUTDIR}"
+            ;;
         h)
             help_message
 	    ;;
