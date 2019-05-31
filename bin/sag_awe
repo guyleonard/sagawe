@@ -5,6 +5,29 @@
 # Program Functions
 #
 
+function trim_galore () {
+    trimmed_dir="${1}/trimmed"
+
+    if [ -d "$trimmed_dir" ] ; then
+        echo "[SAGAWE:WARN] - Raw Read Adaptor Trimming Previously Run"
+	echo "[SAGAWE:INFO] - Skipping to Next"
+    else
+        mkdir -p "$trimmed_dir"
+        fastqc_dir="$trimmed_dir/fastqc"
+        mkdir -p "$fastqc_dir"
+
+        echo "[SAGAWE:INFO] - Running Trim Galore! on Raw Reads"
+        trim_galore -q 20 --fastqc --'gzip' --length 50 \
+        "$READ1" "$READ2" -o "$trimmed_dir" 2>&1 | tee "$trimmed_dir/trim_galore.log"
+
+        absolute_path="$( cd "$trimmed_dir" && pwd )"
+
+        mv "$absolute_path/"*".html" "$absolute_path/fastqc"
+        mv "$absolute_path/"*".zip" "$absolute_path/fastqc"
+        mv "$absolute_path/"*".txt" "$absolute_path/fastqc"
+    fi
+}
+
 
 #
 # Workflow Functions
@@ -47,6 +70,9 @@ function cite_log () {
 THREADS=$(cores)
 NORMALISED="false"
 ASSEMBLY="contigs.fasta"
+READ1=""
+READ2=""
+OUTDIR="output_sagawe"
 NUMARGS=$#
 if [ "${NUMARGS}" -eq 0 ]; then
     help_message
@@ -55,7 +81,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts f:r:o:h FLAG; do
+while getopts f:r:o:th FLAG; do
     case ${FLAG} in
         f)
             READ1=${OPTARG}
@@ -68,6 +94,9 @@ while getopts f:r:o:h FLAG; do
 	    mkdir -p "${OUTDIR}"
             absolute_path="$( cd "${OUTDIR}" && pwd )"
             cite_log "${absolute_path}" "${OUTDIR}"
+            ;;
+        t)
+            trim_galore "${OUTDIR}"
             ;;
         h)
             help_message
