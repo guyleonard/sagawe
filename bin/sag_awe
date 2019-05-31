@@ -53,9 +53,10 @@ function cite_log () {
     output_dir=${2}
     echo "Single Amplified Genome Assembly Workflow" > "${absolute_path}/$output_dir.log"
     echo -e "Please cite:\thttps://github.com/guyleonard/sagawe\n" >> "$absolute_path/$output_dir.log"
-    echo -e "Output Dir: $absolute_path" >> "$absolute_path/$output_dir.log"
-    echo "Date Run: $(date +%Y-%m-%d-%R)" >> "$absolute_path/$output_dir.log"
-    ##echo "Command: ${0} ${@}" >> "$absolute_path/$output_dir.log"
+    echo -e "Output Dir:\t$absolute_path" >> "$absolute_path/$output_dir.log"
+    echo -e "Date Run:\t$(date +%Y-%m-%d-%R)" >> "$absolute_path/$output_dir.log"
+    echo -e "Location:\t$HOSTNAME" >> "$absolute_path/$output_dir.log"
+    echo -e "Command:\t${0} ${ARGS}" >> "$absolute_path/$output_dir.log"
 }
 
 #
@@ -67,6 +68,7 @@ ASSEMBLY="contigs.fasta"
 READ1=""
 READ2=""
 OUTDIR="output_sagawe"
+ARGS=$@
 NUMARGS=$#
 if [ "${NUMARGS}" -eq 0 ]; then
     help_message
