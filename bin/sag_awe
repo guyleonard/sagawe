@@ -21,6 +21,36 @@ function run_trim_galore () {
     fi
 }
 
+function run_normalisation () {
+    normalised_dir="${1}/normalised"
+    trimmed_dir="${1}/trimmed"
+
+    if [ -d "${normalised_dir}" ] ; then
+        echo "[SAGAWE:WARN] - Normalisation Previously Run"
+        echo "[SAGAWE:INFO] - Skipping to Next"
+    else
+        mkdir -p "${normalised_dir}"
+
+        out_path="$( cd "${normalised_dir}" && pwd )"
+
+        read1=$(basename "${READ1}") # get filename
+        read1="${read1%%.*}"         # remove extension
+
+        read2=$(basename "${READ2}")
+        read2="${read2%%.*}"
+
+        echo "[SAGAWE:INFO] - Running BBNorm"
+        bbnorm.sh \
+        in1="${trimmed_dir}/${read1}.forward_val_1.fq.gz" \
+        in2="${trimmed_dir}/${read2}.reverse_val_2.fq.gz" \
+        out1="${out_path}/${read1}\_normalised.fq.gz" \
+        out2="${out_path}/${read2}\_normalised.fq.gz" \
+        outt="${out_path}/excluded_reads.fq.gz" \
+        hist="${out_path}/input_kmer_depth.hist" \
+        histout="${out_path}/output_kmer_depth.hist" \
+        threads="${THREADS}" 2>&1 | tee "${normalised_dir}/bbnorm.log"
+    fi
+}
 
 #
 # Workflow Functions
@@ -68,6 +98,7 @@ ASSEMBLY="contigs.fasta"
 READ1=""
 READ2=""
 OUTDIR="output_sagawe"
+NORMALISED="false"
 ARGS=$@
 NUMARGS=$#
 if [ "${NUMARGS}" -eq 0 ]; then
@@ -77,7 +108,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts f:r:o:th FLAG; do
+while getopts f:r:o:tnh FLAG; do
     case ${FLAG} in
         f)
             READ1=${OPTARG}
@@ -93,6 +124,10 @@ while getopts f:r:o:th FLAG; do
             ;;
         t)
             run_trim_galore "${OUTDIR}"
+            ;;
+        n)
+            run_normalisation "${OUTDIR}"
+            NORMALISED="true"
             ;;
         h)
             help_message
