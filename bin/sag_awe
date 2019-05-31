@@ -4,27 +4,20 @@
 #
 # Program Functions
 #
-
-function trim_galore () {
+function run_trim_galore () {
     trimmed_dir="${1}/trimmed"
 
-    if [ -d "$trimmed_dir" ] ; then
+    if [ -d "${trimmed_dir}" ] ; then
         echo "[SAGAWE:WARN] - Raw Read Adaptor Trimming Previously Run"
-	echo "[SAGAWE:INFO] - Skipping to Next"
+        echo "[SAGAWE:INFO] - Skipping to Next"
     else
-        mkdir -p "$trimmed_dir"
-        fastqc_dir="$trimmed_dir/fastqc"
-        mkdir -p "$fastqc_dir"
+        mkdir -p "${trimmed_dir}"
+        fastqc_dir="${trimmed_dir}/fastqc"
+        mkdir -p "${fastqc_dir}"
 
         echo "[SAGAWE:INFO] - Running Trim Galore! on Raw Reads"
         trim_galore -q 20 --fastqc --'gzip' --length 50 \
-        "$READ1" "$READ2" -o "$trimmed_dir" 2>&1 | tee "$trimmed_dir/trim_galore.log"
-
-        absolute_path="$( cd "$trimmed_dir" && pwd )"
-
-        mv "$absolute_path/"*".html" "$absolute_path/fastqc"
-        mv "$absolute_path/"*".zip" "$absolute_path/fastqc"
-        mv "$absolute_path/"*".txt" "$absolute_path/fastqc"
+        "${READ1}" "${READ2}" -o "${trimmed_dir}" 2>&1 | tee "${trimmed_dir}/trim_galore.log"
     fi
 }
 
@@ -35,11 +28,12 @@ function trim_galore () {
 function help_message () {
     echo -e "Single Amplified Genome Assembly Workflow Example (SAG-AWE)"
     echo -e "Input Options (required):"
-    echo -e " -f <r1.fastq|r1.fastq.gz>\tRead Library Pair 1"
-    echo -e " -r <r2.fastq|r2.fastq.gz>\tRead Library Pair 2"
+    echo -e "\t-f <r1.fq|r1.fq.gz>\tRead Library Pair 1"
+    echo -e "\t-r <r2.fq|r2.fq.gz>\tRead Library Pair 2"
     echo -e "Output Options (required):"
-    echo -e " -o <output_dir>\tOutput Directory"
+    echo -e "\t-o <output_dir>\tOutput Directory"
     echo -e "Program Parameters:"
+    echo -e "\t-t\t Run Trim Galore!"
     echo -e "Optional Parameters:"
     echo -e "Reports/Stats:"
     echo -e "Example: sag_awe"
@@ -61,7 +55,7 @@ function cite_log () {
     echo -e "Please cite:\thttps://github.com/guyleonard/sagawe\n" >> "$absolute_path/$output_dir.log"
     echo -e "Output Dir: $absolute_path" >> "$absolute_path/$output_dir.log"
     echo "Date Run: $(date +%Y-%m-%d-%R)" >> "$absolute_path/$output_dir.log"
-    echo "Command: ${0} ${@}" >> "$absolute_path/$output_dir.log"
+    ##echo "Command: ${0} ${@}" >> "$absolute_path/$output_dir.log"
 }
 
 #
@@ -96,7 +90,7 @@ while getopts f:r:o:th FLAG; do
             cite_log "${absolute_path}" "${OUTDIR}"
             ;;
         t)
-            trim_galore "${OUTDIR}"
+            run_trim_galore "${OUTDIR}"
             ;;
         h)
             help_message
