@@ -18,6 +18,12 @@ function run_trim_galore () {
         echo "[SAGAWE:INFO] - Running Trim Galore! on Raw Reads"
         trim_galore -q 20 --fastqc --'gzip' --length 50 \
         "${READ1}" "${READ2}" -o "${trimmed_dir}" 2>&1 | tee "${trimmed_dir}/trim_galore.log"
+
+        absolute_path="$( cd "$trimmed_dir" && pwd )"
+
+        mv "$absolute_path/"*".html" "$absolute_path/fastqc"
+        mv "$absolute_path/"*".zip" "$absolute_path/fastqc"
+        mv "$absolute_path/"*".txt" "$absolute_path/fastqc"
     fi
 }
 
@@ -41,10 +47,10 @@ function run_normalisation () {
 
         echo "[SAGAWE:INFO] - Running BBNorm"
         bbnorm.sh \
-        in1="${trimmed_dir}/${read1}.forward_val_1.fq.gz" \
-        in2="${trimmed_dir}/${read2}.reverse_val_2.fq.gz" \
-        out1="${out_path}/${read1}\_normalised.fq.gz" \
-        out2="${out_path}/${read2}\_normalised.fq.gz" \
+        in1="${trimmed_dir}/${read1}_trimmed.fq.gz" \
+        in2="${trimmed_dir}/${read2}_trimmed.fq.gz" \
+        out1="${out_path}/${read1}_normalised.fq.gz" \
+        out2="${out_path}/${read2}_normalised.fq.gz" \
         outt="${out_path}/excluded_reads.fq.gz" \
         hist="${out_path}/input_kmer_depth.hist" \
         histout="${out_path}/output_kmer_depth.hist" \
@@ -108,7 +114,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts f:r:o:tnh FLAG; do
+while getopts "f:r:o:tnh" FLAG; do
     case ${FLAG} in
         f)
             READ1=${OPTARG}
