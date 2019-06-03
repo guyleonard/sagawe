@@ -16,7 +16,7 @@ function run_trim_galore () {
         mkdir -p "${fastqc_dir}"
 
         echo "[SAGAWE:INFO] - Running Trim Galore! on Raw Reads"
-        trim_galore -q 20 --fastqc --'gzip' --length 50 \
+        trim_galore -q 20 --fastqc --'gzip' --length 50 --paired --retain_unpaired \
         "${READ1}" "${READ2}" -o "${trimmed_dir}" 2>&1 | tee "${trimmed_dir}/trim_galore.log"
 
         absolute_path="$( cd "$trimmed_dir" && pwd )"
@@ -58,6 +58,8 @@ function run_normalisation () {
     fi
 }
 
+
+
 #
 # Workflow Functions
 #
@@ -93,6 +95,7 @@ function cite_log () {
     echo -e "Date Run:\t$(date +%Y-%m-%d-%R)" >> "$absolute_path/$output_dir.log"
     echo -e "Location:\t$HOSTNAME" >> "$absolute_path/$output_dir.log"
     echo -e "Command:\t${0} ${ARGS}" >> "$absolute_path/$output_dir.log"
+    echo -e "Individual logs for each step are located in their respective folder."
 }
 
 #
