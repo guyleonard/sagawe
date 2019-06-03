@@ -19,11 +19,14 @@ function run_trim_galore () {
         trim_galore -q 20 --fastqc --'gzip' --length 50 --paired --retain_unpaired \
         "${READ1}" "${READ2}" -o "${trimmed_dir}" 2>&1 | tee "${trimmed_dir}/trim_galore.log"
 
-        absolute_path="$( cd "$trimmed_dir" && pwd )"
+        read1=$(basename "${READ1}") # get filename
+        read1="${read1%%.*}"         # remove extension
+        cat "${trimmed_dir}/${read1}_unpaired_1.fq.gz" "${trimmed_dir}/${read1/r1/r2}_unpaired_2.fq.gz" > "${trimmed_dir}/${read1/r1/all}_unpaired.fq.gz"
 
-        mv "$absolute_path/"*".html" "$absolute_path/fastqc"
-        mv "$absolute_path/"*".zip" "$absolute_path/fastqc"
-        mv "$absolute_path/"*".txt" "$absolute_path/fastqc"
+        absolute_path="$( cd "$trimmed_dir" && pwd )"
+        mv "${absolute_path}/"*".html" "${absolute_path}/fastqc"
+        mv "${absolute_path}/"*".zip" "${absolute_path}/fastqc"
+        mv "${absolute_path}/"*".txt" "${absolute_path}/fastqc"
     fi
 }
 
@@ -47,8 +50,8 @@ function run_normalisation () {
 
         echo "[SAGAWE:INFO] - Running BBNorm"
         bbnorm.sh \
-        in1="${trimmed_dir}/${read1}_trimmed.fq.gz" \
-        in2="${trimmed_dir}/${read2}_trimmed.fq.gz" \
+        in1="${trimmed_dir}/${read1}_val_1.fq.gz" \
+        in2="${trimmed_dir}/${read2}_val_2.fq.gz" \
         out1="${out_path}/${read1}_normalised.fq.gz" \
         out2="${out_path}/${read2}_normalised.fq.gz" \
         outt="${out_path}/excluded_reads.fq.gz" \
@@ -58,6 +61,19 @@ function run_normalisation () {
     fi
 }
 
+function run_bbmerge () {
+
+    if [ "${NORMALISED}" -eq "true" ] ; then
+        merged_dir="${1}/normalised/merged"
+        mkdir -p "$merged_dir"
+    else
+        merged_dir="${1}/trimmed/merged"
+        mkdir -p "$merged_dir"
+    fi
+
+
+
+}
 
 
 #
@@ -95,7 +111,7 @@ function cite_log () {
     echo -e "Date Run:\t$(date +%Y-%m-%d-%R)" >> "$absolute_path/$output_dir.log"
     echo -e "Location:\t$HOSTNAME" >> "$absolute_path/$output_dir.log"
     echo -e "Command:\t${0} ${ARGS}" >> "$absolute_path/$output_dir.log"
-    echo -e "Individual logs for each step are located in their respective folder."
+    echo -e "Individual logs for each step are located in their respective folder." >> "$absolute_path/$output_dir.log"
 }
 
 #
@@ -103,6 +119,7 @@ function cite_log () {
 #
 THREADS=$(cores)
 NORMALISED="false"
+MERGED="false"
 ASSEMBLY="contigs.fasta"
 READ1=""
 READ2=""
@@ -117,7 +134,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts "f:r:o:tnh" FLAG; do
+while getopts "f:r:o:tnmh" FLAG; do
     case ${FLAG} in
         f)
             READ1=${OPTARG}
@@ -137,6 +154,10 @@ while getopts "f:r:o:tnh" FLAG; do
         n)
             run_normalisation "${OUTDIR}"
             NORMALISED="true"
+            ;;
+        m)
+            run_bbmerge "${OUTDIR}"
+            MERGED="true"
             ;;
         h)
             help_message
