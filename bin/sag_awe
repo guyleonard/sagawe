@@ -110,46 +110,93 @@ function run_assembly_spades {
     read2=$(basename "${READ2}")
 
     if [[ "${MERGED}" == "true" && "${NORMALISED}" == "true" ]] ; then
-        echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Normalised-Merged Reads"
         merged_dir="${normalised_dir}/merged"
         assembly_dir="${assembly_dir}/tnm"
-        mkdir -p "${assembly_dir}"
 
-        spades.py --sc --careful -t "$THREADS" \
-        --pe1-m "${merged_dir}/${read1/r1.fq.gz/normalised_merged.fq.gz}" \
-        --pe1-1 "${merged_dir}/${read1/.fq.gz/_normalised_unmerged.fq.gz}" \
-        --pe1-2 "${merged_dir}/${read2/.fq.gz/_normalised_unmerged.fq.gz}" \
-        -o "$assembly_dir"
+        if [ -d "${assembly_dir}" ] ; then
+            echo "[SAGAWE:WARN] - TNM Aseembly Previously Run"
+            echo "[SAGAWE:INFO] - Skipping to Next Step"
+        else
+            echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Normalised-Merged Reads"
+            mkdir -p "${assembly_dir}"
+
+            spades.py --sc --careful -t "$THREADS" \
+            --pe1-m "${merged_dir}/${read1/r1.fq.gz/normalised_merged.fq.gz}" \
+            --pe1-1 "${merged_dir}/${read1/.fq.gz/_normalised_unmerged.fq.gz}" \
+            --pe1-2 "${merged_dir}/${read2/.fq.gz/_normalised_unmerged.fq.gz}" \
+            -o "$assembly_dir"
+         fi
     elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
-        echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Merged Reads"
         merged_dir="${trimmed_dir}/merged"
         assembly_dir="${assembly_dir}/tm"
-        mkdir -p "${assembly_dir}"
+        if [ -d "${assembly_dir}" ] ; then
+            echo "[SAGAWE:WARN] - TM Assembly Previously Run"
+            echo "[SAGAWE:INFO] - Skipping to Next Step"
+        else
+            echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Merged Reads"
+            mkdir -p "${assembly_dir}"
 
-        spades.py --sc --careful -t "$THREADS" \
-        --pe1-m "${merged_dir}/${read1/r1.fq.gz/merged.fq.gz}" \
-        --pe1-1 "${merged_dir}/${read1/.fq.gz/_unmerged.fq.gz}" \
-        --pe1-2 "${merged_dir}/${read2/.fq.gz/_unmerged.fq.gz}" \
-        -o "$assembly_dir"
+            spades.py --sc --careful -t "$THREADS" \
+            --pe1-m "${merged_dir}/${read1/r1.fq.gz/merged.fq.gz}" \
+            --pe1-1 "${merged_dir}/${read1/.fq.gz/_unmerged.fq.gz}" \
+            --pe1-2 "${merged_dir}/${read2/.fq.gz/_unmerged.fq.gz}" \
+            -o "$assembly_dir"
+        fi
     elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
-        echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Normalised Reads"
         assembly_dir="${assembly_dir}/tn"
-        mkdir -p "${assembly_dir}"
+        if [ -d "${assembly_dir}" ] ; then
+            echo "[SAGAWE:WARN] - TN Assembly Previously Run"
+            echo "[SAGAWE:INFO] - Skipping to Next Step"
+        else
+            echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Normalised Reads"
+            mkdir -p "${assembly_dir}"
 
-        spades.py --sc --careful -t "$THREADS" \
-        --pe1-1 "${normalised_dir}/${read1/.fq.gz/_normalised.fq.gz}" \
-        --pe1-2 "${normalised_dir}/${read2/.fq.gz/_normalised.fq.gz}" \
-        -o "$assembly_dir"
+            spades.py --sc --careful -t "$THREADS" \
+            --pe1-1 "${normalised_dir}/${read1/.fq.gz/_normalised.fq.gz}" \
+            --pe1-2 "${normalised_dir}/${read2/.fq.gz/_normalised.fq.gz}" \
+            -o "$assembly_dir"
+        fi
     else
-        echo "[SAGAWE:INFO] - Running Assembly with Trimmed Reads"
         assembly_dir="${assembly_dir}/t"
-        mkdir -p "${assembly_dir}"
+        if [ -d "${assembly_dir}" ] ; then
+            echo "[SAGAWE:WARN] - T Assembly Previously Run"
+            echo "[SAGAWE:INFO] - Skipping to Next Step"
+        else
+            echo "[SAGAWE:INFO] - Running Assembly with Trimmed Reads"
+            mkdir -p "${assembly_dir}"
 
-        spades.py --sc --careful -t "$THREADS" \
-        --pe1-1 "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
-        --pe1-2 "${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
-        --pe1-s "${trimmed_dir}/${read1/r1.fq.gz/all_unpaired.fq.gz}" \
-        -o "$assembly_dir"
+            spades.py --sc --careful -t "$THREADS" \
+            --pe1-1 "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
+            --pe1-2 "${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
+            --pe1-s "${trimmed_dir}/${read1/r1.fq.gz/all_unpaired.fq.gz}" \
+            -o "$assembly_dir"
+        fi
+    fi
+}
+
+#
+# Report Functions
+#
+
+function report_quast () {
+    assembly_dir="$( cd "${1}" && pwd )/assembly"
+    quast_dir="$( cd "${1}" && pwd )/reports/quast"
+
+   if [[ "${MERGED}" == "true" && "${NORMALISED}" == "true" ]] ; then
+        echo "[SAGAWE:INFO] - Running QUAST on Trimmed-Normalised-Merged Assembly"
+
+        quast_dir="${quast_dir}_tnm"
+        mkdir -p "${quast_dir}"
+
+        quast.py -o "${quast_dir}" -t "$THREADS" \
+        --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
+        --glimmer "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
+    elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
+        echo ""
+    elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
+        echo ""
+    else
+        echo ""
     fi
 }
 
@@ -198,6 +245,7 @@ THREADS=$(cores)
 NORMALISED="false"
 MERGED="false"
 ASSEMBLY="contigs.fasta"
+QUAST_SCAFFOLDS=""
 READ1=""
 READ2=""
 OUTDIR="output_sagawe"
@@ -210,7 +258,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts "f:r:o:tnmsh" FLAG; do
+while getopts "f:r:o:tnmsqh" FLAG; do
     case ${FLAG} in
         f)
             READ1=${OPTARG}
@@ -235,8 +283,15 @@ while getopts "f:r:o:tnmsh" FLAG; do
             run_bbmerge "${OUTDIR}"
             MERGED="true"
             ;;
+        q)
+            report_quast "${OUTDIR}"
+            ;;
         s)
             run_assembly_spades "${OUTDIR}"
+            ;;
+        S)
+            ASSEMBLY="scaffolds.fasta"
+            QUAST_SCAFFOLDS="--scaffolds"
             ;;
         h)
             help_message
