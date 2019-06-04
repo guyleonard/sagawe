@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 #
 # Program Functions
 #
@@ -114,7 +113,7 @@ function run_assembly_spades {
         assembly_dir="${assembly_dir}/tnm"
 
         if [ -d "${assembly_dir}" ] ; then
-            echo "[SAGAWE:WARN] - TNM Aseembly Previously Run"
+            echo "[SAGAWE:WARN] - TNM Assembly Previously Run"
             echo "[SAGAWE:INFO] - Skipping to Next Step"
         else
             echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Normalised-Merged Reads"
@@ -178,7 +177,7 @@ function run_assembly_spades {
 # Report Functions
 #
 
-function report_quast () {
+function report_quast_four () {
     assembly_dir="$( cd "${1}" && pwd )/assembly"
     quast_dir="$( cd "${1}" && pwd )/reports/quast"
 
@@ -284,7 +283,7 @@ while getopts "f:r:o:tnmsqh" FLAG; do
             MERGED="true"
             ;;
         q)
-            report_quast "${OUTDIR}"
+            report_quast_four "${OUTDIR}"
             ;;
         s)
             run_assembly_spades "${OUTDIR}"
