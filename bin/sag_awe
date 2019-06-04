@@ -191,11 +191,32 @@ function report_quast_four () {
         --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
         --glimmer "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
     elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
-        echo ""
+        echo "[SAGAWE:INFO] - Running QUAST on Trimmed-Merged Assembly"
+
+        quast_dir="${quast_dir}_tm"
+        mkdir -p "${quast_dir}"
+
+        quast.py -o "${quast_dir}" -t "$THREADS" \
+        --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
+        --glimmer "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
     elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
-        echo ""
+        echo "[SAGAWE:INFO] - Running QUAST on Trimmed-Normalised Assembly"
+
+        quast_dir="${quast_dir}_tn"
+        mkdir -p "${quast_dir}"
+
+        quast.py -o "${quast_dir}" -t "$THREADS" \
+        --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
+        --glimmer "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
     else
-        echo ""
+        echo "[SAGAWE:INFO] - Running QUAST on Trimmed Assembly"
+
+        quast_dir="${quast_dir}_t"
+        mkdir -p "${quast_dir}"
+
+        quast.py -o "${quast_dir}" -t "$THREADS" \
+        --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
+        --glimmer "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
     fi
 }
 
