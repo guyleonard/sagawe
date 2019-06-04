@@ -101,6 +101,57 @@ function run_bbmerge () {
     fi
 }
 
+function run_assembly_spades {
+    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
+    normalised_dir="$( cd "${1}" && pwd )/normalised"
+    assembly_dir="$( cd "${1}" && pwd )/assembly"
+
+    read1=$(basename "${READ1}")
+    read2=$(basename "${READ2}")
+
+    if [[ "${MERGED}" == "true" && "${NORMALISED}" == "true" ]] ; then
+        echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Normalised-Merged Reads"
+        merged_dir="${normalised_dir}/merged"
+        assembly_dir="${assembly_dir}/tnm"
+        mkdir -p "${assembly_dir}"
+
+        spades.py --sc --careful -t "$THREADS" \
+        --pe1-m "${merged_dir}/${read1/r1.fq.gz/normalised_merged.fq.gz}" \
+        --pe1-1 "${merged_dir}/${read1/.fq.gz/_normalised_unmerged.fq.gz}" \
+        --pe1-2 "${merged_dir}/${read2/.fq.gz/_normalised_unmerged.fq.gz}" \
+        -o "$assembly_dir"
+    elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
+        echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Merged Reads"
+        merged_dir="${trimmed_dir}/merged"
+        assembly_dir="${assembly_dir}/tm"
+        mkdir -p "${assembly_dir}"
+
+        spades.py --sc --careful -t "$THREADS" \
+        --pe1-m "${merged_dir}/${read1/r1.fq.gz/merged.fq.gz}" \
+        --pe1-1 "${merged_dir}/${read1/.fq.gz/_unmerged.fq.gz}" \
+        --pe1-2 "${merged_dir}/${read2/.fq.gz/_unmerged.fq.gz}" \
+        -o "$assembly_dir"
+    elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
+        echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Normalised Reads"
+        assembly_dir="${assembly_dir}/tn"
+        mkdir -p "${assembly_dir}"
+
+        spades.py --sc --careful -t "$THREADS" \
+        --pe1-1 "${normalised_dir}/${read1/.fq.gz/_normalised.fq.gz}" \
+        --pe1-2 "${normalised_dir}/${read2/.fq.gz/_normalised.fq.gz}" \
+        -o "$assembly_dir"
+    else
+        echo "[SAGAWE:INFO] - Running Assembly with Trimmed Reads"
+        assembly_dir="${assembly_dir}/t"
+        mkdir -p "${assembly_dir}"
+
+        spades.py --sc --careful -t "$THREADS" \
+        --pe1-1 "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
+        --pe1-2 "${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
+        --pe1-s "${trimmed_dir}/${read1/r1.fq.gz/all_unpaired.fq.gz}" \
+        -o "$assembly_dir"
+    fi
+}
 
 #
 # Workflow Functions
@@ -134,7 +185,7 @@ function cite_log () {
     echo "Single Amplified Genome Assembly Workflow" > "${absolute_path}/$output_dir.log"
     echo -e "Please cite:\thttps://github.com/guyleonard/sagawe\n" >> "$absolute_path/$output_dir.log"
     echo -e "Output Dir:\t$absolute_path" >> "$absolute_path/$output_dir.log"
-    echo -e "Date Run:\t$(date +%Y-%m-%d-%R)" >> "$absolute_path/$output_dir.log"
+    echo -e "Date Started:\t$(date +%Y-%m-%d-%R)" >> "$absolute_path/$output_dir.log"
     echo -e "Location:\t$HOSTNAME" >> "$absolute_path/$output_dir.log"
     echo -e "Command:\t${0} ${ARGS}" >> "$absolute_path/$output_dir.log"
     echo -e "Individual logs for each step are located in their respective folder." >> "$absolute_path/$output_dir.log"
@@ -150,7 +201,6 @@ ASSEMBLY="contigs.fasta"
 READ1=""
 READ2=""
 OUTDIR="output_sagawe"
-NORMALISED="false"
 ARGS=$@
 NUMARGS=$#
 if [ "${NUMARGS}" -eq 0 ]; then
@@ -160,7 +210,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts "f:r:o:tnmh" FLAG; do
+while getopts "f:r:o:tnmsh" FLAG; do
     case ${FLAG} in
         f)
             READ1=${OPTARG}
@@ -185,6 +235,9 @@ while getopts "f:r:o:tnmh" FLAG; do
             run_bbmerge "${OUTDIR}"
             MERGED="true"
             ;;
+        s)
+            run_assembly_spades "${OUTDIR}"
+            ;;
         h)
             help_message
 	    ;;
@@ -199,5 +252,6 @@ if [ ! "${OUTDIR}" ]; then
     exit 1
 fi
 
+absolute_path="$( cd "${OUTDIR}" && pwd )"
+echo -e "Date Finished:\t$(date +%Y-%m-%d-%R)" >> "$absolute_path/$output_dir.log"
 exit 0
-
