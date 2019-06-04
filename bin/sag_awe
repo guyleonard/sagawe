@@ -5,11 +5,11 @@
 # Program Functions
 #
 function run_trim_galore () {
-    trimmed_dir="${1}/trimmed"
+    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
 
     if [ -d "${trimmed_dir}" ] ; then
-        echo "[SAGAWE:WARN] - Raw Read Adaptor Trimming Previously Run"
-        echo "[SAGAWE:INFO] - Skipping to Next"
+        echo "[SAGAWE:WARN] - Adaptor Trimming Previously Run"
+        echo "[SAGAWE:INFO] - Skipping to Next Step"
     else
         mkdir -p "${trimmed_dir}"
         fastqc_dir="${trimmed_dir}/fastqc"
@@ -19,60 +19,86 @@ function run_trim_galore () {
         trim_galore -q 20 --fastqc --'gzip' --length 50 --paired --retain_unpaired \
         "${READ1}" "${READ2}" -o "${trimmed_dir}" 2>&1 | tee "${trimmed_dir}/trim_galore.log"
 
-        read1=$(basename "${READ1}") # get filename
+        read1="$(basename "${READ1}")" # get filename
         read1="${read1%%.*}"         # remove extension
         cat "${trimmed_dir}/${read1}_unpaired_1.fq.gz" "${trimmed_dir}/${read1/r1/r2}_unpaired_2.fq.gz" > "${trimmed_dir}/${read1/r1/all}_unpaired.fq.gz"
 
-        absolute_path="$( cd "$trimmed_dir" && pwd )"
-        mv "${absolute_path}/"*".html" "${absolute_path}/fastqc"
-        mv "${absolute_path}/"*".zip" "${absolute_path}/fastqc"
-        mv "${absolute_path}/"*".txt" "${absolute_path}/fastqc"
+        mv "${trimmed_dir}/"*".html" "${fastqc_dir}"
+        mv "${trimmed_dir}/"*".zip" "${fastqc_dir}"
+        mv "${trimmed_fir}/"*".txt" "${fastqc_dir}"
     fi
 }
 
 function run_normalisation () {
-    normalised_dir="${1}/normalised"
-    trimmed_dir="${1}/trimmed"
+    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
+    normalised_dir="$( cd "${1}" && pwd )/normalised"
 
     if [ -d "${normalised_dir}" ] ; then
         echo "[SAGAWE:WARN] - Normalisation Previously Run"
-        echo "[SAGAWE:INFO] - Skipping to Next"
+        echo "[SAGAWE:INFO] - Skipping to Next Step"
     else
         mkdir -p "${normalised_dir}"
 
-        out_path="$( cd "${normalised_dir}" && pwd )"
-
         read1=$(basename "${READ1}") # get filename
-        read1="${read1%%.*}"         # remove extension
-
         read2=$(basename "${READ2}")
-        read2="${read2%%.*}"
 
-        echo "[SAGAWE:INFO] - Running BBNorm"
+        echo "[SAGAWE:INFO] - Running BBNorm on Trimmed Reads"
         bbnorm.sh \
-        in1="${trimmed_dir}/${read1}_val_1.fq.gz" \
-        in2="${trimmed_dir}/${read2}_val_2.fq.gz" \
-        out1="${out_path}/${read1}_normalised.fq.gz" \
-        out2="${out_path}/${read2}_normalised.fq.gz" \
-        outt="${out_path}/excluded_reads.fq.gz" \
-        hist="${out_path}/input_kmer_depth.hist" \
-        histout="${out_path}/output_kmer_depth.hist" \
+        in1="${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
+        in2="${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
+        out1="${normalised_dir}/${read1/.fq.gz/_normalised.fq.gz}" \
+        out2="${normalised_dir}/${read2/.fq.gz/_normalised.fq.gz}" \
+        outt="${normalised_dir}/excluded_reads.fq.gz" \
+        hist="${normalised_dir}/input_kmer_depth.hist" \
+        histout="${normalised_dir}/output_kmer_depth.hist" \
         threads="${THREADS}" 2>&1 | tee "${normalised_dir}/bbnorm.log"
     fi
 }
 
 function run_bbmerge () {
+    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
+    normalised_dir="$( cd "${1}" && pwd )/normalised"
+    merged_dir=""
 
-    if [ "${NORMALISED}" -eq "true" ] ; then
-        merged_dir="${1}/normalised/merged"
-        mkdir -p "$merged_dir"
+    read1=$(basename "${READ1}")
+    read2=$(basename "${READ2}")
+
+    if [ "${NORMALISED}" == "true" ] ; then
+        merged_dir="${normalised_dir}/merged"
+
+        if [ -d "${merged_dir}" ] ; then
+            echo "[SAGAWE:WARN] - Merging Previously Run"
+            echo "[SAGAWE:INFO] - Skipping to Next Step"
+        else
+            mkdir -p "${merged_dir}"
+
+            echo "[SAGAWE:INFO] - Running BBMerge with Trimmed-Normalised Reads"
+            bbmerge.sh \
+            in1="${normalised_dir}/${read1/.fq.gz/_normalised.fq.gz}" \
+            in2="${normalised_dir}/${read2/.fq.gz/_normalised.fq.gz}" \
+            out="${merged_dir}/${read1/r1.fq.gz/normalised_merged.fq.gz}" \
+            outu1="${merged_dir}/${read1/.fq.gz/_normalised_unmerged.fq.gz}" \
+            outu2="${merged_dir}/${read2/.fq.gz/_normalised_unmerged.fq.gz}" \
+            minoverlap=10 ziplevel=9 2>&1 | tee "${merged_dir}/bbmerge.log"
+        fi
     else
-        merged_dir="${1}/trimmed/merged"
-        mkdir -p "$merged_dir"
+        merged_dir="${trimmed_dir}/merged"
+        if [ -d "${merged_dir}" ] ; then
+            echo "[SAGAWE:WARN] - Merging Previously Run"
+            echo "[SAGAWE:INFO] - Skipping to Next Step"
+        else
+            mkdir -p "${merged_dir}"
+
+            echo "[SAGAWE:INFO] - Running BBMerge with Trimmed Reads"
+            bbmerge.sh \
+            in1="${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
+            in2="${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
+            out="${merged_dir}/${read1/r1.fq.gz/merged.fq.gz}" \
+            outu1="${merged_dir}/${read1/.fq.gz/_unmerged.fq.gz}" \
+            outu2="${merged_dir}/${read2/.fq.gz/_unmerged.fq.gz}" \
+            minoverlap=10 ziplevel=9 2>&1 | tee "${merged_dir}/bbmerge.log"
+        fi
     fi
-
-
-
 }
 
 
@@ -164,6 +190,7 @@ while getopts "f:r:o:tnmh" FLAG; do
 	    ;;
         \?)
 	    help_message
+            ;;
     esac
 done
 
@@ -173,3 +200,4 @@ if [ ! "${OUTDIR}" ]; then
 fi
 
 exit 0
+
