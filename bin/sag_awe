@@ -182,7 +182,7 @@ function report_quast_four () {
     quast_dir="$( cd "${1}" && pwd )/reports/quast"
 
    if [[ "${MERGED}" == "true" && "${NORMALISED}" == "true" ]] ; then
-        echo "[SAGAWE:INFO] - Running QUAST on Trimmed-Normalised-Merged Assembly"
+        echo "[SAGAWE:INFO] - Running QUAST on Trimmed-Normalised-Merged Assembly with ${ASSEMBLY}"
 
         quast_dir="${quast_dir}_tnm"
         mkdir -p "${quast_dir}"
@@ -191,7 +191,7 @@ function report_quast_four () {
         --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
         --glimmer "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
     elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
-        echo "[SAGAWE:INFO] - Running QUAST on Trimmed-Merged Assembly"
+        echo "[SAGAWE:INFO] - Running QUAST on Trimmed-Merged Assembly with ${ASSEMBLY}"
 
         quast_dir="${quast_dir}_tm"
         mkdir -p "${quast_dir}"
@@ -200,7 +200,7 @@ function report_quast_four () {
         --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
         --glimmer "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
     elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
-        echo "[SAGAWE:INFO] - Running QUAST on Trimmed-Normalised Assembly"
+        echo "[SAGAWE:INFO] - Running QUAST on Trimmed-Normalised Assembly with ${ASSEMBLY}"
 
         quast_dir="${quast_dir}_tn"
         mkdir -p "${quast_dir}"
@@ -209,7 +209,7 @@ function report_quast_four () {
         --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
         --glimmer "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
     else
-        echo "[SAGAWE:INFO] - Running QUAST on Trimmed Assembly"
+        echo "[SAGAWE:INFO] - Running QUAST on Trimmed Assembly with ${ASSEMBLY}"
 
         quast_dir="${quast_dir}_t"
         mkdir -p "${quast_dir}"
@@ -221,7 +221,7 @@ function report_quast_four () {
 }
 
 #
-# Workflow Functions
+# Accessory Functions
 #
 function help_message () {
     echo -e "Single Amplified Genome Assembly Workflow Example (SAG-AWE)"
@@ -238,9 +238,6 @@ function help_message () {
     exit 1
 }
 
-#
-# Accessory Functions
-#
 function cores () {
     cores=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu)
     echo $(($cores / 2))
@@ -278,7 +275,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts "f:r:o:tnmsqh" FLAG; do
+while getopts "f:r:o:tnmqsSh" FLAG; do
     case ${FLAG} in
         f)
             READ1=${OPTARG}
