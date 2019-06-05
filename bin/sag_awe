@@ -302,23 +302,68 @@ function report_busco_v3 () {
     fi
 }
 
-#function report_blobtools () {
-#
-#}
+function report_blobtools () {
+    outdir="$( cd "${1}" && pwd )"
+    report_blobtools_mapping "${outdir}"
+}
 
-#function report_blobtools_bwa () {
-#    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
-#    assembly_dir="$( cd "${1}" && pwd )/assembly"
-#    blotools_dir="$( cd "${1}" && pwd )/reports/blobtools"
-#    mapping_dir="${blobtools_dir}/mapping"
-#    if [[ "${MERGED}" == "true" && "${NORMALISED}" == "true" ]] ; then
-#    elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
-#    elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
-#    else
-#        mkdir -p "${mapping_dir}_t"
-#        ln -s "${assembly_dir}/$ASSEMBLY" "${mapping_dir}/$ASSEMBLY"
-#    fi
-#}
+function report_blobtools_mapping () {
+    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
+    assembly_dir="$( cd "${1}" && pwd )/assembly"
+    blobtools_dir="$( cd "${1}" && pwd )/reports/blobtools"
+
+    assembly_type=""
+
+    read1=$(basename "${READ1}")
+    read2=$(basename "${READ2}")
+
+    if [[ "${MERGED}" == "true" && "${NORMALISED}" == "true" ]] ; then
+        assembly_type="tnm"
+    elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
+        assembly_type="tm"
+    elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
+        assembly_type="tn"
+    else
+        assembly_tupe="t"
+    fi
+
+    mapping_dir="${blobtools_dir}/${assembly_type}/mapping"
+    mkdir -p "${mapping_dir}"
+    ln -s "${assembly_dir}/${assembly_type}/$ASSEMBLY" "${mapping_dir}/$ASSEMBLY"
+
+    echo "[SAGAWE:INFO] - Indexing Assembly"
+    bwa index -a bwtsw "${mapping_dir}/$ASSEMBLY" 2>&1 | tee "${mapping_dir}/bwa.log"
+
+    echo "[SAGAWE:INFO] - Mapping Trimmed Paired Reads to ${ASSEMBLY}"
+    bwa mem -t "$THREADS" "${mapping_dir}/$ASSEMBLY" \
+    "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
+    "${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
+    > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
+
+    echo "[SAGAWE:INFO] - Mapping Trimmped Un-Paired Reads to ${ASSEMBLY}"
+    bwa mem -t "$THREADS" "${mapping_dir}/$ASSEMBLY" \
+    "${trimmed_dir}/${read1/r1.fq.gz/all_unpaired.fq.gz}" \
+    > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
+
+    echo "[SAGAWE:INFO] - Sorting Paired SAM File and Converting to BAM"
+    samtools sort -@ "$THREADS" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam" \
+    "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
+
+    echo "[SAGAWE:INFO] - Sorting Un-Paired SAM File and Converting to BAM"
+    samtools sort -@ "$THREADS" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam" \
+    "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
+
+    echo "[SAGAWE:INFO] - Merging BAM Files"
+    samtools merge -@ "$THREADS" -f "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" \
+    "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam" \
+    "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam"
+
+    echo "[SAGAWE:INFO] - Indexing Bam"
+    samtools index "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
+
+    rm "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
+    rm "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
+}
 
 #
 # Accessory Functions
@@ -383,7 +428,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts "f:r:o:tnmsqSb:h" FLAG; do
+while getopts "f:r:o:tnmsqSb:Bh" FLAG; do
     case ${FLAG} in
         f)
             READ1=${OPTARG}
@@ -422,6 +467,9 @@ while getopts "f:r:o:tnmsqSb:h" FLAG; do
             BUSCO_LINEAGES="${OPTARG}"
             report_busco_v3 "${OUTDIR}"
             ;;
+        B)
+            report_blobtools "${OUTDIR}"
+            ;;
         h)
             help_message
 	    ;;
@@ -439,3 +487,4 @@ fi
 absolute_path="$( cd "${OUTDIR}" && pwd )"
 echo -e "Date Finished:\t$(date +%Y-%m-%d-%R)" >> "$absolute_path/$output_dir.log"
 exit 0
+
