@@ -183,43 +183,26 @@ function report_quast_v4 () {
     read1=$(basename "${READ1}")
     read2=$(basename "${READ2}")
 
-   if [[ "${MERGED}" == "true" && "${NORMALISED}" == "true" ]] ; then
-        echo "[SAGAWE:INFO] - Running QUAST on Trimmed-Normalised-Merged Assembly with ${ASSEMBLY}"
+    assembly_type=""
 
-        quast_dir="${quast_dir}_tnm"
-        mkdir -p "${quast_dir}"
-
-        quast.py -o "${quast_dir}" -t "$THREADS" \
-        --min-contig 100 -f --eukaryote "$QUAST_SCAFFOLDS" \
-        --glimmer "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
+    if [[ "${MERGED}" == "true" && "${NORMALISED}" == "true" ]] ; then
+        assembly_type="tnm"
     elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
-        echo "[SAGAWE:INFO] - Running QUAST on Trimmed-Merged Assembly with ${ASSEMBLY}"
-
-        quast_dir="${quast_dir}_tm"
-        mkdir -p "${quast_dir}"
-
-        quast.py -o "${quast_dir}" -t "$THREADS" \
-        --min-contig 100 -f --eukaryote "$QUAST_SCAFFOLDS" \
-        --glimmer "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
+        assembly_type="tm"
     elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
-        echo "[SAGAWE:INFO] - Running QUAST on Trimmed-Normalised Assembly with ${ASSEMBLY}"
-
-        quast_dir="${quast_dir}_tn"
-        mkdir -p "${quast_dir}"
-
-        quast.py -o "${quast_dir}" -t "$THREADS" \
-        --min-contig 100 -f --eukaryote "$QUAST_SCAFFOLDS" \
-        --glimmer "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
+        assembly_type="tn"
     else
-        echo "[SAGAWE:INFO] - Running QUAST on Trimmed Assembly with ${ASSEMBLY}"
-
-        quast_dir="${quast_dir}_t"
-        mkdir -p "${quast_dir}"
-
-        quast.py -o "${quast_dir}" -t "$THREADS" \
-        --glimmer --min-contig 100 -f --eukaryote "$QUAST_SCAFFOLDS" \
-        "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
+        assembly_type="t"
     fi
+
+    echo "[SAGAWE:INFO] - Running QUAST on ${assembly_type} Assembly with ${ASSEMBLY}"
+
+    quast_dir="${quast_dir}/${assembly_type}"
+    mkdir -p "${quast_dir}"
+
+    quast.py -o "${quast_dir}" -t "$THREADS" \
+    --glimmer --min-contig 100 -f --eukaryote "$QUAST_SCAFFOLDS" \
+    "${assembly_dir}/${assembly_type}/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
 }
 
 function report_busco_v3 () {
@@ -238,8 +221,7 @@ function report_busco_v3 () {
         assembly_type="t"
     fi
 
-    busco_dir="${busco_dir}_${assembly_type}"
-    mkdir -p "${busco_dir}"
+    busco_dir="${busco_dir}/${assembly_type}"
     mkdir -p "${busco_dir}/summaries"
 
     IFS=\, read -r -a current_db <<<"${BUSCO_LINEAGES}"
