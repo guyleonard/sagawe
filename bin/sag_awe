@@ -24,7 +24,7 @@ function run_trim_galore () {
 
         mv "${trimmed_dir}/"*".html" "${fastqc_dir}"
         mv "${trimmed_dir}/"*".zip" "${fastqc_dir}"
-        mv "${trimmed_fir}/"*".txt" "${fastqc_dir}"
+        mv "${trimmed_dir}/"*".txt" "${fastqc_dir}"
     fi
 }
 
@@ -177,7 +177,6 @@ function run_assembly_spades {
 # Report Functions
 #
 function report_quast_v4 () {
-    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
     assembly_dir="$( cd "${1}" && pwd )/assembly"
     quast_dir="$( cd "${1}" && pwd )/reports/quast"
 
@@ -191,7 +190,7 @@ function report_quast_v4 () {
         mkdir -p "${quast_dir}"
 
         quast.py -o "${quast_dir}" -t "$THREADS" \
-        --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
+        --min-contig 100 -f --eukaryote "$QUAST_SCAFFOLDS" \
         --glimmer "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
     elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
         echo "[SAGAWE:INFO] - Running QUAST on Trimmed-Merged Assembly with ${ASSEMBLY}"
@@ -200,7 +199,7 @@ function report_quast_v4 () {
         mkdir -p "${quast_dir}"
 
         quast.py -o "${quast_dir}" -t "$THREADS" \
-        --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
+        --min-contig 100 -f --eukaryote "$QUAST_SCAFFOLDS" \
         --glimmer "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
     elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
         echo "[SAGAWE:INFO] - Running QUAST on Trimmed-Normalised Assembly with ${ASSEMBLY}"
@@ -209,7 +208,7 @@ function report_quast_v4 () {
         mkdir -p "${quast_dir}"
 
         quast.py -o "${quast_dir}" -t "$THREADS" \
-        --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
+        --min-contig 100 -f --eukaryote "$QUAST_SCAFFOLDS" \
         --glimmer "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
     else
         echo "[SAGAWE:INFO] - Running QUAST on Trimmed Assembly with ${ASSEMBLY}"
@@ -218,7 +217,7 @@ function report_quast_v4 () {
         mkdir -p "${quast_dir}"
 
         quast.py -o "${quast_dir}" -t "$THREADS" \
-        --glimmer --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
+        --glimmer --min-contig 100 -f --eukaryote "$QUAST_SCAFFOLDS" \
         "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
     fi
 }
@@ -234,11 +233,11 @@ function report_busco_v3 () {
         mkdir -p "${busco_dir}"
         mkdir -p "${busco_dir}/summaries"
 
-        IFS=\, read -a current_db <<<"${BUSCO_LINEAGES}"
+        IFS=\, read -r -a current_db <<<"${BUSCO_LINEAGES}"
         for lineage in "${current_db[@]}";do
             echo "[SAGAWE:INFO] - Running BUSCO on Trimmed-Normalised Assembly with ${ASSEMBLY} and ${lineage}"
 
-            lineage_name="$(basename ${lineage})"
+            lineage_name="$(basename "${lineage}")"
             run_BUSCO.py -i "${assembly_dir}/tnm/${ASSEMBLY}" \
             -c 24 -o "${lineage_name}" -m genome \
             -l "${lineage}" 2>&1 | tee "${busco_dir}/busco.log"
@@ -253,11 +252,11 @@ function report_busco_v3 () {
         mkdir -p "${busco_dir}"
         mkdir -p "${busco_dir}/summaries"
 
-        IFS=\, read -a current_db <<<"${BUSCO_LINEAGES}"
+        IFS=\, read -r -a current_db <<<"${BUSCO_LINEAGES}"
         for lineage in "${current_db[@]}";do
             echo "[SAGAWE:INFO] - Running BUSCO on Trimmed-Normalised Assembly with ${ASSEMBLY} and ${lineage}"
 
-            lineage_name="$(basename ${lineage})"
+            lineage_name="$(basename "${lineage}")"
             run_BUSCO.py -i "${assembly_dir}/tm/${ASSEMBLY}" \
             -c 24 -o "${lineage_name}" -m genome \
             -l "${lineage}" 2>&1 | tee "${busco_dir}/busco.log"
@@ -270,11 +269,11 @@ function report_busco_v3 () {
         mkdir -p "${busco_dir}"
         mkdir -p "${busco_dir}/summaries"
 
-        IFS=\, read -a current_db <<<"${BUSCO_LINEAGES}"
+        IFS=\, read -r -a current_db <<<"${BUSCO_LINEAGES}"
         for lineage in "${current_db[@]}";do
             echo "[SAGAWE:INFO] - Running BUSCO on Trimmed-Normalised Assembly with ${ASSEMBLY} and ${lineage}"
 
-            lineage_name="$(basename ${lineage})"
+            lineage_name="$(basename "${lineage}")"
             run_BUSCO.py -i "${assembly_dir}/tn/${ASSEMBLY}" \
             -c 24 -o "${lineage_name}" -m genome \
             -l "${lineage}" 2>&1 | tee "${busco_dir}/busco.log"
@@ -287,11 +286,11 @@ function report_busco_v3 () {
         mkdir -p "${busco_dir}"
         mkdir -p "${busco_dir}/summaries"
 
-        IFS=\, read -a current_db <<<"${BUSCO_LINEAGES}"
+        IFS=\, read -r -a current_db <<<"${BUSCO_LINEAGES}"
         for lineage in "${current_db[@]}";do
             echo "[SAGAWE:INFO] - Running BUSCO on Trimmed Assembly with ${ASSEMBLY} and ${lineage}"
 
-            lineage_name="$(basename ${lineage})"
+            lineage_name="$(basename "${lineage}")"
             run_BUSCO.py -i "${assembly_dir}/t/${ASSEMBLY}" \
             -c 24 -o "${lineage_name}" -m genome \
             -l "${lineage}" 2>&1 | tee "${busco_dir}/busco.log"
@@ -299,9 +298,27 @@ function report_busco_v3 () {
             mv "run_${lineage_name}" "${busco_dir}"
             ln -s "${busco_dir}/run_${lineage_name}/short_summary_${lineage_name}.txt" "${busco_dir}/summaries"
         done
+        generate_plot.py -wd "${busco_dir}/summaries"
     fi
-
 }
+
+#function report_blobtools () {
+#
+#}
+
+#function report_blobtools_bwa () {
+#    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
+#    assembly_dir="$( cd "${1}" && pwd )/assembly"
+#    blotools_dir="$( cd "${1}" && pwd )/reports/blobtools"
+#    mapping_dir="${blobtools_dir}/mapping"
+#    if [[ "${MERGED}" == "true" && "${NORMALISED}" == "true" ]] ; then
+#    elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
+#    elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
+#    else
+#        mkdir -p "${mapping_dir}_t"
+#        ln -s "${assembly_dir}/$ASSEMBLY" "${mapping_dir}/$ASSEMBLY"
+#    fi
+#}
 
 #
 # Accessory Functions
@@ -330,13 +347,13 @@ function help_message () {
 
 function cores () {
     cores=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu)
-    echo $(($cores / 2))
+    echo $((cores / 2))
 }
 
 function cite_log () {
     absolute_path=${1}
     output_dir=${2}
-    echo "Single Amplified Genome Assembly Workflow" > "${absolute_path}/$output_dir.log"
+    echo -e "Single Amplified Genome Assembly Workflow" > "${absolute_path}/$output_dir.log"
     echo -e "Please cite:\thttps://github.com/guyleonard/sagawe\n" >> "$absolute_path/$output_dir.log"
     echo -e "Output Dir:\t$absolute_path" >> "$absolute_path/$output_dir.log"
     echo -e "Date Started:\t$(date +%Y-%m-%d-%R)" >> "$absolute_path/$output_dir.log"
@@ -348,7 +365,7 @@ function cite_log () {
 #
 # Workflow Variables
 #
-ARGS=$@
+ARGS=( "$@" )
 ASSEMBLY="contigs.fasta"
 BUSCO_LINEAGES="eukaryota_odb9"
 MERGED="false"
@@ -422,4 +439,3 @@ fi
 absolute_path="$( cd "${OUTDIR}" && pwd )"
 echo -e "Date Finished:\t$(date +%Y-%m-%d-%R)" >> "$absolute_path/$output_dir.log"
 exit 0
-"
