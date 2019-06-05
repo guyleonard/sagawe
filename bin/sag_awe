@@ -176,8 +176,7 @@ function run_assembly_spades {
 #
 # Report Functions
 #
-
-function report_quast_four () {
+function report_quast_v4 () {
     trimmed_dir="$( cd "${1}" && pwd )/trimmed"
     assembly_dir="$( cd "${1}" && pwd )/assembly"
     quast_dir="$( cd "${1}" && pwd )/reports/quast"
@@ -224,20 +223,107 @@ function report_quast_four () {
     fi
 }
 
+function report_busco_v3 () {
+    assembly_dir="$( cd "${1}" && pwd )/assembly"
+    busco_dir="$( cd "${1}" && pwd )/reports/busco"
+
+    if [[ "${MERGED}" == "true" && "${NORMALISED}" == "true" ]] ; then
+        busco_dir="${busco_dir}_tnm"
+        mkdir -p "${busco_dir}"
+        busco_dir="${busco_dir}_tnm"
+        mkdir -p "${busco_dir}"
+        mkdir -p "${busco_dir}/summaries"
+
+        IFS=\, read -a current_db <<<"${BUSCO_LINEAGES}"
+        for lineage in "${current_db[@]}";do
+            echo "[SAGAWE:INFO] - Running BUSCO on Trimmed-Normalised Assembly with ${ASSEMBLY} and ${lineage}"
+
+            lineage_name="$(basename ${lineage})"
+            run_BUSCO.py -i "${assembly_dir}/tnm/${ASSEMBLY}" \
+            -c 24 -o "${lineage_name}" -m genome \
+            -l "${lineage}" 2>&1 | tee "${busco_dir}/busco.log"
+
+            mv "run_${lineage_name}" "${busco_dir}"
+            ln -s "${busco_dir}/run_${lineage_name}/short_summary_${lineage_name}.txt" "${busco_dir}/summaries"
+        done
+    elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
+        busco_dir="${busco_dir}_tm"
+        mkdir -p "${busco_dir}"
+        busco_dir="${busco_dir}_tm"
+        mkdir -p "${busco_dir}"
+        mkdir -p "${busco_dir}/summaries"
+
+        IFS=\, read -a current_db <<<"${BUSCO_LINEAGES}"
+        for lineage in "${current_db[@]}";do
+            echo "[SAGAWE:INFO] - Running BUSCO on Trimmed-Normalised Assembly with ${ASSEMBLY} and ${lineage}"
+
+            lineage_name="$(basename ${lineage})"
+            run_BUSCO.py -i "${assembly_dir}/tm/${ASSEMBLY}" \
+            -c 24 -o "${lineage_name}" -m genome \
+            -l "${lineage}" 2>&1 | tee "${busco_dir}/busco.log"
+
+            mv "run_${lineage_name}" "${busco_dir}"
+            ln -s "${busco_dir}/run_${lineage_name}/short_summary_${lineage_name}.txt" "${busco_dir}/summaries"
+        done
+    elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
+        busco_dir="${busco_dir}_tn"
+        mkdir -p "${busco_dir}"
+        mkdir -p "${busco_dir}/summaries"
+
+        IFS=\, read -a current_db <<<"${BUSCO_LINEAGES}"
+        for lineage in "${current_db[@]}";do
+            echo "[SAGAWE:INFO] - Running BUSCO on Trimmed-Normalised Assembly with ${ASSEMBLY} and ${lineage}"
+
+            lineage_name="$(basename ${lineage})"
+            run_BUSCO.py -i "${assembly_dir}/tn/${ASSEMBLY}" \
+            -c 24 -o "${lineage_name}" -m genome \
+            -l "${lineage}" 2>&1 | tee "${busco_dir}/busco.log"
+
+            mv "run_${lineage_name}" "${busco_dir}"
+            ln -s "${busco_dir}/run_${lineage_name}/short_summary_${lineage_name}.txt" "${busco_dir}/summaries"
+        done
+    else
+        busco_dir="${busco_dir}_t"
+        mkdir -p "${busco_dir}"
+        mkdir -p "${busco_dir}/summaries"
+
+        IFS=\, read -a current_db <<<"${BUSCO_LINEAGES}"
+        for lineage in "${current_db[@]}";do
+            echo "[SAGAWE:INFO] - Running BUSCO on Trimmed Assembly with ${ASSEMBLY} and ${lineage}"
+
+            lineage_name="$(basename ${lineage})"
+            run_BUSCO.py -i "${assembly_dir}/t/${ASSEMBLY}" \
+            -c 24 -o "${lineage_name}" -m genome \
+            -l "${lineage}" 2>&1 | tee "${busco_dir}/busco.log"
+
+            mv "run_${lineage_name}" "${busco_dir}"
+            ln -s "${busco_dir}/run_${lineage_name}/short_summary_${lineage_name}.txt" "${busco_dir}/summaries"
+        done
+    fi
+
+}
+
 #
 # Accessory Functions
 #
 function help_message () {
     echo -e "Single Amplified Genome Assembly Workflow Example (SAG-AWE)"
+    echo -e "\tOptions are positional, i.e. they are run sequentially"
     echo -e "Input Options (required):"
     echo -e "\t-f <r1.fq|r1.fq.gz>\tRead Library Pair 1"
     echo -e "\t-r <r2.fq|r2.fq.gz>\tRead Library Pair 2"
     echo -e "Output Options (required):"
     echo -e "\t-o <output_dir>\tOutput Directory"
     echo -e "Program Parameters:"
-    echo -e "\t-t\t Run Trim Galore!"
+    echo -e "\t-t\tRun Trim Galore!"
+    echo -e "\t-n\tRun Normalisation"
+    echo -e "\t-m\tRun Read Merging"
+    echo -e "\t-s\tRun Assembly"
     echo -e "Optional Parameters:"
+    echo -e "\t-S\tUse scaffolds.fasta instead of contigs.fasta"
     echo -e "Reports/Stats:"
+    echo -e "\t-q\tRun Quast"
+    echo -e "\t-b </path/to/db1,/path/to/db2,...>\tRun BUSCO with Multiple Lineages"
     echo -e "Example: sag_awe"
     exit 1
 }
@@ -262,16 +348,17 @@ function cite_log () {
 #
 # Workflow Variables
 #
-THREADS=$(cores)
-NORMALISED="false"
-MERGED="false"
+ARGS=$@
 ASSEMBLY="contigs.fasta"
+BUSCO_LINEAGES="eukaryota_odb9"
+MERGED="false"
+NORMALISED="false"
+NUMARGS=$#
+OUTDIR="output_sagawe"
 QUAST_SCAFFOLDS=""
 READ1=""
 READ2=""
-OUTDIR="output_sagawe"
-ARGS=$@
-NUMARGS=$#
+THREADS=$(cores)
 if [ "${NUMARGS}" -eq 0 ]; then
     help_message
 fi
@@ -279,7 +366,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts "f:r:o:tnmqsSh" FLAG; do
+while getopts "f:r:o:tnmsqSb:h" FLAG; do
     case ${FLAG} in
         f)
             READ1=${OPTARG}
@@ -304,15 +391,19 @@ while getopts "f:r:o:tnmqsSh" FLAG; do
             run_bbmerge "${OUTDIR}"
             MERGED="true"
             ;;
-        q)
-            report_quast_four "${OUTDIR}"
-            ;;
         s)
             run_assembly_spades "${OUTDIR}"
+            ;;
+        q)
+            report_quast_v4 "${OUTDIR}"
             ;;
         S)
             ASSEMBLY="scaffolds.fasta"
             QUAST_SCAFFOLDS="-s"
+            ;;
+        b)
+            BUSCO_LINEAGES="${OPTARG}"
+            report_busco_v3 "${OUTDIR}"
             ;;
         h)
             help_message
@@ -331,3 +422,4 @@ fi
 absolute_path="$( cd "${OUTDIR}" && pwd )"
 echo -e "Date Finished:\t$(date +%Y-%m-%d-%R)" >> "$absolute_path/$output_dir.log"
 exit 0
+"
