@@ -178,8 +178,12 @@ function run_assembly_spades {
 #
 
 function report_quast_four () {
+    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
     assembly_dir="$( cd "${1}" && pwd )/assembly"
     quast_dir="$( cd "${1}" && pwd )/reports/quast"
+
+    read1=$(basename "${READ1}")
+    read2=$(basename "${READ2}")
 
    if [[ "${MERGED}" == "true" && "${NORMALISED}" == "true" ]] ; then
         echo "[SAGAWE:INFO] - Running QUAST on Trimmed-Normalised-Merged Assembly with ${ASSEMBLY}"
@@ -215,8 +219,8 @@ function report_quast_four () {
         mkdir -p "${quast_dir}"
 
         quast.py -o "${quast_dir}" -t "$THREADS" \
-        --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
-        --glimmer "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
+        --glimmer --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
+        "${assembly_dir}/tnm/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
     fi
 }
 
@@ -308,7 +312,7 @@ while getopts "f:r:o:tnmqsSh" FLAG; do
             ;;
         S)
             ASSEMBLY="scaffolds.fasta"
-            QUAST_SCAFFOLDS="--scaffolds"
+            QUAST_SCAFFOLDS="-s"
             ;;
         h)
             help_message
