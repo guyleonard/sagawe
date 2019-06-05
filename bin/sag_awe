@@ -226,80 +226,36 @@ function report_busco_v3 () {
     assembly_dir="$( cd "${1}" && pwd )/assembly"
     busco_dir="$( cd "${1}" && pwd )/reports/busco"
 
+    assembly_type=""
+
     if [[ "${MERGED}" == "true" && "${NORMALISED}" == "true" ]] ; then
-        busco_dir="${busco_dir}_tnm"
-        mkdir -p "${busco_dir}"
-        busco_dir="${busco_dir}_tnm"
-        mkdir -p "${busco_dir}"
-        mkdir -p "${busco_dir}/summaries"
-
-        IFS=\, read -r -a current_db <<<"${BUSCO_LINEAGES}"
-        for lineage in "${current_db[@]}";do
-            echo "[SAGAWE:INFO] - Running BUSCO on Trimmed-Normalised Assembly with ${ASSEMBLY} and ${lineage}"
-
-            lineage_name="$(basename "${lineage}")"
-            run_BUSCO.py -i "${assembly_dir}/tnm/${ASSEMBLY}" \
-            -c 24 -o "${lineage_name}" -m genome \
-            -l "${lineage}" 2>&1 | tee "${busco_dir}/busco.log"
-
-            mv "run_${lineage_name}" "${busco_dir}"
-            ln -s "${busco_dir}/run_${lineage_name}/short_summary_${lineage_name}.txt" "${busco_dir}/summaries"
-        done
+        assembly_type="tnm"
     elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
-        busco_dir="${busco_dir}_tm"
-        mkdir -p "${busco_dir}"
-        busco_dir="${busco_dir}_tm"
-        mkdir -p "${busco_dir}"
-        mkdir -p "${busco_dir}/summaries"
-
-        IFS=\, read -r -a current_db <<<"${BUSCO_LINEAGES}"
-        for lineage in "${current_db[@]}";do
-            echo "[SAGAWE:INFO] - Running BUSCO on Trimmed-Normalised Assembly with ${ASSEMBLY} and ${lineage}"
-
-            lineage_name="$(basename "${lineage}")"
-            run_BUSCO.py -i "${assembly_dir}/tm/${ASSEMBLY}" \
-            -c 24 -o "${lineage_name}" -m genome \
-            -l "${lineage}" 2>&1 | tee "${busco_dir}/busco.log"
-
-            mv "run_${lineage_name}" "${busco_dir}"
-            ln -s "${busco_dir}/run_${lineage_name}/short_summary_${lineage_name}.txt" "${busco_dir}/summaries"
-        done
+        assembly_type="tm"
     elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
-        busco_dir="${busco_dir}_tn"
-        mkdir -p "${busco_dir}"
-        mkdir -p "${busco_dir}/summaries"
-
-        IFS=\, read -r -a current_db <<<"${BUSCO_LINEAGES}"
-        for lineage in "${current_db[@]}";do
-            echo "[SAGAWE:INFO] - Running BUSCO on Trimmed-Normalised Assembly with ${ASSEMBLY} and ${lineage}"
-
-            lineage_name="$(basename "${lineage}")"
-            run_BUSCO.py -i "${assembly_dir}/tn/${ASSEMBLY}" \
-            -c 24 -o "${lineage_name}" -m genome \
-            -l "${lineage}" 2>&1 | tee "${busco_dir}/busco.log"
-
-            mv "run_${lineage_name}" "${busco_dir}"
-            ln -s "${busco_dir}/run_${lineage_name}/short_summary_${lineage_name}.txt" "${busco_dir}/summaries"
-        done
+        assembly_type="tn"
     else
-        busco_dir="${busco_dir}_t"
-        mkdir -p "${busco_dir}"
-        mkdir -p "${busco_dir}/summaries"
-
-        IFS=\, read -r -a current_db <<<"${BUSCO_LINEAGES}"
-        for lineage in "${current_db[@]}";do
-            echo "[SAGAWE:INFO] - Running BUSCO on Trimmed Assembly with ${ASSEMBLY} and ${lineage}"
-
-            lineage_name="$(basename "${lineage}")"
-            run_BUSCO.py -i "${assembly_dir}/t/${ASSEMBLY}" \
-            -c 24 -o "${lineage_name}" -m genome \
-            -l "${lineage}" 2>&1 | tee "${busco_dir}/busco.log"
-
-            mv "run_${lineage_name}" "${busco_dir}"
-            ln -s "${busco_dir}/run_${lineage_name}/short_summary_${lineage_name}.txt" "${busco_dir}/summaries"
-        done
-        generate_plot.py -wd "${busco_dir}/summaries"
+        assembly_type="t"
     fi
+
+    busco_dir="${busco_dir}_${assembly_type}"
+    mkdir -p "${busco_dir}"
+    mkdir -p "${busco_dir}/summaries"
+
+    IFS=\, read -r -a current_db <<<"${BUSCO_LINEAGES}"
+    for lineage in "${current_db[@]}";do
+        echo "[SAGAWE:INFO] - Running BUSCO on ${assembly_type} Assembly with ${ASSEMBLY} and ${lineage}"
+
+        lineage_name="$(basename "${lineage}")"
+        run_BUSCO.py -i "${assembly_dir}/${assembly_type}/${ASSEMBLY}" \
+        -c 24 -o "${lineage_name}" -m genome \
+        -l "${lineage}" 2>&1 | tee "${busco_dir}/busco.log"
+
+        mv "run_${lineage_name}" "${busco_dir}"
+        ln -s "${busco_dir}/run_${lineage_name}/short_summary_${lineage_name}.txt" "${busco_dir}/summaries"
+    done
+
+    generate_plot.py -wd "${busco_dir}/summaries"
 }
 
 function report_blobtools () {
@@ -324,7 +280,7 @@ function report_blobtools_mapping () {
     elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
         assembly_type="tn"
     else
-        assembly_tupe="t"
+        assembly_type="t"
     fi
 
     mapping_dir="${blobtools_dir}/${assembly_type}/mapping"
@@ -340,7 +296,7 @@ function report_blobtools_mapping () {
     "${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
     > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
 
-    echo "[SAGAWE:INFO] - Mapping Trimmped Un-Paired Reads to ${ASSEMBLY}"
+    echo "[SAGAWE:INFO] - Mapping Trimmed Un-Paired Reads to ${ASSEMBLY}"
     bwa mem -t "$THREADS" "${mapping_dir}/$ASSEMBLY" \
     "${trimmed_dir}/${read1/r1.fq.gz/all_unpaired.fq.gz}" \
     > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
