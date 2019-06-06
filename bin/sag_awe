@@ -16,11 +16,12 @@ function run_trim_galore () {
 
         echo "[SAGAWE:INFO] - Running Trim Galore! on Raw Reads"
         trim_galore -q 20 --fastqc --'gzip' --length 50 --paired --retain_unpaired \
-        "${READ1}" "${READ2}" -o "${trimmed_dir}" 2>&1 | tee "${trimmed_dir}/trim_galore.log"
+        "${READ1}" "${READ2}" -o "${trimmed_dir}" 2>&1 | tee "${trimmed_dir}/sag_awe_trim_galore.log"
 
-        read1="$(basename "${READ1}")" # get filename
-        read1="${read1%%.*}"         # remove extension
-        cat "${trimmed_dir}/${read1}_unpaired_1.fq.gz" "${trimmed_dir}/${read1/r1/r2}_unpaired_2.fq.gz" > "${trimmed_dir}/${read1/r1/all}_unpaired.fq.gz"
+        read1="$(basename "${READ1}")"
+        read2="$(basename "${READ2}")"
+
+        cat "${trimmed_dir}/${read1/.fq.gz/_unpaired_1.fq.gz}" "${trimmed_dir}/${read2/.fq.gz/_unpaired_2.fq.gz}" > "${trimmed_dir}/unpaired_all.fq.gz"
 
         mv "${trimmed_dir}/"*".html" "${fastqc_dir}"
         mv "${trimmed_dir}/"*".zip" "${fastqc_dir}"
@@ -38,7 +39,7 @@ function run_normalisation () {
     else
         mkdir -p "${normalised_dir}"
 
-        read1=$(basename "${READ1}") # get filename
+        read1=$(basename "${READ1}")
         read2=$(basename "${READ2}")
 
         echo "[SAGAWE:INFO] - Running BBNorm on Trimmed Reads"
@@ -50,7 +51,7 @@ function run_normalisation () {
         outt="${normalised_dir}/excluded_reads.fq.gz" \
         hist="${normalised_dir}/input_kmer_depth.hist" \
         histout="${normalised_dir}/output_kmer_depth.hist" \
-        threads="${THREADS}" 2>&1 | tee "${normalised_dir}/bbnorm.log"
+        threads="${THREADS}" 2>&1 | tee "${normalised_dir}/sag_awe_bbnorm.log"
     fi
 }
 
@@ -78,7 +79,7 @@ function run_bbmerge () {
             out="${merged_dir}/${read1/r1.fq.gz/normalised_merged.fq.gz}" \
             outu1="${merged_dir}/${read1/.fq.gz/_normalised_unmerged.fq.gz}" \
             outu2="${merged_dir}/${read2/.fq.gz/_normalised_unmerged.fq.gz}" \
-            minoverlap=10 ziplevel=9 2>&1 | tee "${merged_dir}/bbmerge.log"
+            minoverlap=10 ziplevel=9 2>&1 | tee "${merged_dir}/sag_awe_bbmerge.log"
         fi
     else
         merged_dir="${trimmed_dir}/merged"
@@ -95,7 +96,7 @@ function run_bbmerge () {
             out="${merged_dir}/${read1/r1.fq.gz/merged.fq.gz}" \
             outu1="${merged_dir}/${read1/.fq.gz/_unmerged.fq.gz}" \
             outu2="${merged_dir}/${read2/.fq.gz/_unmerged.fq.gz}" \
-            minoverlap=10 ziplevel=9 2>&1 | tee "${merged_dir}/bbmerge.log"
+            minoverlap=10 ziplevel=9 2>&1 | tee "${merged_dir}/sag_awe_bbmerge.log"
         fi
     fi
 }
@@ -317,15 +318,14 @@ function cores () {
 }
 
 function cite_log () {
-    absolute_path=${1}
-    output_dir=${2}
-    echo -e "Single Amplified Genome Assembly Workflow" > "${absolute_path}/$output_dir.log"
-    echo -e "Please cite:\thttps://github.com/guyleonard/sagawe\n" >> "$absolute_path/$output_dir.log"
-    echo -e "Output Dir:\t$absolute_path" >> "$absolute_path/$output_dir.log"
-    echo -e "Date Started:\t$(date +%Y-%m-%d-%R)" >> "$absolute_path/$output_dir.log"
-    echo -e "Location:\t$HOSTNAME" >> "$absolute_path/$output_dir.log"
-    echo -e "Command:\t${0} ${ARGS}" >> "$absolute_path/$output_dir.log"
-    echo -e "Individual logs for each step are located in their respective folder." >> "$absolute_path/$output_dir.log"
+    output_dir="$( cd "${1}" && pwd )"
+    echo -e "Single Amplified Genome Assembly Workflow" > "${output_dir}/sag_awe.log"
+    echo -e "Please cite:\thttps://github.com/guyleonard/sagawe\n" >> "${output_dir}/sag_awe.log"
+    echo -e "Output Dir:\t${output_dir}" >> "${output_dir}/sag_awe.log"
+    echo -e "Date Started:\t$(date +%Y-%m-%d-%R)" >> "${output_dir}/sag_awe.log"
+    echo -e "Location:\t$HOSTNAME" >> "${output_dir}/sag_awe.log"
+    echo -e "Command:\t${0} ${ARGS}" >> "${output_dir}/sag_awe.log"
+    echo -e "Individual logs for each step are located in their respective folder." >> "${output_dir}/sag_awe.log"
 }
 
 #
@@ -350,18 +350,17 @@ fi
 # Getopts Workflow
 #
 while getopts "f:r:o:tnmsqSb:Bh" FLAG; do
-    case ${FLAG} in
+    case "${FLAG}" in
         f)
-            READ1=${OPTARG}
+            READ1="${OPTARG}"
 	    ;;
         r)
-            READ2=${OPTARG}
+            READ2="${OPTARG}"
             ;;
         o)
-            OUTDIR=${OPTARG}
+            OUTDIR="${OPTARG}"
 	    mkdir -p "${OUTDIR}"
-            absolute_path="$( cd "${OUTDIR}" && pwd )"
-            cite_log "${absolute_path}" "${OUTDIR}"
+            cite_log "${OUTDIR}"
             ;;
         t)
             run_trim_galore "${OUTDIR}"
@@ -408,7 +407,6 @@ if [ ! "${OUTDIR}" ]; then
     exit 1
 fi
 
-absolute_path="$( cd "${OUTDIR}" && pwd )"
-echo -e "Date Finished:\t$(date +%Y-%m-%d-%R)" >> "$absolute_path/$output_dir.log"
+output_dir="$( cd "${OUTDIR}" && pwd )"
+echo -e "Date Finished:\t$(date +%Y-%m-%d-%R)" >> "${output_dir}/sag_awe.log"
 exit 0
-
