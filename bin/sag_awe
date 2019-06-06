@@ -180,9 +180,6 @@ function report_quast_v4 () {
     assembly_dir="$( cd "${1}" && pwd )/assembly"
     quast_dir="$( cd "${1}" && pwd )/reports/quast"
 
-    read1=$(basename "${READ1}")
-    read2=$(basename "${READ2}")
-
     assembly_type="${2}"
 
     echo "[SAGAWE:INFO] - Running QUAST on ${assembly_type} Assembly with ${ASSEMBLY}"
@@ -190,9 +187,8 @@ function report_quast_v4 () {
     quast_dir="${quast_dir}/${assembly_type}"
     mkdir -p "${quast_dir}"
 
-    quast.py -o "${quast_dir}" -t "$THREADS" \
-    --glimmer --min-contig 100 --eukaryote "$QUAST_SCAFFOLDS" \
-    "${assembly_dir}/${assembly_type}/$ASSEMBLY" 2>&1 | tee "${quast_dir}/quast.log"
+    quast.py -o "${quast_dir}" -t "${THREADS}" --glimmer --min-contig 100 ${QUAST_SCAFFOLDS} --eukaryote \
+    "${assembly_dir}/${assembly_type}/${ASSEMBLY}" 2>&1 | tee "${quast_dir}/sag_awe_quast.log"
 }
 
 function report_busco_v3 () {
