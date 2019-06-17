@@ -65,21 +65,21 @@ A list of dependencies appears in the list describing the workflow. These progra
 
 You may like to try and install many of the dependencies via 'conda'. YMMV.
 
-    conda install -c bioconda trim-galore # installs Trim_Galore! + cutadapt + FastQC
-    conda install -c agbiome bbtools
-    conda install -c bioconda spades
-    conda install -c bioconda quast
-    conda install -c bioconda bwa
-    conda install -c bioconda blast
-    conda install -c bioconda blobtools
-    conda install -c bioconda busco
-    conda install -c bioconda multiqc 
+    conda install -c bioconda trim-galore # installs Trim_Galore!, cutadapt, FastQC
+    conda install -c agbiome bbtools # installs bbtools, samtools
+    conda install -c bioconda spades # installs spades
+    conda install -c bioconda quast # installs quast, blast, glimmer
+    conda install -c bioconda bwa # installs bwa
+    conda install -c bioconda blast # installs blast
+    conda install -c bioconda blobtools # installs blobtools, samtools
+    conda install -c bioconda busco # installs augustus, bamtools, blast, busco, hmmer
+    conda install -c bioconda multiqc # installs multqiqc
 
 * You will also need:
-  * BUSCO Taxonomic Libraries
-  * NCBI 'nt' Database
-  * NCBI 'taxdump' Database
-  * NCBI 'taxdb' Database - environment variable BLASTDB
+  * [BUSCO Lineage Datasets](https://busco.ezlab.org)
+  * [NCBI 'nt' Database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/)
+  * [NCBI 'taxdump' Database](ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/)
+  * [NCBI 'taxdb' Database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/) - environment variable BLASTDB
     * export BLASTDB=/path/to/taxdb
 * NB - CEGMA is no longer supported and does not have a conda install.
 
