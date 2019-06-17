@@ -208,7 +208,7 @@ function report_busco_v3 () {
         lineage_name="$(basename "${lineage}")"
         run_BUSCO.py -i "${assembly_dir}/${assembly_type}/${ASSEMBLY}" \
         -c 24 -o "${lineage_name}" -m genome \
-        -l "${lineage}" 2>&1 | tee "${busco_dir}/busco.log"
+        -l "${lineage}" 2>&1 | tee "${busco_dir}/sag_awe_busco.log"
 
         mv "run_${lineage_name}" "${busco_dir}"
         ln -s "${busco_dir}/run_${lineage_name}/short_summary_${lineage_name}.txt" "${busco_dir}/summaries"
@@ -217,12 +217,33 @@ function report_busco_v3 () {
     generate_plot.py -wd "${busco_dir}/summaries"
 }
 
+function report_cegma () {
+    assembly_dir="$( cd "${1}" && pwd )/assembly"
+
+    assembly_type="${2}"
+
+    cegma_dir="$( cd "${1}" && pwd )/reports/cegma/${assembly_type}"
+
+    if [ ! -f "${assembly_dir}/${assembly_type}/${ASSEMBLY}" ] ; then
+        echo -e "[SAGAWE:ERROR] - SPAdes ${ASSEMBLY} cannot be found. Aborting."
+        exit 1
+    else
+        mkdir -p "$cegma_dir"
+
+        echo "[SAGAWE:INFO] - Running CEGMA on ${assembly_type} with ${ASSEMBLY}"
+        cegma -T "${THREADS}" -g "${assembly_dir}/${assembly_type}/${ASSEMBLY}" -o "${cegma_dir}/cegma" 2>&1 | tee "${cegma_dir}/sag_awe_cegma.log"
+
+        mv "${cegma_dir}/cegma."* "${cegma_dir}"
+    fi
+}
+
+
 function report_blobtools () {
     outdir="$( cd "${1}" && pwd )"
     assembly_type="${2}"
 
-    #report_blobtools_mapping "${outdir}" "${assembly_type}"
-    #report_blobtools_blast "${outdir}" "${assembly_type}"
+    report_blobtools_mapping "${outdir}" "${assembly_type}"
+    report_blobtools_blast "${outdir}" "${assembly_type}"
     report_blobtools_output "${outdir}" "${assembly_type}"
 }
 
@@ -258,7 +279,7 @@ function report_blobtools_mapping () {
     samtools sort -@ "$THREADS" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam" \
     "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
 
-    echo "[SAGAWE:INFO] - Sorting Un-Paired SAM File and Converting to BAM"
+    echo "[SAGAWE:INFO] - Sorting Un-Paired SAM Files and Converting to BAM"
     samtools sort -@ "$THREADS" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam" \
     "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
 
@@ -286,20 +307,27 @@ function report_blobtools_blast {
 
     echo "[SAGAWE:INFO] - Running megaBLAST on $assembly_type Assembly with ${ASSEMBLY}"
 
-    blastn -task megablast -query "${blast_dir}/${ASSEMBLY}" -db "${NCBI_DB}" \
-    -evalue 1e-10 -num_threads "${THREADS}" \
-    -outfmt '6 qseqid staxids bitscore std sscinames sskingdoms stitle' \
-    -culling_limit 5 -out "${blast_dir}/${ASSEMBLY/.fasta/}_vs_$(basename "${NCBI_DB}")_1e-10.megablast" \
-    2>&1 | tee "${blast_dir}/sag_awe_blast.log"
+    if [ -f "${blast_dir}/${ASSEMBLY/.fasta/}_vs_$(basename "${NCBI_DB}")_1e-10.megablast" ]; then
+        echo "[SAGAWE:WARNING] - MEGABLAST already run! Skipping"
+    else
+        blastn -task megablast -query "${blast_dir}/${ASSEMBLY}" -db "${NCBI_DB}" \
+        -evalue 1e-10 -num_threads "${THREADS}" \
+        -outfmt '6 qseqid staxids bitscore std sscinames sskingdoms stitle' \
+        -culling_limit 5 -out "${blast_dir}/${ASSEMBLY/.fasta/}_vs_$(basename "${NCBI_DB}")_1e-10.megablast" \
+        2>&1 | tee "${blast_dir}/sag_awe_blast.log"
+    fi
 }
 
 function report_blobtools_output {
     blobtools_dir="$( cd "${1}" && pwd )/reports/blobtools"
-
     assembly_type="${2}"
 
     mapping_dir="${blobtools_dir}/${assembly_type}/mapping"
     blast_dir="${blobtools_dir}/${assembly_type}/blast"
+    table_dir="${blobtools_dir}/${assembly_type}/tables"
+    image_dir="${blobtools_dir}/${assembly_type}/images"
+    mkdir -p "${table_dir}"
+    mkdir -p "${image_dir}"
 
     echo "[SAGAWE:INFO] - Running BlobTools CREATE"
     blobtools create -i "${blast_dir}/${ASSEMBLY}" \
@@ -310,18 +338,29 @@ function report_blobtools_output {
 
     echo "[SAGAWE:INFO] - Running BlobTools View - Phylum"
     blobtools view -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
-    --out "${blobtools_dir}/${assembly_type}/phylum" \
+    --out "${table_dir}/phylum" \
     --rank "phylum" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
 
     echo "[SAGAWE:INFO] - Running BlobTools View - Super Kingdom"
     blobtools view -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
-    --out "${blobtools_dir}/${assembly_type}/superkingdom" \
+    --out "${table_dir}/superkingdom" \
     --rank "superkingdom" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
 
     echo "[SAGAWE:INFO] - Running BlobTools Plot PNG - Phylum"
     blobtools plot -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
-    --rank "phylum" --out "${blobtools_dir}/${assembly_type}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
+    --rank "phylum" --out "${table_dir}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
 
+    echo "[SAGAWE:INFO] - Running BlobTools Plot PNG - Phylum"
+    blobtools plot -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
+    --rank "superkingdom" --out "${image_dir}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
+
+    echo "[SAGAWE:INFO] - Running BlobTools Plot SVG - Phylum"
+    blobtools plot -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
+    --rank "phylum" --format "svg" --out "${table_dir}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
+
+    echo "[SAGAWE:INFO] - Running BlobTools Plot SVG - Phylum"
+    blobtools plot -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
+    --rank "superkingdom" --format "svg" --out "${image_dir}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
 }
 
 #
@@ -344,7 +383,7 @@ function get_assembly_type () {
 
 function help_message () {
     echo -e "Single Amplified Genome Assembly Workflow Example (SAG-AWE)"
-    echo -e "\tOptions are positional, i.e. they are run sequentially"
+    echo -e "\tOptions are positional, i.e. they are run sequentially, e.g. -S must come before -q."
     echo -e "Input Options (required):"
     echo -e "\t-f <r1.fq|r1.fq.gz>\tRead Library Pair 1"
     echo -e "\t-r <r2.fq|r2.fq.gz>\tRead Library Pair 2"
@@ -360,7 +399,8 @@ function help_message () {
     echo -e "Reports/Stats:"
     echo -e "\t-q\tRun Quast"
     echo -e "\t-b </path/to/db1,/path/to/db2,...>\tRun BUSCO with Multiple Lineages"
-    echo -e "Example: sag_awe"
+    echo -e "\t-B </path/to/blast/db>\tRun Blobtools"
+    echo -e "Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s"
     exit 1
 }
 
@@ -395,6 +435,8 @@ QUAST_SCAFFOLDS=""
 READ1=""
 READ2=""
 THREADS=$(cores)
+TAXDB=""
+
 if [ "${NUMARGS}" -eq 0 ]; then
     help_message
 fi
@@ -402,7 +444,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts "f:r:o:tnmsqSb:B:h" FLAG; do
+while getopts "f:r:o:tnmsqScb:B:T:h" FLAG; do
     case "${FLAG}" in
         f)
             READ1="${OPTARG}"
@@ -436,6 +478,10 @@ while getopts "f:r:o:tnmsqSb:B:h" FLAG; do
         S)
             ASSEMBLY="scaffolds.fasta"
             QUAST_SCAFFOLDS="-s"
+            ;;
+        c)
+            assembly_type=$(get_assembly_type)
+            report_cegma "${OUTDIR}" "${assembly_type}"
             ;;
         b)
             BUSCO_LINEAGES="${OPTARG}"
