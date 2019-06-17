@@ -4,11 +4,12 @@ A suggested workflow for the assembly of [MDA](https://en.wikipedia.org/wiki/Mul
 
 A list of dependencies appears in the list describing the workflow. These programs will need to be installed correctly and accessible on the command line. You will also need to make sure that the environment variables for BLAST, CEGMA, AUGUSTUS etc are correctly set. This script does not check for them and may fail without.
 
-## Example Usage / Help
-Program parameters are order based; e.g. '-n' must come before '-a' and '-p' must come before '-t' etc...
+## SAG Assembly Workflow Example Diagram
+![SAGAWE](https://cdn.rawgit.com/guyleonard/sagawew/master/images/SAGAWE.svg)
 
+## Example Usage / Help
     Single Amplified Genome Assembly Workflow Example (SAG-AWE)
-      Options are positional, i.e. they are run sequentially, e.g. -S must come before -q.
+      Options are positional, i.e. they are run sequentially, e.g. -S must come before -q, -t before -n, etc.
     Input Options (required):
       -f <r1.fq|r1.fq.gz>  Read Library Pair 1
       -r <r2.fq|r2.fq.gz>  Read Library Pair 2
