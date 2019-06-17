@@ -1,643 +1,512 @@
 #!/usr/bin/env bash
 
-############################
-## User Defined Variables ##
-############################
-
-# NCBI 'nt' Database Location and name (no extension)
-NCBI_NT="/storage/databases/ncbi/nt_2018"
-# NCBI Taxonomy Dump
-# ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz
-NCBI_TAXDMP="/storage/databases/ncbi/taxdump"
-# NCBI Taxonomy DB Location
-# ftp://ftp.ncbi.nlm.nih.gov/blast/db/taxdb.tar.gz
-NCBI_TAXDB="/storage/databases/ncbi/taxdb"
-export BLASTDB=$NCBI_TAXDB
-# CEGMA DIR
-CEGMA_DIR="/home/cs02gl/single_cell_workflow/install_dependencies/build/CEGMA_v2.5"
-# BUSCO Lineage Location
-BUSCO_V2_DB="/storage/databases/BUSCO/v2/eukaryota_odb9"
-# Augustus Config Path
-AUGUSTUS_CONFIG_PATH="/home/cs02gl/single_cell_workflow/install_dependencies/build/augustus-3.2.3/config"
-
-#######################
-## Program Functions ##
-#######################
-
-## Run bbnorm
-function run_normalisation () {
-    normalised_dir="$output_dir/normalised"
-
-    if [ -d "$normalised_dir" ] ; then
-        echo "[SAGAWE] - Normalisation Previously Run"
-    else
-    mkdir -p "$normalised_dir"
-
-    absolute_path="$( cd "$normalised_dir" && pwd )"
-    read1=$(basename "$READ1") # get filename only
-    extension="${read1#*.}" # get extension before trimming
-    read1="${read1%%.*}" # trim off extension
-
-    read2=$(basename "$READ2")
-    read2="${read2%%.*}"
-
-    echo "[SAGAWE] - Running BBNorm"
-    bbnorm.sh in1="$READ1" in2="$READ2" \
-    out1="$absolute_path/$read1\_normalised.$extension" \
-    out2="$absolute_path/$read2\_normalised.$extension" \
-    outt="$absolute_path/excluded_reads.fq.gz" \
-    hist="$absolute_path/input_kmer_depth.hist" \
-    histout="$absolute_path/output_kmer_depth.hist" \
-    threads="$THREADS" 2>&1 | tee "$normalised_dir/bbnorm.log"
-    fi
-}
-
-## Run Trim Galore!
-# Minimum length of 100
-# Minimum quality of Q20
-# run FASTQC on trimmed
-# GZIP output
+#
+# Program Functions
+#
 function run_trim_galore () {
-    trimmed_dir="$output_dir/trimmed"
+    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
 
-    if [ -d "$trimmed_dir" ] ; then
-        echo "[SAGAWE] - Raw Read Trimming Previously Run"
+    if [ -d "${trimmed_dir}" ] ; then
+        echo "[SAGAWE:WARN] - Adaptor Trimming Previously Run"
+        echo "[SAGAWE:INFO] - Skipping to Next Step"
     else
-    mkdir -p "$trimmed_dir"
-    fastqc_dir="$trimmed_dir/fastqc"
-    mkdir -p "$fastqc_dir"
+        mkdir -p "${trimmed_dir}"
+        fastqc_dir="${trimmed_dir}/fastqc"
+        mkdir -p "${fastqc_dir}"
 
-    echo "[SAGAWE] - Running Trim Galore! on Raw Reads"
-    trim_galore -q 20 --fastqc --'gzip' --length 100 \
-    "$READ1" "$READ2" -o "$trimmed_dir" 2>&1 | tee "$trimmed_dir/trim_galore.log"
+        echo "[SAGAWE:INFO] - Running Trim Galore! on Raw Reads"
+        trim_galore -q 20 --fastqc --'gzip' --length 50 --paired --retain_unpaired \
+        "${READ1}" "${READ2}" -o "${trimmed_dir}" 2>&1 | tee "${trimmed_dir}/sag_awe_trim_galore.log"
 
-    absolute_path="$( cd "$trimmed_dir" && pwd )"
+        read1="$(basename "${READ1}")"
+        read2="$(basename "${READ2}")"
 
-    mv "$absolute_path/"*".html" "$absolute_path/fastqc"
-    mv "$absolute_path/"*".zip" "$absolute_path/fastqc"
-    mv "$absolute_path/"*".txt" "$absolute_path/fastqc"
-    fi
+        cat "${trimmed_dir}/${read1/.fq.gz/_unpaired_1.fq.gz}" "${trimmed_dir}/${read2/.fq.gz/_unpaired_2.fq.gz}" > "${trimmed_dir}/unpaired_all.fq.gz"
 
-    echo "[SAGAWE] - Normalised = $NORMALISED"
-    if [ "$NORMALISED" == "true" ] ; then
-        trimmed_dir="$output_dir/normalised/trimmed"
-        mkdir -p "$trimmed_dir"
-        fastqc_dir="$trimmed_dir/fastqc"
-        mkdir -p "$fastqc_dir"
-
-        echo "[SAGAWE] - Running Trim Galore! on Normalised Reads"
-        absolute_path="$( cd "$trimmed_dir" && pwd )"
-
-        read1=$(basename -- "$READ1")
-        extension="${read1#*.}"
-        read1="${read1%%.*}"
-
-        read2=$(basename -- "$READ2")
-        read2="${read2%%.*}"
-
-        trim_galore -q 20 --fastqc --'gzip' --length 100 \
-        "${absolute_path/trimmed/}${read1}_normalised.$extension" "${absolute_path/trimmed/}${read2}_normalised.$extension" \
-        -o "$trimmed_dir" 2>&1 | tee "$trimmed_dir/normalised_trim_galore.log"
-
-        mv "$absolute_path/"*".html" "$absolute_path/fastqc"
-        mv "$absolute_path/"*".zip" "$absolute_path/fastqc"
-        mv "$absolute_path/"*".txt" "$absolute_path/fastqc"
+        mv "${trimmed_dir}/"*".html" "${fastqc_dir}"
+        mv "${trimmed_dir}/"*".zip" "${fastqc_dir}"
+        mv "${trimmed_dir}/"*".txt" "${fastqc_dir}"
     fi
 }
 
-## Run BBMerge
+function run_normalisation () {
+    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
+    normalised_dir="$( cd "${1}" && pwd )/normalised"
+
+    if [ -d "${normalised_dir}" ] ; then
+        echo "[SAGAWE:WARN] - Normalisation Previously Run"
+        echo "[SAGAWE:INFO] - Skipping to Next Step"
+    else
+        mkdir -p "${normalised_dir}"
+
+        read1=$(basename "${READ1}")
+        read2=$(basename "${READ2}")
+
+        echo "[SAGAWE:INFO] - Running BBNorm on Trimmed Reads"
+        bbnorm.sh \
+        in1="${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
+        in2="${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
+        out1="${normalised_dir}/${read1/.fq.gz/_normalised.fq.gz}" \
+        out2="${normalised_dir}/${read2/.fq.gz/_normalised.fq.gz}" \
+        outt="${normalised_dir}/excluded_reads.fq.gz" \
+        hist="${normalised_dir}/input_kmer_depth.hist" \
+        histout="${normalised_dir}/output_kmer_depth.hist" \
+        threads="${THREADS}" 2>&1 | tee "${normalised_dir}/sag_awe_bbnorm.log"
+    fi
+}
+
 function run_bbmerge () {
+    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
+    normalised_dir="$( cd "${1}" && pwd )/normalised"
+    merged_dir=""
 
-    if [ -d "$normalised_dir" ] ; then
-        merged_dir="$output_dir/normalised/merged"
-        mkdir -p "$merged_dir"
+    read1=$(basename "${READ1}")
+    read2=$(basename "${READ2}")
+
+    if [ "${NORMALISED}" == "true" ] ; then
+        merged_dir="${normalised_dir}/merged"
+
+        if [ -d "${merged_dir}" ] ; then
+            echo "[SAGAWE:WARN] - Merging Previously Run"
+            echo "[SAGAWE:INFO] - Skipping to Next Step"
+        else
+            mkdir -p "${merged_dir}"
+
+            echo "[SAGAWE:INFO] - Running BBMerge with Trimmed-Normalised Reads"
+            bbmerge.sh \
+            in1="${normalised_dir}/${read1/.fq.gz/_normalised.fq.gz}" \
+            in2="${normalised_dir}/${read2/.fq.gz/_normalised.fq.gz}" \
+            out="${merged_dir}/${read1/r1.fq.gz/normalised_merged.fq.gz}" \
+            outu1="${merged_dir}/${read1/.fq.gz/_normalised_unmerged.fq.gz}" \
+            outu2="${merged_dir}/${read2/.fq.gz/_normalised_unmerged.fq.gz}" \
+            minoverlap=10 ziplevel=9 2>&1 | tee "${merged_dir}/sag_awe_bbmerge.log"
+        fi
     else
-        merged_dir="$output_dir/trimming/merged"
-        mkdir -p "$merged_dir"
-    fi
+        merged_dir="${trimmed_dir}/merged"
+        if [ -d "${merged_dir}" ] ; then
+            echo "[SAGAWE:WARN] - Merging Previously Run"
+            echo "[SAGAWE:INFO] - Skipping to Next Step"
+        else
+            mkdir -p "${merged_dir}"
 
-    absolute_path="$( cd "$merged_dir" && pwd )"
-    out_read1=$(basename $READ1)
-    out_read2=$(basename $READ2)
-
-    if [ "$NORMALISED" == 'true' ] ; then
-        echo "Running BBMerge with Normalised Reads"
-        bbmerge.sh in1="$normalised_dir/${out_read1/.gz/.norm.gz}" in2="$normalised_dir/${out_read2/.gz/.norm.gz}" \
-        out="$absolute_path/merged.fastq.gz" \
-        outu1="$absolute_path/unmerged.forward.fastq.gz" \
-        outu2="$absolute_path/unmerged.reverse.fastq.gz" \
-        minoverlap=10 ziplevel=9
-    else
-        echo "Running BBMerge"
-        bbmerge.sh in1="$READ1" in2="$READ2" \
-        out="$absolute_path/merged.fastq.gz" \
-        outu1="$absolute_path/unmerged.forward.fastq.gz" \
-        outu2="$absolute_path/unmerged.reverse.fastq.gz" \
-        minoverlap=10 ziplevel=9
-    fi
-}
-
-## Run SPAdes
-# single cell mode - default kmers 21,33,55
-# careful mode - runs mismatch corrector
-# use all 4 sets of output reads
-# 1 x merged
-# 2 x unmerged paired
-# 1 x unpaired
-function run_assembly_spades () {
-    trimmed_dir="$output_dir/trimmed"
-
-    if [ ! -f "$trimmed_dir/merged_trimmed.fq.gz" ] ; then
-        echo "Read Overlapper Was/Did Not Run. Please use -p option."
-    else
-        assembly_dir="$output_dir/assembly"
-        mkdir -p "$assembly_dir"
-        echo "Running SPAdes"
-        spades.py --sc --careful -t "$THREADS" \
-        --pe1-m "$trimmed_dir/merged_trimmed.fq.gz" \
-        --pe1-1 "$trimmed_dir/unmerged.forward_val_1.fq.gz" \
-        --pe1-2 "$trimmed_dir/unmerged.reverse_val_2.fq.gz" \
-        --pe1-s "$trimmed_dir/unmerged_unpaired.fq.gz" \
-        -o "$assembly_dir"
+            echo "[SAGAWE:INFO] - Running BBMerge with Trimmed Reads"
+            bbmerge.sh \
+            in1="${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
+            in2="${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
+            out="${merged_dir}/${read1/r1.fq.gz/merged.fq.gz}" \
+            outu1="${merged_dir}/${read1/.fq.gz/_unmerged.fq.gz}" \
+            outu2="${merged_dir}/${read2/.fq.gz/_unmerged.fq.gz}" \
+            minoverlap=10 ziplevel=9 2>&1 | tee "${merged_dir}/sag_awe_bbmerge.log"
+        fi
     fi
 }
 
-# Run QUAST
-# eukaryote mode
-# glimmer protein predictions
-function report_quast () {
-    assembly_dir="$output_dir/assembly"
+function run_assembly_spades {
+    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
+    normalised_dir="$( cd "${1}" && pwd )/normalised"
+    assembly_dir="$( cd "${1}" && pwd )/assembly"
 
-    if [ ! -f "$assembly_dir/$ASSEMBLY" ] ; then
-        echo -e "[ERROR]: SPAdes scaffolds cannot be found. Aborting."
-        exit 1
+    read1=$(basename "${READ1}")
+    read2=$(basename "${READ2}")
+
+    if [[ "${MERGED}" == "true" && "${NORMALISED}" == "true" ]] ; then
+        merged_dir="${normalised_dir}/merged"
+        assembly_dir="${assembly_dir}/tnm"
+
+        if [ -d "${assembly_dir}" ] ; then
+            echo "[SAGAWE:WARN] - TNM Assembly Previously Run"
+            echo "[SAGAWE:INFO] - Skipping to Next Step"
+        else
+            echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Normalised-Merged Reads"
+            mkdir -p "${assembly_dir}"
+
+            spades.py --sc --careful -t "$THREADS" \
+            --pe1-m "${merged_dir}/${read1/r1.fq.gz/normalised_merged.fq.gz}" \
+            --pe1-1 "${merged_dir}/${read1/.fq.gz/_normalised_unmerged.fq.gz}" \
+            --pe1-2 "${merged_dir}/${read2/.fq.gz/_normalised_unmerged.fq.gz}" \
+            -o "$assembly_dir"
+         fi
+    elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
+        merged_dir="${trimmed_dir}/merged"
+        assembly_dir="${assembly_dir}/tm"
+        if [ -d "${assembly_dir}" ] ; then
+            echo "[SAGAWE:WARN] - TM Assembly Previously Run"
+            echo "[SAGAWE:INFO] - Skipping to Next Step"
+        else
+            echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Merged Reads"
+            mkdir -p "${assembly_dir}"
+
+            spades.py --sc --careful -t "$THREADS" \
+            --pe1-m "${merged_dir}/${read1/r1.fq.gz/merged.fq.gz}" \
+            --pe1-1 "${merged_dir}/${read1/.fq.gz/_unmerged.fq.gz}" \
+            --pe1-2 "${merged_dir}/${read2/.fq.gz/_unmerged.fq.gz}" \
+            -o "$assembly_dir"
+        fi
+    elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
+        assembly_dir="${assembly_dir}/tn"
+        if [ -d "${assembly_dir}" ] ; then
+            echo "[SAGAWE:WARN] - TN Assembly Previously Run"
+            echo "[SAGAWE:INFO] - Skipping to Next Step"
+        else
+            echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Normalised Reads"
+            mkdir -p "${assembly_dir}"
+
+            spades.py --sc --careful -t "$THREADS" \
+            --pe1-1 "${normalised_dir}/${read1/.fq.gz/_normalised.fq.gz}" \
+            --pe1-2 "${normalised_dir}/${read2/.fq.gz/_normalised.fq.gz}" \
+            -o "$assembly_dir"
+        fi
     else
-        quast_dir="$output_dir/reports/quast"
-        mkdir -p "$quast_dir"
-        echo "Running QUAST"
-        quast.py -o "$quast_dir" -t "$THREADS" \
-        --min-contig 100 -f --eukaryote $QUAST_SCAFFOLDS \
-        --glimmer "$assembly_dir/$ASSEMBLY" | tee "$quast_dir/quast.log"
+        assembly_dir="${assembly_dir}/t"
+        if [ -d "${assembly_dir}" ] ; then
+            echo "[SAGAWE:WARN] - T Assembly Previously Run"
+            echo "[SAGAWE:INFO] - Skipping to Next Step"
+        else
+            echo "[SAGAWE:INFO] - Running Assembly with Trimmed Reads"
+            mkdir -p "${assembly_dir}"
+
+            spades.py --sc --careful -t "$THREADS" \
+            --pe1-1 "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
+            --pe1-2 "${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
+            --pe1-s "${trimmed_dir}/${read1/r1.fq.gz/all_unpaired.fq.gz}" \
+            -o "$assembly_dir"
+        fi
     fi
 }
 
-# Run CEGMA
-# Genome mode
+#
+# Report Functions
+#
+function report_quast_v4 () {
+    assembly_dir="$( cd "${1}" && pwd )/assembly"
+    quast_dir="$( cd "${1}" && pwd )/reports/quast"
+
+    assembly_type="${2}"
+
+    echo "[SAGAWE:INFO] - Running QUAST on ${assembly_type} Assembly with ${ASSEMBLY}"
+
+    quast_dir="${quast_dir}/${assembly_type}"
+    mkdir -p "${quast_dir}"
+
+    quast.py -o "${quast_dir}" -t "${THREADS}" --glimmer --min-contig 100 ${QUAST_SCAFFOLDS} --eukaryote \
+    "${assembly_dir}/${assembly_type}/${ASSEMBLY}" 2>&1 | tee "${quast_dir}/sag_awe_quast.log"
+}
+
+function report_busco_v3 () {
+    assembly_dir="$( cd "${1}" && pwd )/assembly"
+    busco_dir="$( cd "${1}" && pwd )/reports/busco"
+
+    assembly_type="${2}"
+
+    busco_dir="${busco_dir}/${assembly_type}"
+    mkdir -p "${busco_dir}/summaries"
+
+    IFS=\, read -r -a current_db <<<"${BUSCO_LINEAGES}"
+    for lineage in "${current_db[@]}";do
+        echo "[SAGAWE:INFO] - Running BUSCO on ${assembly_type} Assembly with ${ASSEMBLY} and ${lineage}"
+
+        lineage_name="$(basename "${lineage}")"
+        run_BUSCO.py -i "${assembly_dir}/${assembly_type}/${ASSEMBLY}" \
+        -c 24 -o "${lineage_name}" -m genome \
+        -l "${lineage}" 2>&1 | tee "${busco_dir}/sag_awe_busco.log"
+
+        mv "run_${lineage_name}" "${busco_dir}"
+        ln -s "${busco_dir}/run_${lineage_name}/short_summary_${lineage_name}.txt" "${busco_dir}/summaries"
+    done
+
+    generate_plot.py -wd "${busco_dir}/summaries"
+}
+
 function report_cegma () {
-    assembly_dir="$output_dir/assembly"
+    assembly_dir="$( cd "${1}" && pwd )/assembly"
 
-    if [ ! -f "$assembly_dir/$ASSEMBLY" ] ; then
-        echo -e "[ERROR]: SPAdes scaffolds cannot be found. Aborting."
+    assembly_type="${2}"
+
+    cegma_dir="$( cd "${1}" && pwd )/reports/cegma/${assembly_type}"
+
+    if [ ! -f "${assembly_dir}/${assembly_type}/${ASSEMBLY}" ] ; then
+        echo -e "[SAGAWE:ERROR] - SPAdes ${ASSEMBLY} cannot be found. Aborting."
         exit 1
     else
-        cegma_dir="$output_dir/reports/cegma"
         mkdir -p "$cegma_dir"
 
-        echo "Running CEGMA"
-        cegma -T "$THREADS" -g "$assembly_dir/$ASSEMBLY" -o "$cegma_dir/cegma" | tee "$cegma_dir/cegma.log"
+        echo "[SAGAWE:INFO] - Running CEGMA on ${assembly_type} with ${ASSEMBLY}"
+        cegma -T "${THREADS}" -g "${assembly_dir}/${assembly_type}/${ASSEMBLY}" -o "${cegma_dir}/cegma" 2>&1 | tee "${cegma_dir}/sag_awe_cegma.log"
 
-        # Tidy up, CEGMA's -o option doesn't seem to output to a dir!?
-        absolute_path="$( cd "$output_dir" && pwd )"
-        mv "$absolute_path/cegma."* "$absolute_path/reports/cegma"
+        mv "${cegma_dir}/cegma."* "${cegma_dir}"
     fi
 }
 
-# Run BUSCO v2
-function report_busco_v2 () {
-    assembly_dir="$output_dir/assembly"
-
-    if [ ! -f "$assembly_dir/$ASSEMBLY" ] ; then
-        echo -e "[ERROR]: SPAdes scaffolds cannot be found. Aborting."
-        exit 1
-    else
-        busco_dir="$output_dir/reports/busco"
-        mkdir -p "$busco_dir"
-        mkdir -p "$busco_dir/summaries"
-
-        absolute_path="$( cd "$output_dir" && pwd )"
-        current_dir=$(pwd)
-
-        # this needs a default!!! eukaryota_odb9,protists_ensembl
-
-        IFS=\, read -a current_db <<<"$busco_v2_dbs"
-
-        for x in "${current_db[@]}";do
-
-            BUSCO.py \
-            -i "$assembly_dir/$ASSEMBLY" -m genome \
-            -c "$THREADS" -l "$BUSCO_V2_DB/$x" -o "$x" -f | tee "$busco_dir/busco_$x.log"
-
-            # Tidy up busco, it won't take a path as an output, so
-            # resorts to the basename dir of the current dir the script
-            # is run from for out in a "run_" folder - somewhat annoying.
-            mv "$current_dir/run_$x" "$absolute_path/reports/busco"
-
-            ln -s "$absolute_path/reports/busco/run_$x/short_summary_$x.txt" "$busco_dir/summaries"
-        done
-
-        BUSCO_plot.py \
-        -wd "$busco_dir/summaries"
-    fi
-}
-
-function report_multiqc () {
-    multiqc -o "$output_dir/reports" -z "$output_dir"
-}
-
-function blobtools_minimap2 () {
-    assembly_dir="$output_dir/assembly"
-
-    if [ ! -f "$assembly_dir/$ASSEMBLY" ] ; then
-        echo -e "[ERROR]: SPAdes scaffolds cannot be found. Aborting."
-        exit 1
-    else
-        blobtools_dir="$output_dir/reports/blobtools"
-        mkdir -p "$blobtools_dir"
-
-        blobtools_map="$blobtools_dir/mapping"
-        mkdir -p "$blobtools_map"
-
-        absolute_dir="$( cd "$output_dir" && pwd )"
-
-        ln -s "$absolute_dir/assembly/$ASSEMBLY" "$absolute_dir/reports/blobtools/mapping/$ASSEMBLY"
-
-        # index assembly (scaffolds.fa) with minimap2
-        echo "Indexing Assembly"
-        minimap2 -t "$THREADS" -d "$blobtools_map/${ASSEMBLY/.fasta/.mmi}" | tee "$blobtools_map/minimap2.log"
-
-        # map reads to assembly with minimap2
-        # we will have to do this for all 5 sets of reads and then merge
-        echo "Mapping Assembled reads to Assembly"
-        minimap2 -t "$THREADS" -ax sr "$blobtools_map/${ASSEMBLY/.fasta/.mmi}" \
-        "$trimmed_dir/merged_trimmed.fq.gz" \
-        > "$blobtools_map/scaffolds_mapped_merged_reads.sam" | tee -a "$blobtools_map/minimap2.log"
-
-
-    fi
-}
-
-function blobtools_bwa () {
-    assembly_dir="$output_dir/assembly"
-
-    if [ ! -f "$assembly_dir/$ASSEMBLY" ] ; then
-        echo -e "[ERROR]: SPAdes scaffolds cannot be found. Aborting."
-        exit 1
-    else
-        blobtools_dir="$output_dir/reports/blobtools"
-        mkdir -p "$blobtools_dir"
-
-        blobtools_map="$blobtools_dir/mapping"
-        mkdir -p "$blobtools_map"
-
-        absolute_dir="$( cd "$output_dir" && pwd )"
-
-        trimmed_dir="$absolute_dir/trimmed"
-
-        ln -s "$absolute_dir/assembly/$ASSEMBLY" "$absolute_dir/reports/blobtools/mapping/$ASSEMBLY"
-
-        # index assembly (scaffolds.fa) with BWA
-        echo "Indexing Assembly"
-        bwa index -a bwtsw "$blobtools_map/$ASSEMBLY" | tee "$blobtools_map/bwa.log"
-
-        # map reads to assembly with BWA MEM
-        # we will have to do this for all 5 sets of reads and then merge
-        echo "Mapping Assembled reads to Assembly"
-        bwa mem -t "$THREADS" "$blobtools_map/$ASSEMBLY" \
-        "$trimmed_dir/merged_trimmed.fq.gz" \
-        > "$blobtools_map/scaffolds_mapped_merged_reads.sam" | tee -a "$blobtools_map/bwa.log"
-
-        echo "Mapping Un-merged & Un-Paired reads to Assembly - Forward"
-        bwa mem -t "$THREADS" "$blobtools_map/$ASSEMBLY" \
-        "$trimmed_dir/unmerged.forward_unpaired_1.fq.gz" \
-        > "$blobtools_map/scaffolds_mapped_unmerged_unpaired_forward_reads.sam" | tee -a "$blobtools_map/bwa.log"
-
-        echo "Mapping Un-merged & Un-Paired reads to Assembly - Reverse"
-        bwa mem -t "$THREADS" "$blobtools_map/$ASSEMBLY" \
-        "$trimmed_dir/unmerged.reverse_unpaired_1.fq.gz" \
-        > "$blobtools_map/scaffolds_mapped_unmerged_unpaired_reverse_reads.sam" | tee -a "$blobtools_map/bwa.log"
-
-        echo "Mapping Un-merged but still Paired reads to Assembly"
-        bwa mem -t "$THREADS" "$blobtools_map/$ASSEMBLY" \
-        "$trimmed_dir/unmerged.forward_val_1.fq.gz" \
-        "$trimmed_dir/unmerged.reverse_val_2.fq.gz" \
-        > "$blobtools_map/scaffolds_mapped_unmerged_paired_reads.sam" | tee -a "$blobtools_map/bwa.log"
-    fi
-}
-
-function blobtools_samtools () {
-    blobtools_dir="$output_dir/reports/blobtools"
-    blobtools_map="$blobtools_dir/mapping"
-
-    # sort and convert sam to bam with SAMTOOLS
-    echo "Sorting Assembled SAM File and Converting to BAM"
-    samtools sort -@ "$THREADS" -o "$blobtools_map/scaffolds_mapped_merged_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_merged_reads.sam" | tee -a "$blobtools_map/samtools.log"
-
-    # sort and convert sam to bam with SAMTOOLS
-    echo "Sorting Un-merged & Un-Paired SAM Files and Converting to BAM - Forward"
-    samtools sort -@ "$THREADS" -o "$blobtools_map/scaffolds_mapped_unmerged_unpaired_forward_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_unmerged_unpaired_forward_reads.sam" | tee -a "$blobtools_map/samtools.log"
-
-    echo "Sorting Un-merged & Un-Paired SAM Files and Converting to BAM - Reverse"
-    samtools sort -@ "$THREADS" -o "$blobtools_map/scaffolds_mapped_unmerged_unpaired_reverse_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_unmerged_unpaired_reverse_reads.sam" | tee -a "$blobtools_map/samtools.log"
-
-    # sort and convert sam to bam with SAMTOOLS
-    echo "Sorting Un-merged & Paired SAM File and Converting to BAM"
-    samtools sort -@ "$THREADS" -o "$blobtools_map/scaffolds_mapped_unmerged_paired_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_unmerged_paired_reads.sam" | tee -a "$blobtools_map/samtools.log"
-
-    # Merge SAM files
-    echo "Merging 4 BAM files"
-    samtools merge -@ "$THREADS" -f "$blobtools_map/scaffolds_mapped_all_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_merged_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_unmerged_paired_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_unmerged_unpaired_forward_reads.bam" \
-    "$blobtools_map/scaffolds_mapped_unmerged_unpaired_reverse_reads.bam" | tee -a "$blobtools_map/samtools.log"
-
-    echo "Indexing Bam"
-    samtools index "$blobtools_map/scaffolds_mapped_all_reads.bam" | tee -a "$blobtools_map/samtools.log"
-
-    # delete sam files
-    rm "$blobtools_map/scaffolds_mapped_merged_reads.sam"
-    rm "$blobtools_map/scaffolds_mapped_unmerged_paired_reads.sam"
-    rm "$blobtools_map/scaffolds_mapped_unmerged_unpaired_forward_reads.sam"
-    rm "$blobtools_map/scaffolds_mapped_unmerged_unpaired_reverse_reads.sam"
-}
-
-function blobtools_blast () {
-    blobtools_dir="$output_dir/reports/blobtools"
-    blobtools_map="$blobtools_dir/mapping"
-
-    blobtools_blast="$blobtools_dir/blast"
-    mkdir -p "$blobtools_blast"
-
-    echo "Running BLAST"
-    blastn -task megablast \
-    -query "$blobtools_map/$ASSEMBLY" \
-    -db "$NCBI_NT/nt" \
-    -evalue 1e-10 \
-    -num_threads "$THREADS" \
-    -outfmt '6 qseqid staxids bitscore std sscinames sskingdoms stitle' \
-    -culling_limit 5 \
-    -out "$blobtools_blast/scaffolds_vs_nt_1e-10.megablast" | tee "$blobtools_blast/blast.log"
-}
-
-function blobtools_create () {
-    blobtools_dir="$output_dir/reports/blobtools"
-    blobtools_map="$blobtools_dir/mapping"
-    blobtools_blast="$blobtools_dir/blast"
-
-    echo "Running BlobTools CREATE - slow"
-    blobtools create -i "$blobtools_map/$ASSEMBLY" \
-    --nodes "$NCBI_TAXDMP/nodes.dmp" --names "$NCBI_TAXDMP/names.dmp" \
-    -t "$blobtools_blast/scaffolds_vs_nt_1e-10.megablast" \
-    -b "$blobtools_map/scaffolds_mapped_all_reads.bam" \
-    -o "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools" | tee -a "$blobtools_dir/blobtools.log"
-}
-
-function blobtools_table () {
-    blobtools_dir="$output_dir/reports/blobtools"
-    mkdir -p "$blobtools_dir/table"
-
-    # Standard Output - Phylum
-    echo "Running BlobTools View"
-    blobtools view -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
-    --out "$blobtools_dir/table/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_phylum_table.csv" | tee -a "$blobtools_dir/blobtools.log"
-
-    # Other Output - Species
-    blobtools view -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
-    --out "$blobtools_dir/table/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools_superkingdom_table.csv" \
-    --rank superkingdom | tee -a "$blobtools_dir/blobtools.log"
-}
-
-# run blobtools plot - image output
-function blobtools_image () {
-    blobtools_dir="$output_dir/reports/blobtools"
-    mkdir -p "$blobtools_dir/images/png"
-    mkdir -p "$blobtools_dir/images/svg"
-
-    # Standard Output - Phylum, 7 Taxa
-    echo "Running BlobTools Plots - Standard + SVG"
-    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
-    -o "$blobtools_dir/images/png/" | tee -a "$blobtools_dir/blobtools.log"
-
-    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
-    --format svg -o "$blobtools_dir/images/svg/" | tee -a "$blobtools_dir/blobtools.log"
-
-
-    # Other Output - Super Kingdom, 7 Taxa
-    echo "Running BlobTools Plots - SuperKingdom + SVG"
-    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
-    -r superkingdom -o "$blobtools_dir/images/png/" | tee -a "$blobtools_dir/blobtools.log"
-
-    blobtools plot -i "$blobtools_dir/scaffolds_mapped_reads_nt_1e-10_megablast_blobtools.blobDB.json" \
-    -r superkingdom --format svg -o "$blobtools_dir/images/svg/" | tee -a "$blobtools_dir/blobtools.log"
-}
 
 function report_blobtools () {
-    blobtools_dir="$output_dir/reports/blobtools"
+    outdir="$( cd "${1}" && pwd )"
+    assembly_type="${2}"
 
-    blobtools_bwa
-    blobtools_samtools
-    blobtools_blast
-    blobtools_create
-    blobtools_table
-    blobtools_image
-
-    absolute_path="$( cd "$output_dir" && cd ../ && pwd )"
-
-    # tidy up one file blobtools creates in wrong folder
-    mv "$absolute_path/scaffolds_mapped_all_reads.bam.cov" "$blobtools_dir"
+    report_blobtools_mapping "${outdir}" "${assembly_type}"
+    report_blobtools_blast "${outdir}" "${assembly_type}"
+    report_blobtools_output "${outdir}" "${assembly_type}"
 }
 
-#########################
-## Accessory Functions ##
-#########################
+function report_blobtools_mapping () {
+    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
+    assembly_dir="$( cd "${1}" && pwd )/assembly"
+    blobtools_dir="$( cd "${1}" && pwd )/reports/blobtools"
 
-function check_exe () {
-    program=$1
-    command -v "$program" >/dev/null 2>&1 || { echo "$program is required, but it is not in PATH.  Please install/ammend." >&2; exit 1;}
+    assembly_type="${2}"
+
+    read1=$(basename "${READ1}")
+    read2=$(basename "${READ2}")
+
+    mapping_dir="${blobtools_dir}/${assembly_type}/mapping"
+    mkdir -p "${mapping_dir}"
+    ln -s "${assembly_dir}/${assembly_type}/${ASSEMBLY}" "${mapping_dir}/${ASSEMBLY}"
+
+    echo "[SAGAWE:INFO] - Indexing $assembly_type Assembly with ${ASSEMBLY}"
+    bwa index -a bwtsw "${mapping_dir}/${ASSEMBLY}" 2>&1 | tee "${mapping_dir}/bwa.log"
+
+    echo "[SAGAWE:INFO] - Mapping Trimmed Paired Reads to ${ASSEMBLY}"
+    bwa mem -t "$THREADS" "${mapping_dir}/${ASSEMBLY}" \
+    "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
+    "${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
+    > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
+
+    echo "[SAGAWE:INFO] - Mapping Trimmed Un-Paired Reads to ${ASSEMBLY}"
+    bwa mem -t "$THREADS" "${mapping_dir}/${ASSEMBLY}" \
+    "${trimmed_dir}/${read1/r1.fq.gz/all_unpaired.fq.gz}" \
+    > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
+
+    echo "[SAGAWE:INFO] - Sorting Paired SAM File and Converting to BAM"
+    samtools sort -@ "$THREADS" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam" \
+    "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
+
+    echo "[SAGAWE:INFO] - Sorting Un-Paired SAM Files and Converting to BAM"
+    samtools sort -@ "$THREADS" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam" \
+    "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
+
+    echo "[SAGAWE:INFO] - Merging BAM Files"
+    samtools merge -@ "$THREADS" -f "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" \
+    "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam" \
+    "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam"
+
+    echo "[SAGAWE:INFO] - Indexing Bam"
+    samtools index "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
+
+    rm "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
+    rm "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
 }
 
-function cores () {
-    cores=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu)
-    echo $(($cores / 2))
-}
+function report_blobtools_blast {
+    assembly_dir="$( cd "${1}" && pwd )/assembly"
+    blobtools_dir="$( cd "${1}" && pwd )/reports/blobtools"
 
-function export_cegma () {
-    if [ ! -d "$CEGMA_DIR" ] ; then
-        echo "[ERROR]: Incorrect CEGMA Path. Is your path correct?"
-        echo "$CEGMA_DIR"
-        exit 1
+    assembly_type="${2}"
+
+    blast_dir="${blobtools_dir}/${assembly_type}/blast"
+    mkdir -p "${blast_dir}"
+    ln -s "${assembly_dir}/${assembly_type}/$ASSEMBLY" "${blast_dir}/${ASSEMBLY}"
+
+    echo "[SAGAWE:INFO] - Running megaBLAST on $assembly_type Assembly with ${ASSEMBLY}"
+
+    if [ -f "${blast_dir}/${ASSEMBLY/.fasta/}_vs_$(basename "${NCBI_DB}")_1e-10.megablast" ]; then
+        echo "[SAGAWE:WARNING] - MEGABLAST already run! Skipping"
     else
-        export CEGMA="$CEGMA_DIR"
-        export PATH=$PATH:"$CEGMA_DIR"/bin
-        export PERL5LIB=$PERL5LIB:"$CEGMA_DIR"/lib
-        export WISECONFIGDIR=/usr/share/wise/
+        blastn -task megablast -query "${blast_dir}/${ASSEMBLY}" -db "${NCBI_DB}" \
+        -evalue 1e-10 -num_threads "${THREADS}" \
+        -outfmt '6 qseqid staxids bitscore std sscinames sskingdoms stitle' \
+        -culling_limit 5 -out "${blast_dir}/${ASSEMBLY/.fasta/}_vs_$(basename "${NCBI_DB}")_1e-10.megablast" \
+        2>&1 | tee "${blast_dir}/sag_awe_blast.log"
     fi
 }
 
-function ncbi_nt () {
-    if [ ! -f "$NCBI_NT/nt.nal" ] ; then
-        echo "[ERROR]: Missing NCBI NT Libraries. Is your path correct?"
-        echo "$NCBI_NT"
-        exit 1
-    fi
+function report_blobtools_output {
+    blobtools_dir="$( cd "${1}" && pwd )/reports/blobtools"
+    assembly_type="${2}"
+
+    mapping_dir="${blobtools_dir}/${assembly_type}/mapping"
+    blast_dir="${blobtools_dir}/${assembly_type}/blast"
+    table_dir="${blobtools_dir}/${assembly_type}/tables"
+    image_dir="${blobtools_dir}/${assembly_type}/images"
+    mkdir -p "${table_dir}"
+    mkdir -p "${image_dir}"
+
+    echo "[SAGAWE:INFO] - Running BlobTools CREATE"
+    blobtools create -i "${blast_dir}/${ASSEMBLY}" \
+    --nodes "/storage/databases/ncbi/taxdump/03-08-2018/nodes.dmp" --names "/storage/databases/ncbi/taxdump/03-08-2018/names.dmp" \
+    -t "${blast_dir}/${ASSEMBLY/.fasta/}_vs_$(basename "${NCBI_DB}")_1e-10.megablast" \
+    -b "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" \
+    -o "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
+
+    echo "[SAGAWE:INFO] - Running BlobTools View - Phylum"
+    blobtools view -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
+    --out "${table_dir}/phylum" \
+    --rank "phylum" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
+
+    echo "[SAGAWE:INFO] - Running BlobTools View - Super Kingdom"
+    blobtools view -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
+    --out "${table_dir}/superkingdom" \
+    --rank "superkingdom" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
+
+    echo "[SAGAWE:INFO] - Running BlobTools Plot PNG - Phylum"
+    blobtools plot -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
+    --rank "phylum" --out "${table_dir}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
+
+    echo "[SAGAWE:INFO] - Running BlobTools Plot PNG - Phylum"
+    blobtools plot -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
+    --rank "superkingdom" --out "${image_dir}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
+
+    echo "[SAGAWE:INFO] - Running BlobTools Plot SVG - Phylum"
+    blobtools plot -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
+    --rank "phylum" --format "svg" --out "${table_dir}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
+
+    echo "[SAGAWE:INFO] - Running BlobTools Plot SVG - Phylum"
+    blobtools plot -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
+    --rank "superkingdom" --format "svg" --out "${image_dir}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
 }
 
-function ncbi_taxonomy () {
-    if [ ! -f "$NCBI_TAXDMP/nodes.dmp" ] ; then
-        echo "[ERROR]: Missing NCBI Taxonomy Libraries. Is your path correct?"
-        echo "$NCBI_TAXDMP"
-        exit 1
-    fi
-}
+#
+# Accessory Functions
+#
+function get_assembly_type () {
+    local assembly_type=""
 
-function augustus () {
-    if [ ! -d "$AUGUSTUS_CONFIG_PATH" ] ; then
-        echo "[ERROR]: Missing AUGUSTUS_CONFIG_PATH Directory. Is your path correct?"
-        echo "$AUGUSTUS_CONFIG_PATH"
-        exit 1
+    if [[ "${MERGED}" == "true" && "${NORMALISED}" == "true" ]] ; then
+        assembly_type="tnm"
+    elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
+        assembly_type="tm"
+    elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
+        assembly_type="tn"
     else
-        export AUGUSTUS_CONFIG_PATH="$AUGUSTUS_CONFIG_PATH"
+        assembly_type="t"
     fi
+    echo "${assembly_type}"
 }
 
 function help_message () {
     echo -e "Single Amplified Genome Assembly Workflow Example (SAG-AWE)"
+    echo -e "\tOptions are positional, i.e. they are run sequentially, e.g. -S must come before -q."
     echo -e "Input Options (required):"
-    echo -e "  -f <r1.fastq>\tRead Library Pair 1"
-    echo -e "  -r <r2.fastq>\tRead Library Pair 2"
-    echo -e "Output Option (required):"
-    echo -e "  -o <output_dir>\tOutput Directory"
-    echo -e "Workflow Parameters:"
-    echo -e "  -n \tDigitally Normalise Reads"
-    echo -e "  -t \tTrim Normalised Reads (Raw Reads are Always Adaptor Clipped)"
-    echo -e "  -p \tOverlap/Merge Reads"
-    echo -e "  -s \tPerform Assembly"
-    echo -e "Optional Parameters (ordered):"
-    echo -e "  -S \tUse Scaffolds Instead of Contigs for Reports"
-    echo -e "  -a \tRun All Options Below (ntpsqcb{eukaryota_odb9}Bm)"
-    echo -e "Reports:"
-    echo -e "  -q \tRun QUAST"
-    echo -e "  -c \tRun CEGMA"
-    echo -e "  -b <db1,db2,...>\tRun BUSCO v2"
-    echo -e "  -B \tRun BlobTools"
-    echo -e "  -m \tRun MultiQC"
-    echo -e "Example: run_single_cell_assemblies.sh -f r1.fastq -r r2.fastq -o output_dir -n -S -a"
+    echo -e "\t-f <r1.fq|r1.fq.gz>\tRead Library Pair 1"
+    echo -e "\t-r <r2.fq|r2.fq.gz>\tRead Library Pair 2"
+    echo -e "Output Options (required):"
+    echo -e "\t-o <output_dir>\tOutput Directory"
+    echo -e "Program Parameters:"
+    echo -e "\t-t\tRun Trim Galore!"
+    echo -e "\t-n\tRun Normalisation"
+    echo -e "\t-m\tRun Read Merging"
+    echo -e "\t-s\tRun Assembly"
+    echo -e "Optional Parameters:"
+    echo -e "\t-S\tUse scaffolds.fasta instead of contigs.fasta"
+    echo -e "Reports/Stats:"
+    echo -e "\t-q\tRun Quast"
+    echo -e "\t-b </path/to/db1,/path/to/db2,...>\tRun BUSCO with Multiple Lineages"
+    echo -e "\t-B </path/to/blast/db>\tRun Blobtools"
+    echo -e "Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s"
     exit 1
 }
 
-##############################
-## Initial Workflow Actions ##
-##############################
+function cores () {
+    cores=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || sysctl -n hw.ncpu)
+    echo $((cores / 2))
+}
 
-# Set Cores
-THREADS=$(cores)
+function cite_log () {
+    output_dir="$( cd "${1}" && pwd )"
+    echo -e "Single Amplified Genome Assembly Workflow" > "${output_dir}/sag_awe.log"
+    echo -e "Please cite:\thttps://github.com/guyleonard/sagawe\n" >> "${output_dir}/sag_awe.log"
+    echo -e "Output Dir:\t${output_dir}" >> "${output_dir}/sag_awe.log"
+    echo -e "Date Started:\t$(date +%Y-%m-%d-%R)" >> "${output_dir}/sag_awe.log"
+    echo -e "Location:\t$HOSTNAME" >> "${output_dir}/sag_awe.log"
+    echo -e "Command:\t${0} ${ARGS}" >> "${output_dir}/sag_awe.log"
+    echo -e "Individual logs for each step are located in their respective folder." >> "${output_dir}/sag_awe.log"
+}
 
-# Check that we have the required programs
-exes=(pigz clumpify.sh trim_galore spades.py quast.py cegma BUSCO.py BUSCO_plot.py bwa samtools blastn blobtools multiqc)
-for program in ${exes[@]} ; do
-    check_exe "$program"
-done
-
+#
+# Workflow Variables
+#
+ARGS=( "$@" )
+ASSEMBLY="contigs.fasta"
+BUSCO_LINEAGES="eukaryota_odb9"
+MERGED="false"
+NCBI_DB=""
 NORMALISED="false"
-
-# Check for correct Paths and Exports
-export_cegma
-ncbi_taxonomy
-ncbi_nt
-augustus
-
 NUMARGS=$#
-if [ "$NUMARGS" -eq 0 ]; then
+OUTDIR="output_sagawe"
+QUAST_SCAFFOLDS=""
+READ1=""
+READ2=""
+THREADS=$(cores)
+TAXDB=""
+
+if [ "${NUMARGS}" -eq 0 ]; then
     help_message
 fi
 
-# defaulting to using contigs over scaffolds
-# mainly to remove the Ns as inflation from
-# statistics
-ASSEMBLY="contigs.fasta"
-
-######################
-## Pipeline Options ##
-######################
-while getopts f:r:o:np:tsSqclb:Bmah FLAG; do
-    case $FLAG in
+#
+# Getopts Workflow
+#
+while getopts "f:r:o:tnmsqScb:B:T:h" FLAG; do
+    case "${FLAG}" in
         f)
-            READ1=$OPTARG
-            ;;
+            READ1="${OPTARG}"
+	    ;;
         r)
-            READ2=$OPTARG
+            READ2="${OPTARG}"
             ;;
         o)
-            output_dir=$OPTARG
-            mkdir -p "$output_dir"
-            absolute_path="$( cd "$output_dir" && pwd )"
-            echo "Single Amplified Genome Assembly Workflow" > $absolute_path/$output_dir.log
-            echo -e "\thttps://github.com/guyleonard/sagawe\n" >> "$absolute_path/$output_dir.log"
-            echo "Output Dir: $absolute_path" >> "$absolute_path/$output_dir.log"
-            echo "Run: $(date +%Y-%m-%d)" >> "$absolute_path/$output_dir.log"
-            echo "Command: ${0} ${@}" >> "$absolute_path/$output_dir.log"
-            ;;
-        n)
-            run_normalisation
-            NORMALISED="true"
-            ;;
-        p)
-            run_bbmerge
+            OUTDIR="${OPTARG}"
+	    mkdir -p "${OUTDIR}"
+            cite_log "${OUTDIR}"
             ;;
         t)
-            run_trim_galore
+            run_trim_galore "${OUTDIR}"
             ;;
-        s)
-            run_assembly_spades
-            ;;
-        q)
-            report_quast
-            ;;
-        c)
-            report_cegma
-            ;;
-        b)
-            busco_v2_dbs=$OPTARG
-            report_busco_v2
-            ;;
-        B)
-            report_blobtools
+        n)
+            run_normalisation "${OUTDIR}"
+            NORMALISED="true"
             ;;
         m)
-            report_multiqc
+            run_bbmerge "${OUTDIR}"
+            MERGED="true"
+            ;;
+        s)
+            run_assembly_spades "${OUTDIR}"
+            ;;
+        q)
+            assembly_type=$(get_assembly_type)
+            report_quast_v4 "${OUTDIR}" "${assembly_type}"
             ;;
         S)
             ASSEMBLY="scaffolds.fasta"
-            QUAST_SCAFFOLDS="--scaffolds"
+            QUAST_SCAFFOLDS="-s"
             ;;
-        a)
-            run_bbmerge
-            run_trim_galore
-            run_assembly_spades
-            report_quast
-            report_cegma
-            busco_v2_dbs="eukaryota_odb9"
-            report_busco_v2
-            report_blobtools
-            report_multiqc
+        c)
+            assembly_type=$(get_assembly_type)
+            report_cegma "${OUTDIR}" "${assembly_type}"
+            ;;
+        b)
+            BUSCO_LINEAGES="${OPTARG}"
+            assembly_type=$(get_assembly_type)
+            report_busco_v3 "${OUTDIR}" "${assembly_type}"
+            ;;
+        B)
+            NCBI_DB="${OPTARG}"
+            assembly_type=$(get_assembly_type)
+            report_blobtools "${OUTDIR}" "${assembly_type}" "${NCBI_DB}"
             ;;
         h)
             help_message
-            ;;
+	    ;;
         \?)
-            echo -e "Unknown Option."
-            help_message
+	    help_message
             ;;
     esac
 done
 
-if [ ! "$output_dir" ]; then
+if [ ! "${OUTDIR}" ]; then
     echo "No output directory set. Please indicate -o" >&2
     exit 1
 fi
 
+output_dir="$( cd "${OUTDIR}" && pwd )"
+echo -e "Date Finished:\t$(date +%Y-%m-%d-%R)" >> "${output_dir}/sag_awe.log"
 exit 0
