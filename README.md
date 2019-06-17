@@ -37,32 +37,7 @@ A list of dependencies appears in the list describing the workflow. These progra
       -B </path/to/blast/db>  Run Blobtools with NCBI BLAST db
     Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s
 
-## SAG Assembly Workflow Example
-1. Trimming and Adaptor Cleaning [Trim Galore!](http://www.bioinformatics.babraham.ac.uk/projects/trim_galore/)
-  * Remove any Illumina Sequencing Adaptors, poly-A tails, sequence quality score <20, etc.
-2. Read Normalisation - Optional!! [BBNORM](http://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbnorm-guide/)
-  * Normalise your data - especially useful for SAGs.
-3. Overlap Read Libraries [BBMERGE](http://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbmerge-guide/)
-  * Construct longer 'reads' and/or increases quality of reads.
-4. Assembly of Prepared Reads [SPAdes](http://bioinf.spbau.ru/en/spades)
-  * Depending on the options you selected in Steps 1-4
-    * T - Trimmed - all reads need adaptor trimming
-    * TN - Trimmed and Normalised
-    * TM - Trimmed and Merged
-    * TNM - Trimmed, Normalised and Merged (default/suggested/preffered)
-5. Assembly Statistics [QUAST](http://bioinf.spbau.ru/quast)
-  * N50/L50, contig/scaffold lengths/quantity, etc.
-6. Read Mapping [BWA](https://github.com/lh3/bwa)
-  * This can help with coverage information etc, but we will be using it mostly for "blobology" (see step 8)
-7. BLAST Report
-  * Top hits to NCBI style database using megablast.
-8. BLOBology - GC/Taxonomy Maps [blobtools](https://github.com/DRL/blobtools)
-  * GC/Coverage plots with taxonomy information to look for contamination.
-9. Genome 'Completeness' Tests [CEGMA](http://korflab.ucdavis.edu/datasets/cegma/) & [BUSCO](http://busco.ezlab.org/v3/)
-10. MultiQC - Aggregate results from bioinformatics analyses across many samples into a single report
-
 ## Install Dependencies
-
 You may like to try and install many of the dependencies via 'conda'. YMMV.
 
     conda install -c bioconda trim-galore # installs Trim_Galore!, cutadapt, FastQC
