@@ -14,7 +14,7 @@ A list of dependencies appears in the list describing the workflow. These progra
     * TNM (blue+red=purple) - Trimmed, Normalised and Merged (default/suggested/preffered)
   * Dotted lines indicate reports read by FastQC
   * Grey line indicates future addition
-  
+
 ## Example Usage / Help
     Single Amplified Genome Assembly Workflow Example (SAG-AWE)
       Options are positional, i.e. they are run sequentially, e.g. -S must come before -q, -t before -n, etc.
@@ -65,7 +65,7 @@ A list of dependencies appears in the list describing the workflow. These progra
 
 You may like to try and install many of the dependencies via 'conda'. YMMV.
 
-    conda install -c bioconda trim-galore
+    conda install -c bioconda trim-galore # installs Trim_Galore! + cutadapt + FastQC
     conda install -c agbiome bbtools
     conda install -c bioconda spades
     conda install -c bioconda quast
@@ -75,9 +75,10 @@ You may like to try and install many of the dependencies via 'conda'. YMMV.
     conda install -c bioconda busco
     conda install -c bioconda multiqc 
 
-* CEGMA is no longer supported and does not have a conda install.
-
-## Other Information
+* You will also need:
+  * BUSCO Taxonomic Libraries
+  * NCBI 'nt' Database
+* NB - CEGMA is no longer supported and does not have a conda install.
 
 ## Citation
 This work was initially completed for [in prep - paper here] for which the original scripts are available as a pre-release with the below DOI.
