@@ -5,7 +5,7 @@ A suggested workflow for the assembly of [MDA](https://en.wikipedia.org/wiki/Mul
 A list of dependencies appears in the list describing the workflow. These programs will need to be installed correctly and accessible on the command line. You will also need to make sure that the environment variables for BLAST, CEGMA, AUGUSTUS etc are correctly set. This script does not check for them and may fail without.
 
 ## SAG Assembly Workflow Example Diagram
-![SAGAWE](https://cdn.rawgit.com/guyleonard/sagawew/master/images/SAGAWE.svg)
+![SAGAWE](https://raw.githubusercontent.com/guyleonard/sagawe/devel/images/SAGAWE.svg)
 
 ## Example Usage / Help
     Single Amplified Genome Assembly Workflow Example (SAG-AWE)
