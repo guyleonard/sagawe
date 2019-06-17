@@ -6,6 +6,12 @@ A list of dependencies appears in the list describing the workflow. These progra
 
 ## SAG Assembly Workflow Example Diagram
 ![SAGAWE](https://github.com/guyleonard/sagawe/blob/devel/images/SAGAWE.svg)
+  
+  * Depending on the options you selected, there are four paths to assembling your data.
+    * T (green) - Trimmed - all reads need adaptor trimming
+    * TN (blue) - Trimmed and Normalised
+    * TM (yellow) - Trimmed and Merged
+    * TNM (blue+red=purple) - Trimmed, Normalised and Merged (default/suggested/preffered)
 
 ## Example Usage / Help
     Single Amplified Genome Assembly Workflow Example (SAG-AWE)
