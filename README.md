@@ -78,6 +78,9 @@ You may like to try and install many of the dependencies via 'conda'. YMMV.
 * You will also need:
   * BUSCO Taxonomic Libraries
   * NCBI 'nt' Database
+  * NCBI 'taxdump' Database
+  * NCBI 'taxdb' Database - environment variable BLASTDB
+    * export BLASTDB=/path/to/taxdb
 * NB - CEGMA is no longer supported and does not have a conda install.
 
 ## Citation
