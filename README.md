@@ -38,6 +38,29 @@ A list of dependencies appears in the list describing the workflow. These progra
     Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s
 
 ## Install Dependencies
+This is a brief list of the other bioinformatic software you will need, some have their own dependencies. You may need to ask your friendly bioinformatician to install them for you in exchange for beer or chocolate :p
+
+* Trim_Galore!
+  * cutadapt
+  * FastQC
+  * pigz
+* bbtools
+  * bbmerge
+  * bbnorm
+* SPAdes
+* QUAST
+  * glimmer
+* Blobtools
+  * BWA
+  * samtools
+  * NCBI BLAST+
+* BUSCO
+  * AUGUSTUS
+  * bamtools
+  * HMMER
+* CEGMA
+* MultiQC
+
 You may like to try and install many of the dependencies via 'conda'. YMMV.
 
     conda install -c bioconda trim-galore # installs Trim_Galore!, cutadapt, FastQC
@@ -48,7 +71,7 @@ You may like to try and install many of the dependencies via 'conda'. YMMV.
     conda install -c bioconda blast # installs blast
     conda install -c bioconda blobtools # installs blobtools, samtools
     conda install -c bioconda busco # installs augustus, bamtools, blast, busco, hmmer
-    conda install -c bioconda multiqc # installs multqiqc
+    conda install -c bioconda multiqc # installs multiqc
 
 * You will also need:
   * [BUSCO Lineage Datasets](https://busco.ezlab.org)
