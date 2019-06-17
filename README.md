@@ -12,7 +12,9 @@ A list of dependencies appears in the list describing the workflow. These progra
     * TN (blue) - Trimmed and Normalised
     * TM (yellow) - Trimmed and Merged
     * TNM (blue+red=purple) - Trimmed, Normalised and Merged (default/suggested/preffered)
-
+  * Dotted lines indicate reports read by FastQC
+  * Grey line indicates future addition
+  
 ## Example Usage / Help
     Single Amplified Genome Assembly Workflow Example (SAG-AWE)
       Options are positional, i.e. they are run sequentially, e.g. -S must come before -q, -t before -n, etc.
