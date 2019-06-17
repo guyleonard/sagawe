@@ -37,10 +37,10 @@ Program parameters are order based; e.g. '-n' must come before '-a' and '-p' mus
   * Construct longer 'reads' and/or increases quality of reads.
 4. Assembly of Prepared Reads [SPAdes](http://bioinf.spbau.ru/en/spades)
   * Depending on the options you selected in Steps 1-4
-  ** T - Trimmed - all reads need adaptor trimming
-  ** TN - Trimmed and Normalised
-  ** TM - Trimmed and Merged
-  ** TNM - Trimmed, Normalised and Merged (default/suggested/preffered)
+    * T - Trimmed - all reads need adaptor trimming
+    * TN - Trimmed and Normalised
+    * TM - Trimmed and Merged
+    * TNM - Trimmed, Normalised and Merged (default/suggested/preffered)
 5. Assembly Statistics [QUAST](http://bioinf.spbau.ru/quast)
   * N50/L50, contig/scaffold lengths/quantity, etc.
 6. Read Mapping [BWA](https://github.com/lh3/bwa)
@@ -49,14 +49,24 @@ Program parameters are order based; e.g. '-n' must come before '-a' and '-p' mus
   * Top hits to NCBI style database using megablast.
 8. BLOBology - GC/Taxonomy Maps [blobtools](https://github.com/DRL/blobtools)
   * GC/Coverage plots with taxonomy information to look for contamination.
-9. Genome 'Completeness' Tests [CEGMA](http://korflab.ucdavis.edu/datasets/cegma/) & [BUSCO v1](http://busco.ezlab.org/v3/)
+9. Genome 'Completeness' Tests [CEGMA](http://korflab.ucdavis.edu/datasets/cegma/) & [BUSCO](http://busco.ezlab.org/v3/)
 10. MultiQC - Aggregate results from bioinformatics analyses across many samples into a single report
 
 ## Install Dependencies
 
-You may like to try and install many of the dependencies via 'conda'
+You may like to try and install many of the dependencies via 'conda'. YMMV.
 
     conda install -c bioconda trim-galore
+    conda install -c agbiome bbtools
+    conda install -c bioconda spades
+    conda install -c bioconda quast
+    conda install -c bioconda bwa
+    conda install -c bioconda blast
+    conda install -c bioconda blobtools
+    conda install -c bioconda busco
+    conda install -c bioconda multiqc 
+
+* CEGMA is no longer supported and does not have a conda install.
 
 ## Other Information
 
