@@ -1,8 +1,8 @@
-# Single Amplified Genome Assembly Workflow Example (SAG-AWE)
+# Single Amplified Genome - Assembly Workflow Example (SAG-AWE)
 
-A suggested workflow for the assembly of [MDA](https://en.wikipedia.org/wiki/Multiple_displacement_amplification) sequenced Single Amplified Genomes from Illumina Hi-/Mi-Seq paired-end libraries.
+This script is intended as a suggested workflow for the assembly and analysis of [MDA](https://en.wikipedia.org/wiki/Multiple_displacement_amplification) sequenced 'Single Amplified Genomes' derived from Illumina Hi-/Mi-Seq paired-end libraries.
 
-A list of dependencies appears in the list describing the workflow. These programs will need to be installed correctly and accessible on the command line. You will also need to make sure that the environment variables for BLAST, CEGMA, AUGUSTUS etc are correctly set. This script does not check for them and may fail without.
+There are very few options available to the user, and most underlying programs are set with their defaults. This is intended to produce quick rough and reproducible assemblies of 100s of SAGs at a time.
 
 ## SAG Assembly Workflow Example Diagram
 ![SAGAWE](https://github.com/guyleonard/sagawe/blob/devel/images/SAGAWE.svg)
@@ -35,10 +35,13 @@ A list of dependencies appears in the list describing the workflow. These progra
       -c  Run CEGMA
       -b </path/to/db1,/path/to/db2,...>  Run BUSCO with Multiple Lineages
       -B </path/to/blast/db>  Run Blobtools with NCBI BLAST db
+      -M  Run MultiQC
     Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s
 
 ## Install Dependencies
-This is a brief list of the other bioinformatic software you will need, some have their own dependencies. You may need to ask your friendly bioinformatician to install them for you in exchange for beer or chocolate :p
+The following programs will need to be installed and be accessible on the command line. Tested so far only on Ubuntu Linux. You will also need to make sure that the environment variables for BLAST, CEGMA & AUGUSTUS are set correctly. This script does not check for them and may fail without warning.
+
+This is a brief list of the bioinformatic tools that you will need, some have their own dependencies. You may need to ask your friendly bioinformatician / sys admin to install them for you in exchange for some beer or chocolate! :p
 
 * Trim_Galore!
   * cutadapt
@@ -50,6 +53,7 @@ This is a brief list of the other bioinformatic software you will need, some hav
 * SPAdes
 * QUAST
   * glimmer
+  * NCBI BLAST+
 * Blobtools
   * BWA
   * samtools
@@ -73,17 +77,17 @@ You may like to try and install many of the dependencies via 'conda'. YMMV.
     conda install -c bioconda busco # installs augustus, bamtools, blast, busco, hmmer
     conda install -c bioconda multiqc # installs multiqc
 
-* You will also need:
-  * [BUSCO Lineage Datasets](https://busco.ezlab.org)
-  * [NCBI 'nt' Database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/)
-  * [NCBI 'taxdump' Database](ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/)
-  * [NCBI 'taxdb' Database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/) - environment variable BLASTDB
-    * export BLASTDB=/path/to/taxdb
-* NB - CEGMA is no longer supported and does not have a conda install.
+You will also need:
+* [BUSCO Lineage Datasets](https://busco.ezlab.org)
+* [NCBI 'nt' Database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/)
+* [NCBI 'taxdump' Database](ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/)
+* [NCBI 'taxdb' Database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/) - environment variable BLASTDB should be exported
+  * export BLASTDB=/path/to/taxdb
+
+NB - CEGMA is no longer supported and does not have a conda install and is included for legacy, please use BUSCO.
 
 ## Citation
-This work was initially completed for [in prep - paper here] for which the original scripts are available as a pre-release with the below DOI.
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.192677.svg)](https://doi.org/10.5281/zenodo.192677)
+This work was initially designed during the making of [in prep]. The original scripts are available as a pre-release with the below DOI [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.192677.svg)](https://doi.org/10.5281/zenodo.192677).
 
-The repository and scripts however, have changed quite significantly since the initial release, any further citations should be to the below DOI.
+The script has been rewritten quite significantly since the initial release and so any further citations should also include DOI.
 Coming Soon
