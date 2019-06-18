@@ -55,14 +55,14 @@ This is a brief list of the bioinformatic tools that you will need, some have th
   * bbmerge
   * bbnorm
 * SPAdes
-* QUAST
+* QUAST v4 or v5
   * glimmer
   * NCBI BLAST+
-* Blobtools
+* Blobtools v1
   * BWA
   * samtools
   * NCBI BLAST+
-* BUSCO
+* BUSCO v3
   * AUGUSTUS
   * bamtools
   * HMMER
