@@ -12,12 +12,12 @@ Depending on the options you select, there are four paths to assembling your dat
 * TM (yellow) - Trimmed and Merged
 * TNM (blue+red=purple) - Trimmed, Normalised and Merged
 
-We suggest using all three options -t, -n and -m to produce the 'best' assembly, however your library prep/design and sequencing results may work better with different option. You can run the workflow with different options in the same output directory if you wish to make comparisons. 
+We suggest using all three options -t, -n and -m to produce the 'best' assembly, however your library prep/design and sequencing results may work better with different options. You can run the workflow with different options in the same output directory if you wish to make comparisons. 
 
 ![SAGAWE](https://github.com/guyleonard/sagawe/blob/devel/images/SAGAWE.svg)
 
-* Dotted lines indicate reports read by FastQC
-* Grey line indicates future addition
+* Dotted lines indicate reports read by MultiQC
+* Grey lines indicate future additions.
 
 ## Example Usage / Help
     Single Amplified Genome Assembly Workflow Example (SAG-AWE)
