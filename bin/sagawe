@@ -193,19 +193,34 @@ function run_assembly_spades {
 # Report Functions
 #
 function report_quast () {
+    trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly"
+
     quast_dir="$( cd "${OUTDIR}" && pwd )/reports/quast"
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/mapping"
+
+    read1=$(basename "${READ1}")
+    read2=$(basename "${READ2}")
 
     assembly_type="${1}"
-
-    echo "[SAGAWE:INFO] - Running QUAST on ${assembly_type} Assembly with ${ASSEMBLY}"
 
     quast_dir="${quast_dir}/${assembly_type}"
     mkdir -p "${quast_dir}"
 
-    quast.py -o "${quast_dir}" -t "${THREADS}" --glimmer \
-    --min-contig 100 --k-mer-stats --rna-finding --eukaryote \
-    ${QUAST_SCAFFOLDS} "${assembly_dir}/${assembly_type}/${ASSEMBLY}" 2>&1 | tee "${quast_dir}/sag_awe_quast.log"
+    if [[ -f "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" ]] ; then
+        echo "[SAGAWE:INFO] - Running QUAST on ${assembly_type} Assembly with ${ASSEMBLY} and Mapped Trimmed Reads"
+        quast.py -o "${quast_dir}" -t "${THREADS}" --glimmer \
+        --min-contig 100 --k-mer-stats --rna-finding --eukaryote \
+        --bam "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" \
+        ${QUAST_SCAFFOLDS} "${assembly_dir}/${assembly_type}/${ASSEMBLY}" 2>&1 | tee "${quast_dir}/sag_awe_quast.log"
+    else
+        echo "[SAGAWE:INFO] - Running QUAST on ${assembly_type} Assembly with ${ASSEMBLY} and Mapping Trimmed Reads"
+        quast.py -o "${quast_dir}" -t "${THREADS}" --glimmer \
+        --min-contig 100 --k-mer-stats --rna-finding --eukaryote \
+        -1 "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
+        -2 "${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
+        ${QUAST_SCAFFOLDS} "${assembly_dir}/${assembly_type}/${ASSEMBLY}" 2>&1 | tee "${quast_dir}/sag_awe_quast.log"
+    fi
 }
 
 function report_busco_v3 () {
@@ -564,3 +579,4 @@ fi
 output_dir="$( cd "${OUTDIR}" && pwd )"
 echo -e "Date Finished:\t$(date +%Y-%m-%d-%R)" >> "${output_dir}/sag_awe.log"
 exit 0
+
