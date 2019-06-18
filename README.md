@@ -5,15 +5,19 @@ This script is intended as a suggested workflow for the assembly and analysis of
 There are very few options available to the user, and most underlying programs are set with their defaults. This is intended to produce quick rough and reproducible assemblies of 100s of SAGs at a time.
 
 ## SAG Assembly Workflow Example Diagram
+Depending on the options you select, there are four paths to assembling your data.
+
+* T (green) - Trimmed
+* TN (blue) - Trimmed and Normalised
+* TM (yellow) - Trimmed and Merged
+* TNM (blue+red=purple) - Trimmed, Normalised and Merged
+
+We suggest using all three options -t, -n and -m to produce the 'best' assembly, however your library prep/design and sequencing results may work better with different option. You can run the workflow with different options in the same output directory if you wish to make comparisons. 
+
 ![SAGAWE](https://github.com/guyleonard/sagawe/blob/devel/images/SAGAWE.svg)
-  
-  * Depending on the options you selected, there are four paths to assembling your data.
-    * T (green) - Trimmed - all reads need adaptor trimming
-    * TN (blue) - Trimmed and Normalised
-    * TM (yellow) - Trimmed and Merged
-    * TNM (blue+red=purple) - Trimmed, Normalised and Merged (default/suggested/preffered)
-  * Dotted lines indicate reports read by FastQC
-  * Grey line indicates future addition
+
+* Dotted lines indicate reports read by FastQC
+* Grey line indicates future addition
 
 ## Example Usage / Help
     Single Amplified Genome Assembly Workflow Example (SAG-AWE)
