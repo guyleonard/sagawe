@@ -204,6 +204,11 @@ function report_quast () {
 
     assembly_type="${1}"
 
+    if [[ ! -f "${assembly_dir}/${assembly_type}/${ASSEMBLY}" ]] ; then
+         echo "[SAGAWE:WARNING] - ${assembly_type}/${ASSEMBLY} does not exist. Please run this script again with the -s and correct -t -n -m options."
+         exit 1
+    fi
+
     quast_dir="${quast_dir}/${assembly_type}"
     mkdir -p "${quast_dir}"
 
