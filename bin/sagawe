@@ -379,7 +379,7 @@ function report_blobtools_output {
 
 function report_multiqc () {
     multiqc_dir="$( cd "${OUTDIR}" && pwd )/reports/multiqc"
-    multiqc -o "$output_dir/reports" -z "$output_dir"
+    multiqc -f -z -o "${multiqc_dir}" "${OUTDIR}"
 }
 
 #
@@ -468,7 +468,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts ":f:r:o:tnmsqScb:B:T:h" FLAG; do
+while getopts ":f:r:o:tnmsqScb:B:Mh" FLAG; do
     case "${FLAG}" in
         f)
             READ1="${OPTARG}"
@@ -526,6 +526,9 @@ while getopts ":f:r:o:tnmsqScb:B:T:h" FLAG; do
             NCBI_DB="${OPTARG}"
             assembly_type=$(get_assembly_type)
             report_blobtools "${assembly_type}"
+            ;;
+        M)
+            report_multiqc
             ;;
         h)
             help_message
