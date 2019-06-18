@@ -43,9 +43,9 @@ We suggest using all three options -t, -n and -m to produce the 'best' assembly,
     Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s
 
 ## Install Dependencies
-The following programs will need to be installed and be accessible on the command line. Tested so far only on Ubuntu Linux. You will also need to make sure that the environment variables for BLAST, CEGMA & AUGUSTUS are set correctly. This script does not check for them and may fail without warning.
+The following programs will need to be installed and be accessible from your PATH. Ihave only tested this on Ubuntu Linux, it should work in other -nix environments. You will also need to make sure that the environment variables for BLAST, CEGMA & AUGUSTUS are set correctly. This script does not check for them and may fail without warning.
 
-This is a brief list of the bioinformatic tools that you will need, some have their own dependencies. You may need to ask your friendly bioinformatician / sys admin to install them for you in exchange for some beer or chocolate! :p
+Below is a brief list of the bioinformatic tools that you will need, some have their own dependencies. You may need to ask your friendly bioinformatician / sys admin to install them for you in exchange for some beer or chocolate! :p Or try to install them yourself with conda.
 
 * Trim_Galore!
   * cutadapt
