@@ -192,7 +192,7 @@ function run_assembly_spades {
 #
 # Report Functions
 #
-function report_quast_v4 () {
+function report_quast () {
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly"
     quast_dir="$( cd "${OUTDIR}" && pwd )/reports/quast"
 
@@ -203,8 +203,9 @@ function report_quast_v4 () {
     quast_dir="${quast_dir}/${assembly_type}"
     mkdir -p "${quast_dir}"
 
-    quast.py -o "${quast_dir}" -t "${THREADS}" --glimmer --min-contig 100 ${QUAST_SCAFFOLDS} --eukaryote \
-    "${assembly_dir}/${assembly_type}/${ASSEMBLY}" 2>&1 | tee "${quast_dir}/sag_awe_quast.log"
+    quast.py -o "${quast_dir}" -t "${THREADS}" --glimmer \
+    --min-contig 100 --k-mer-stats --rna-finding --eukaryote \
+    ${QUAST_SCAFFOLDS} "${assembly_dir}/${assembly_type}/${ASSEMBLY}" 2>&1 | tee "${quast_dir}/sag_awe_quast.log"
 }
 
 function report_busco_v3 () {
@@ -503,7 +504,7 @@ while getopts ":f:r:o:tnmsqScb:B:T:h" FLAG; do
             ;;
         q)
             assembly_type=$(get_assembly_type)
-            report_quast_v4 "${assembly_type}"
+            report_quast "${assembly_type}"
             ;;
         S)
             ASSEMBLY="scaffolds.fasta"
