@@ -255,12 +255,11 @@ function report_cegma () {
 
 
 function report_blobtools () {
-    outdir="$( cd "${OUTDIR}" && pwd )"
     assembly_type="${1}"
 
-    report_blobtools_mapping "${outdir}" "${assembly_type}"
-    report_blobtools_blast "${outdir}" "${assembly_type}"
-    report_blobtools_output "${outdir}" "${assembly_type}"
+    report_blobtools_mapping "${assembly_type}"
+    report_blobtools_blast  "${assembly_type}"
+    report_blobtools_output "${assembly_type}"
 }
 
 function report_blobtools_mapping () {
@@ -288,7 +287,7 @@ function report_blobtools_mapping () {
 
     echo "[SAGAWE:INFO] - Mapping Trimmed Un-Paired Reads to ${ASSEMBLY}"
     bwa mem -t "$THREADS" "${mapping_dir}/${ASSEMBLY}" \
-    "${trimmed_dir}/${read1/r1.fq.gz/all_unpaired.fq.gz}" \
+    "${trimmed_dir}/unpaired_all.fq.gz" \
     > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
 
     echo "[SAGAWE:INFO] - Sorting Paired SAM File and Converting to BAM"
