@@ -397,7 +397,8 @@ function help_message () {
     echo -e "Optional Parameters:"
     echo -e "\t-S\tUse scaffolds.fasta instead of contigs.fasta"
     echo -e "Reports/Stats:"
-    echo -e "\t-q\tRun Quast"
+    echo -e "\t-q\tRun Quast Analysis"
+    echo -e "\t-c\tRun CEGMA Analysis"
     echo -e "\t-b </path/to/db1,/path/to/db2,...>\tRun BUSCO with Multiple Lineages"
     echo -e "\t-B </path/to/blast/db>\tRun Blobtools"
     echo -e "Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s"
@@ -501,6 +502,18 @@ while getopts "f:r:o:tnmsqScb:B:T:h" FLAG; do
             ;;
     esac
 done
+
+if ((OPTIND == 1))
+then
+    echo "No options specified"
+fi
+
+shift $((OPTIND - 1))
+
+if (($# == 0))
+then
+    echo "No positional arguments specified"
+fi
 
 if [ ! "${OUTDIR}" ]; then
     echo "No output directory set. Please indicate -o" >&2
