@@ -4,7 +4,7 @@
 # Program Functions
 #
 function run_trim_galore () {
-    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
+    trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
 
     if [ -d "${trimmed_dir}" ] ; then
         echo "[SAGAWE:WARN] - Adaptor Trimming Previously Run"
@@ -30,17 +30,22 @@ function run_trim_galore () {
 }
 
 function run_normalisation () {
-    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
-    normalised_dir="$( cd "${1}" && pwd )/normalised"
+    trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
+    normalised_dir="$( cd "${OUTDIR}" && pwd )/normalised"
+
+    read1=$(basename "${READ1}")
+    read2=$(basename "${READ2}")
+
+    if [ ! -f "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" ] ; then
+        echo "[SAGAWE:WARNING] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting"
+        exit 1
+    fi
 
     if [ -d "${normalised_dir}" ] ; then
         echo "[SAGAWE:WARN] - Normalisation Previously Run"
         echo "[SAGAWE:INFO] - Skipping to Next Step"
     else
         mkdir -p "${normalised_dir}"
-
-        read1=$(basename "${READ1}")
-        read2=$(basename "${READ2}")
 
         echo "[SAGAWE:INFO] - Running BBNorm on Trimmed Reads"
         bbnorm.sh \
@@ -56,12 +61,17 @@ function run_normalisation () {
 }
 
 function run_bbmerge () {
-    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
-    normalised_dir="$( cd "${1}" && pwd )/normalised"
+    trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
+    normalised_dir="$( cd "${OUTDIR}" && pwd )/normalised"
     merged_dir=""
 
     read1=$(basename "${READ1}")
     read2=$(basename "${READ2}")
+
+    if [ ! -f "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" ] ; then
+        echo "[SAGAWE:WARNING] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting"
+        exit 1
+    fi
 
     if [ "${NORMALISED}" == "true" ] ; then
         merged_dir="${normalised_dir}/merged"
@@ -102,12 +112,17 @@ function run_bbmerge () {
 }
 
 function run_assembly_spades {
-    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
-    normalised_dir="$( cd "${1}" && pwd )/normalised"
-    assembly_dir="$( cd "${1}" && pwd )/assembly"
+    trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
+    normalised_dir="$( cd "${OUTDIR}" && pwd )/normalised"
+    assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly"
 
     read1=$(basename "${READ1}")
     read2=$(basename "${READ2}")
+
+    if [ ! -f "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" ] ; then
+        echo "[SAGAWE:WARNING] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting"
+        exit 1
+    fi
 
     if [[ "${MERGED}" == "true" && "${NORMALISED}" == "true" ]] ; then
         merged_dir="${normalised_dir}/merged"
@@ -168,7 +183,7 @@ function run_assembly_spades {
             spades.py --sc --careful -t "$THREADS" \
             --pe1-1 "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
             --pe1-2 "${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
-            --pe1-s "${trimmed_dir}/${read1/r1.fq.gz/all_unpaired.fq.gz}" \
+            --pe1-s "${trimmed_dir}/unpaired_all.fq.gz" \
             -o "$assembly_dir"
         fi
     fi
@@ -178,10 +193,10 @@ function run_assembly_spades {
 # Report Functions
 #
 function report_quast_v4 () {
-    assembly_dir="$( cd "${1}" && pwd )/assembly"
-    quast_dir="$( cd "${1}" && pwd )/reports/quast"
+    assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly"
+    quast_dir="$( cd "${OUTDIR}" && pwd )/reports/quast"
 
-    assembly_type="${2}"
+    assembly_type="${1}"
 
     echo "[SAGAWE:INFO] - Running QUAST on ${assembly_type} Assembly with ${ASSEMBLY}"
 
@@ -193,10 +208,10 @@ function report_quast_v4 () {
 }
 
 function report_busco_v3 () {
-    assembly_dir="$( cd "${1}" && pwd )/assembly"
-    busco_dir="$( cd "${1}" && pwd )/reports/busco"
+    assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly"
+    busco_dir="$( cd "${OUTDIR}" && pwd )/reports/busco"
 
-    assembly_type="${2}"
+    assembly_type="${1}"
 
     busco_dir="${busco_dir}/${assembly_type}"
     mkdir -p "${busco_dir}/summaries"
@@ -218,11 +233,11 @@ function report_busco_v3 () {
 }
 
 function report_cegma () {
-    assembly_dir="$( cd "${1}" && pwd )/assembly"
+    assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly"
 
-    assembly_type="${2}"
+    assembly_type="${1}"
 
-    cegma_dir="$( cd "${1}" && pwd )/reports/cegma/${assembly_type}"
+    cegma_dir="$( cd "${OUTDIR}" && pwd )/reports/cegma/${assembly_type}"
 
     if [ ! -f "${assembly_dir}/${assembly_type}/${ASSEMBLY}" ] ; then
         echo -e "[SAGAWE:ERROR] - SPAdes ${ASSEMBLY} cannot be found. Aborting."
@@ -239,8 +254,8 @@ function report_cegma () {
 
 
 function report_blobtools () {
-    outdir="$( cd "${1}" && pwd )"
-    assembly_type="${2}"
+    outdir="$( cd "${OUTDIR}" && pwd )"
+    assembly_type="${1}"
 
     report_blobtools_mapping "${outdir}" "${assembly_type}"
     report_blobtools_blast "${outdir}" "${assembly_type}"
@@ -248,11 +263,11 @@ function report_blobtools () {
 }
 
 function report_blobtools_mapping () {
-    trimmed_dir="$( cd "${1}" && pwd )/trimmed"
-    assembly_dir="$( cd "${1}" && pwd )/assembly"
-    blobtools_dir="$( cd "${1}" && pwd )/reports/blobtools"
+    trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
+    assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly"
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools"
 
-    assembly_type="${2}"
+    assembly_type="${1}"
 
     read1=$(basename "${READ1}")
     read2=$(basename "${READ2}")
@@ -296,10 +311,10 @@ function report_blobtools_mapping () {
 }
 
 function report_blobtools_blast {
-    assembly_dir="$( cd "${1}" && pwd )/assembly"
-    blobtools_dir="$( cd "${1}" && pwd )/reports/blobtools"
+    assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly"
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools"
 
-    assembly_type="${2}"
+    assembly_type="${1}"
 
     blast_dir="${blobtools_dir}/${assembly_type}/blast"
     mkdir -p "${blast_dir}"
@@ -319,8 +334,8 @@ function report_blobtools_blast {
 }
 
 function report_blobtools_output {
-    blobtools_dir="$( cd "${1}" && pwd )/reports/blobtools"
-    assembly_type="${2}"
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools"
+    assembly_type="${1}"
 
     mapping_dir="${blobtools_dir}/${assembly_type}/mapping"
     blast_dir="${blobtools_dir}/${assembly_type}/blast"
@@ -401,6 +416,7 @@ function help_message () {
     echo -e "\t-c\tRun CEGMA Analysis"
     echo -e "\t-b </path/to/db1,/path/to/db2,...>\tRun BUSCO with Multiple Lineages"
     echo -e "\t-B </path/to/blast/db>\tRun Blobtools"
+    echo -e "\t-M\tRun MultiQC Analysis"
     echo -e "Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s"
     exit 1
 }
@@ -411,7 +427,7 @@ function cores () {
 }
 
 function cite_log () {
-    output_dir="$( cd "${1}" && pwd )"
+    output_dir="$( cd "${OUTDIR}" && pwd )"
     echo -e "Single Amplified Genome Assembly Workflow" > "${output_dir}/sag_awe.log"
     echo -e "Please cite:\thttps://github.com/guyleonard/sagawe\n" >> "${output_dir}/sag_awe.log"
     echo -e "Output Dir:\t${output_dir}" >> "${output_dir}/sag_awe.log"
@@ -424,15 +440,17 @@ function cite_log () {
 #
 # Workflow Variables
 #
-ARGS=( "$@" )
+ARGS=$@
 ASSEMBLY="contigs.fasta"
-BUSCO_LINEAGES="eukaryota_odb9"
+BUSCO_LINEAGES=""
+F_FLAG="false"
 MERGED="false"
 NCBI_DB=""
 NORMALISED="false"
 NUMARGS=$#
-OUTDIR="output_sagawe"
+OUTDIR="false"
 QUAST_SCAFFOLDS=""
+R_FLAG="false"
 READ1=""
 READ2=""
 THREADS=$(cores)
@@ -440,41 +458,52 @@ TAXDB=""
 
 if [ "${NUMARGS}" -eq 0 ]; then
     help_message
+    exit 1
 fi
 
 #
 # Getopts Workflow
 #
-while getopts "f:r:o:tnmsqScb:B:T:h" FLAG; do
+while getopts ":f:r:o:tnmsqScb:B:T:h" FLAG; do
     case "${FLAG}" in
         f)
             READ1="${OPTARG}"
+            F_FLAG="true"
 	    ;;
         r)
             READ2="${OPTARG}"
+            R_FLAG="true"
             ;;
         o)
             OUTDIR="${OPTARG}"
+            if [[ "${OPTARG}" =~ ^- ]] ; then
+                echo "[SAGAWE:WARNING1] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
+                exit 1
+            fi
 	    mkdir -p "${OUTDIR}"
             cite_log "${OUTDIR}"
             ;;
         t)
-            run_trim_galore "${OUTDIR}"
+            if [[ "${OUTDIR}" == "false" ]] ; then
+                echo "[SAGAWE:WARNING2] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
+                exit 1
+            fi
+            run_trim_galore
             ;;
         n)
-            run_normalisation "${OUTDIR}"
+            run_normalisation
             NORMALISED="true"
             ;;
         m)
-            run_bbmerge "${OUTDIR}"
+            run_bbmerge
             MERGED="true"
             ;;
         s)
-            run_assembly_spades "${OUTDIR}"
+            run_assembly_spades
             ;;
         q)
             assembly_type=$(get_assembly_type)
-            report_quast_v4 "${OUTDIR}" "${assembly_type}"
+            report_quast_v4 "${assembly_type}"
             ;;
         S)
             ASSEMBLY="scaffolds.fasta"
@@ -482,17 +511,17 @@ while getopts "f:r:o:tnmsqScb:B:T:h" FLAG; do
             ;;
         c)
             assembly_type=$(get_assembly_type)
-            report_cegma "${OUTDIR}" "${assembly_type}"
+            report_cegma "${assembly_type}"
             ;;
         b)
             BUSCO_LINEAGES="${OPTARG}"
             assembly_type=$(get_assembly_type)
-            report_busco_v3 "${OUTDIR}" "${assembly_type}"
+            report_busco_v3 "${assembly_type}"
             ;;
         B)
             NCBI_DB="${OPTARG}"
             assembly_type=$(get_assembly_type)
-            report_blobtools "${OUTDIR}" "${assembly_type}" "${NCBI_DB}"
+            report_blobtools "${assembly_type}"
             ;;
         h)
             help_message
@@ -505,18 +534,23 @@ done
 
 if ((OPTIND == 1))
 then
-    echo "No options specified"
+    echo "[SAGAWE:WARNING] - No Options Specified!"
 fi
 
 shift $((OPTIND - 1))
 
-if (($# == 0))
-then
-    echo "No positional arguments specified"
+if [[ "${R_FLAG}" == "false" ]]; then
+    echo "[SAGAWE:WARNING] - Paired Read 2 Missing. Please Indicate -r <r2.fq|r2.fq.gz>" >&2
+    exit 1
 fi
 
-if [ ! "${OUTDIR}" ]; then
-    echo "No output directory set. Please indicate -o" >&2
+if [[ "${F_FLAG}" == "false" ]]; then
+    echo "[SAGAWE:WARNING] - Paired Read 1 Missing. Please Indicate -f <r1.fq|r1.fq.gz>" >&2
+    exit 1
+fi
+
+if [[ "${OUTDIR}" == "false" ]]; then
+    echo "[SAGAWE:WARNING] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
     exit 1
 fi
 
