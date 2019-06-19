@@ -36,8 +36,11 @@ function run_normalisation () {
     read1=$(basename "${READ1}")
     read2=$(basename "${READ2}")
 
-    if [ ! -f "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" ] ; then
-        echo "[SAGAWE:WARNING] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting"
+    if [[ "${READ1}" == "" || "${READ2}" == "" ]] ; then
+	echo "[SAGAWE:WARN] - You Must Specifiy Input Reads with -f and -r"
+	exit 1
+    elif [ ! -f "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" ] ; then
+        echo "[SAGAWE:WARN] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting"
         exit 1
     fi
 
@@ -69,7 +72,7 @@ function run_bbmerge () {
     read2=$(basename "${READ2}")
 
     if [ ! -f "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" ] ; then
-        echo "[SAGAWE:WARNING] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting"
+        echo "[SAGAWE:WARN] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting"
         exit 1
     fi
 
@@ -120,7 +123,7 @@ function run_assembly_spades {
     read2=$(basename "${READ2}")
 
     if [ ! -f "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" ] ; then
-        echo "[SAGAWE:WARNING] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting"
+        echo "[SAGAWE:WARN] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting"
         exit 1
     fi
 
@@ -208,7 +211,7 @@ function report_quast () {
     assembly_type="${1}"
 
     if [[ ! -f "${assembly_dir}/${assembly_type}/${ASSEMBLY}" ]] ; then
-         echo "[SAGAWE:WARNING] - ${assembly_type}/${ASSEMBLY} does not exist. Please run this script again with the -s and correct -t -n -m options."
+         echo "[SAGAWE:WARN] - ${assembly_type}/${ASSEMBLY} does not exist. Please run this script again with the -s and correct -t -n -m options."
          exit 1
     fi
 
@@ -345,7 +348,7 @@ function report_blobtools_blast {
     echo "[SAGAWE:INFO] - Running megaBLAST on $assembly_type Assembly with ${ASSEMBLY}"
 
     if [ -f "${blast_dir}/${ASSEMBLY/.fasta/}_vs_$(basename "${NCBI_DB}")_1e-10.megablast" ]; then
-        echo "[SAGAWE:WARNING] - MEGABLAST already run! Skipping"
+        echo "[SAGAWE:WARN] - MEGABLAST already run! Skipping"
     else
         blastn -task megablast -query "${blast_dir}/${ASSEMBLY}" -db "${NCBI_DB}" \
         -evalue 1e-10 -num_threads "${THREADS}" \
@@ -504,7 +507,7 @@ while getopts ":f:r:o:tnmsqScb:B:Mh" FLAG; do
         o)
             OUTDIR="${OPTARG}"
             if [[ "${OPTARG}" =~ ^- ]] ; then
-                echo "[SAGAWE:WARNING1] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
+                echo "[SAGAWE:WARN] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
                 exit 1
             fi
 	    mkdir -p "${OUTDIR}"
@@ -512,7 +515,7 @@ while getopts ":f:r:o:tnmsqScb:B:Mh" FLAG; do
             ;;
         t)
             if [[ "${OUTDIR}" == "false" ]] ; then
-                echo "[SAGAWE:WARNING2] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
+                echo "[SAGAWE:WARN] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
                 exit 1
             fi
             run_trim_galore
@@ -564,23 +567,23 @@ done
 
 if ((OPTIND == 1))
 then
-    echo "[SAGAWE:WARNING] - No Options Specified!"
+    echo "[SAGAWE:WARN] - No Options Specified!"
 fi
 
 shift $((OPTIND - 1))
 
 if [[ "${R_FLAG}" == "false" ]]; then
-    echo "[SAGAWE:WARNING] - Paired Read 2 Missing. Please Indicate -r <r2.fq|r2.fq.gz>" >&2
+    echo "[SAGAWE:WARN] - Paired Read 2 Missing. Please Indicate -r <r2.fq|r2.fq.gz>" >&2
     exit 1
 fi
 
 if [[ "${F_FLAG}" == "false" ]]; then
-    echo "[SAGAWE:WARNING] - Paired Read 1 Missing. Please Indicate -f <r1.fq|r1.fq.gz>" >&2
+    echo "[SAGAWE:WARN] - Paired Read 1 Missing. Please Indicate -f <r1.fq|r1.fq.gz>" >&2
     exit 1
 fi
 
 if [[ "${OUTDIR}" == "false" ]]; then
-    echo "[SAGAWE:WARNING] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
+    echo "[SAGAWE:WARN] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
     exit 1
 fi
 
