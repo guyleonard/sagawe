@@ -403,6 +403,22 @@ function report_blobtools_output {
     --rank "superkingdom" --format "svg" --out "${image_dir}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
 }
 
+function report_preseq () {
+    assembly_type="${1}"
+    preseq_dir="$( cd "${OUTDIR}" && pwd )/reports/preseq/${assembly_type}"
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/mapping"
+
+    if [[ -f "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" ]] ; then
+        echo "[SAGAWE:INFO] - Running Preseq on ${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
+        mkdir -p "${preseq_dir}"
+        preseq lc_extrap -o "${preseq_dir}/yield.txt" -B -P "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
+        bam2mr -o "${preseq_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.mr" "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
+        preseq gc_extrap -o "${preseq_dir}/coverage_curve.txt" "${preseq_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.mr"
+    else
+        echo "[SAGAWE:WARNING] - Not running Preseq: ${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam does not exist!"
+    fi
+}
+
 function report_multiqc () {
     multiqc_dir="$( cd "${OUTDIR}" && pwd )/reports/multiqc"
     multiqc -f -z -o "${multiqc_dir}" "${OUTDIR}"
@@ -495,7 +511,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts ":f:r:o:tnmsqScb:B:T:Mh" FLAG; do
+while getopts ":f:r:o:tnmsqScb:B:T:pMh" FLAG; do
     case "${FLAG}" in
         f)
             READ1="${OPTARG}"
@@ -559,6 +575,10 @@ while getopts ":f:r:o:tnmsqScb:B:T:Mh" FLAG; do
             fi
             assembly_type=$(get_assembly_type)
             report_blobtools "${assembly_type}"
+            ;;
+        p)
+            assembly_type=$(get_assembly_type)
+            report_preseq "${assembly_type}"
             ;;
         M)
             report_multiqc
