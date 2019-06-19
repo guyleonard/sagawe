@@ -38,7 +38,7 @@ We suggest using all three options -t, -n and -m to produce the 'best' assembly,
       -q  Run Quast
       -c  Run CEGMA
       -b </path/to/db1,/path/to/db2,...>  Run BUSCO with Multiple Lineages
-      -B </path/to/blast/db>  Run Blobtools with NCBI BLAST db
+      -B </path/to/blast/db,/path/to/taxdump>  Run Blobtools with NCBI BLAST db
       -M  Run MultiQC
     Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s
 
