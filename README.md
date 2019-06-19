@@ -47,6 +47,7 @@ The following programs will need to be installed and be accessible from your PAT
 
 Below is a brief list of the bioinformatic tools that you will need, some have their own dependencies. You may need to ask your friendly bioinformatician / sys admin to install them for you in exchange for some beer or chocolate! :p Or try to install them yourself with conda.
 
+### Assembly
 * Trim_Galore!
   * cutadapt
   * FastQC
@@ -55,6 +56,8 @@ Below is a brief list of the bioinformatic tools that you will need, some have t
   * bbmerge
   * bbnorm
 * SPAdes
+
+### Reporting
 * QUAST v4 or v5
   * glimmer
   * NCBI BLAST+
@@ -66,8 +69,11 @@ Below is a brief list of the bioinformatic tools that you will need, some have t
   * AUGUSTUS
   * bamtools
   * HMMER
-* CEGMA
+* Preseq
 * MultiQC
+
+### Legacy
+* CEGMA
 
 You may like to try and install many of the dependencies via 'conda'. YMMV.
 
@@ -79,6 +85,7 @@ You may like to try and install many of the dependencies via 'conda'. YMMV.
     conda install -c bioconda blast # installs blast
     conda install -c bioconda blobtools # installs blobtools, samtools
     conda install -c bioconda busco # installs augustus, bamtools, blast, busco, hmmer
+    conda install -c bioconda preseq # installs preseq
     conda install -c bioconda multiqc # installs multiqc
 
 You will also need:
