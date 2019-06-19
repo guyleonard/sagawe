@@ -415,7 +415,7 @@ function report_preseq () {
         bam2mr -o "${preseq_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.mr" "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
         preseq gc_extrap -o "${preseq_dir}/coverage_curve.txt" "${preseq_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.mr"
     else
-        echo "[SAGAWE:WARNING] - Not running Preseq: ${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam does not exist!"
+        echo "[SAGAWE:WARN] - Not running Preseq: ${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam does not exist!"
     fi
 }
 
