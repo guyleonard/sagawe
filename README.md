@@ -90,10 +90,14 @@ You may like to try and install many of the dependencies via 'conda'. YMMV.
 
 You will also need:
 * [BUSCO Lineage Datasets](https://busco.ezlab.org)
-* [NCBI 'nt' Database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/)
-* [NCBI 'taxdump' Database](ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/)
-* [NCBI 'taxdb' Database](ftp://ftp.ncbi.nlm.nih.gov/blast/db/) - environment variable BLASTDB should be exported
-  * export BLASTDB=/path/to/taxdb
+* NCBI 'nt' Database
+  * wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/nt.??.tar.gz .
+* NCBI 'taxdump' Database
+  * wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz .
+* NCBI 'taxdb' Database
+  * wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/taxdb.tar.gz
+  * Environment variable BLASTDB should be exported
+    * export BLASTDB=/path/to/taxdb
 
 NB - CEGMA is no longer supported and does not have a conda install and is included for legacy, please use BUSCO.
 
