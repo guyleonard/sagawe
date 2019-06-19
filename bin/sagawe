@@ -128,7 +128,7 @@ function run_assembly_spades {
         merged_dir="${normalised_dir}/merged"
         assembly_dir="${assembly_dir}/tnm"
 
-        if [ -d "${assembly_dir}" ] ; then
+        if [ -f "${assembly_dir}/${ASSEMBLY}" ] ; then
             echo "[SAGAWE:WARN] - TNM Assembly Previously Run"
             echo "[SAGAWE:INFO] - Skipping to Next Step"
         else
@@ -144,7 +144,8 @@ function run_assembly_spades {
     elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
         merged_dir="${trimmed_dir}/merged"
         assembly_dir="${assembly_dir}/tm"
-        if [ -d "${assembly_dir}" ] ; then
+
+        if [ -f "${assembly_dir}/${ASSEMBLY}" ] ; then
             echo "[SAGAWE:WARN] - TM Assembly Previously Run"
             echo "[SAGAWE:INFO] - Skipping to Next Step"
         else
@@ -159,7 +160,8 @@ function run_assembly_spades {
         fi
     elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
         assembly_dir="${assembly_dir}/tn"
-        if [ -d "${assembly_dir}" ] ; then
+
+        if [ -f "${assembly_dir}/${ASSEMBLY}" ] ; then
             echo "[SAGAWE:WARN] - TN Assembly Previously Run"
             echo "[SAGAWE:INFO] - Skipping to Next Step"
         else
@@ -173,7 +175,8 @@ function run_assembly_spades {
         fi
     else
         assembly_dir="${assembly_dir}/t"
-        if [ -d "${assembly_dir}" ] ; then
+
+        if [ -f "${assembly_dir}/${ASSEMBLY}" ] ; then
             echo "[SAGAWE:WARN] - T Assembly Previously Run"
             echo "[SAGAWE:INFO] - Skipping to Next Step"
         else
