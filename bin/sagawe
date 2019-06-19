@@ -39,8 +39,7 @@ function run_normalisation () {
     if [[ "${READ1}" == "" || "${READ2}" == "" ]] ; then
 	echo "[SAGAWE:ERROR] - You Must Specifiy Input Reads with -f and -r"
 	exit 1
-    elif [ ! -f "${trimmed_dir}/${read2}_val_1.fq.gz" ] ; then
-        echo "${trimmed_dir}/${read1}_val_1.fq.gz"
+    elif [ ! -f "${trimmed_dir}/${read1}_val_1.fq.gz" ] ; then
         echo "[SAGAWE:ERROR] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting."
         exit 1
     fi
