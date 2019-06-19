@@ -33,14 +33,16 @@ function run_normalisation () {
     trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
     normalised_dir="$( cd "${OUTDIR}" && pwd )/normalised"
 
-    read1=$(basename "${READ1}")
+    read1="${READ1%%.*}"
     read2=$(basename "${READ2}")
+    read2="${read2%.*}"
 
     if [[ "${READ1}" == "" || "${READ2}" == "" ]] ; then
-	echo "[SAGAWE:WARN] - You Must Specifiy Input Reads with -f and -r"
+	echo "[SAGAWE:ERROR] - You Must Specifiy Input Reads with -f and -r"
 	exit 1
-    elif [ ! -f "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" ] ; then
-        echo "[SAGAWE:WARN] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting"
+    elif [ ! -f "${trimmed_dir}/${read2}_val_1.fq.gz" ] ; then
+        echo "${trimmed_dir}/${read1}_val_1.fq.gz"
+        echo "[SAGAWE:ERROR] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting."
         exit 1
     fi
 
