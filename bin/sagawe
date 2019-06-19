@@ -371,7 +371,7 @@ function report_blobtools_output {
 
     echo "[SAGAWE:INFO] - Running BlobTools CREATE"
     blobtools create -i "${blast_dir}/${ASSEMBLY}" \
-    --nodes "/storage/databases/ncbi/taxdump/03-08-2018/nodes.dmp" --names "/storage/databases/ncbi/taxdump/03-08-2018/names.dmp" \
+    --nodes "${NCBI_TAX}/nodes.dmp" --names "${NCBI_TAX}/names.dmp" \
     -t "${blast_dir}/${ASSEMBLY/.fasta/}_vs_$(basename "${NCBI_DB}")_1e-10.megablast" \
     -b "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" \
     -o "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
@@ -445,7 +445,7 @@ function help_message () {
     echo -e "\t-q\tRun Quast Analysis"
     echo -e "\t-c\tRun CEGMA Analysis"
     echo -e "\t-b </path/to/db1,/path/to/db2,...>\tRun BUSCO with Multiple Lineages"
-    echo -e "\t-B </path/to/blast/db>\tRun Blobtools"
+    echo -e "\t-B </path/to/blast/db,/path/to/taxdump>\tRun Blobtools"
     echo -e "\t-M\tRun MultiQC Analysis"
     echo -e "Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s"
     exit 1
@@ -476,6 +476,7 @@ BUSCO_LINEAGES=""
 F_FLAG="false"
 MERGED="false"
 NCBI_DB=""
+NCBI_TAX=""
 NORMALISED="false"
 NUMARGS=$#
 OUTDIR="false"
@@ -494,7 +495,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts ":f:r:o:tnmsqScb:B:Mh" FLAG; do
+while getopts ":f:r:o:tnmsqScb:B:T:Mh" FLAG; do
     case "${FLAG}" in
         f)
             READ1="${OPTARG}"
@@ -549,7 +550,13 @@ while getopts ":f:r:o:tnmsqScb:B:Mh" FLAG; do
             report_busco_v3 "${assembly_type}"
             ;;
         B)
-            NCBI_DB="${OPTARG}"
+            paths="${OPTARG}"
+            NCBI_DB=$(echo "${paths}" | cut -f 1 -d ',')
+            NCBI_TAX=$(echo "${paths}" | cut -f 2 -d ',')
+            if [[ ! -f "${NCBI_TAX}/nodes.dmp" || ! -f "${NCBI_TAX}/names.dmp" ]] ; then
+                echo "[SAGAWE:ERROR] - nodes.dmp or names.dmp Not Found at Location: ${NCBI_TAX}. Please Correct."
+		exit 1
+            fi
             assembly_type=$(get_assembly_type)
             report_blobtools "${assembly_type}"
             ;;
