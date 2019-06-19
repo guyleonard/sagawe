@@ -19,7 +19,7 @@ function run_trim_galore () {
         "${READ1}" "${READ2}" -o "${trimmed_dir}" 2>&1 | tee "${trimmed_dir}/sag_awe_trim_galore.log"
 
         read1="$(basename "${READ1}")"
-        read2="$(basename "${READ2}")"
+        read2="${READ2%%.*}"
 
         cat "${trimmed_dir}/${read1/.fq.gz/_unpaired_1.fq.gz}" "${trimmed_dir}/${read2/.fq.gz/_unpaired_2.fq.gz}" > "${trimmed_dir}/unpaired_all.fq.gz"
 
@@ -34,8 +34,7 @@ function run_normalisation () {
     normalised_dir="$( cd "${OUTDIR}" && pwd )/normalised"
 
     read1="${READ1%%.*}"
-    read2=$(basename "${READ2}")
-    read2="${read2%.*}"
+    read2="${READ2%%.*}"
 
     if [[ "${READ1}" == "" || "${READ2}" == "" ]] ; then
 	echo "[SAGAWE:ERROR] - You Must Specifiy Input Reads with -f and -r"
@@ -70,8 +69,8 @@ function run_bbmerge () {
     normalised_dir="$( cd "${OUTDIR}" && pwd )/normalised"
     merged_dir=""
 
-    read1=$(basename "${READ1}")
-    read2=$(basename "${READ2}")
+    read1="${READ1%%.*}"
+    read2="${READ2%%.*}"
 
     if [ ! -f "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" ] ; then
         echo "[SAGAWE:WARN] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting"
@@ -121,8 +120,8 @@ function run_assembly_spades {
     normalised_dir="$( cd "${OUTDIR}" && pwd )/normalised"
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly"
 
-    read1=$(basename "${READ1}")
-    read2=$(basename "${READ2}")
+    read1="${READ1%%.*}"
+    read2="${READ2%%.*}"
 
     if [ ! -f "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" ] ; then
         echo "[SAGAWE:WARN] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting"
@@ -207,8 +206,8 @@ function report_quast () {
     quast_dir="$( cd "${OUTDIR}" && pwd )/reports/quast"
     blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/mapping"
 
-    read1=$(basename "${READ1}")
-    read2=$(basename "${READ2}")
+    read1="${READ1%%.*}"
+    read2="${READ2%%.*}"
 
     assembly_type="${1}"
 
@@ -296,8 +295,8 @@ function report_blobtools_mapping () {
 
     assembly_type="${1}"
 
-    read1=$(basename "${READ1}")
-    read2=$(basename "${READ2}")
+    read1="${READ1%%.*}"
+    read2="${READ2%%.*}"
 
     mapping_dir="${blobtools_dir}/${assembly_type}/mapping"
     mkdir -p "${mapping_dir}"
