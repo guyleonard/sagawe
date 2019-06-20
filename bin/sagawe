@@ -18,10 +18,10 @@ function run_trim_galore () {
         trim_galore -q 20 --fastqc --'gzip' --length 50 --paired --retain_unpaired \
         "${READ1}" "${READ2}" -o "${trimmed_dir}" 2>&1 | tee "${trimmed_dir}/sag_awe_trim_galore.log"
 
-        read1="$(basename "${READ1}")"
+        read1="${READ1%%.*}"
         read2="${READ2%%.*}"
 
-        cat "${trimmed_dir}/${read1/.fq.gz/_unpaired_1.fq.gz}" "${trimmed_dir}/${read2/.fq.gz/_unpaired_2.fq.gz}" > "${trimmed_dir}/unpaired_all.fq.gz"
+        cat "${trimmed_dir}/${read1}_unpaired_1.fq.gz" "${trimmed_dir}/${read2}_unpaired_2.fq.gz" > "${trimmed_dir}/unpaired_all.fq.gz"
 
         mv "${trimmed_dir}/"*".html" "${fastqc_dir}"
         mv "${trimmed_dir}/"*".zip" "${fastqc_dir}"
@@ -33,8 +33,8 @@ function run_normalisation () {
     trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
     normalised_dir="$( cd "${OUTDIR}" && pwd )/normalised"
 
-    read1="${READ1%%.*}"
-    read2="${READ2%%.*}"
+    read1="$(basename ${READ1%%.*})"
+    read2="$(basename ${READ2%%.*})"
 
     if [[ "${READ1}" == "" || "${READ2}" == "" ]] ; then
 	echo "[SAGAWE:ERROR] - You Must Specifiy Input Reads with -f and -r"
@@ -52,10 +52,10 @@ function run_normalisation () {
 
         echo "[SAGAWE:INFO] - Running BBNorm on Trimmed Reads"
         bbnorm.sh \
-        in1="${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
-        in2="${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
-        out1="${normalised_dir}/${read1/.fq.gz/_normalised.fq.gz}" \
-        out2="${normalised_dir}/${read2/.fq.gz/_normalised.fq.gz}" \
+        in1="${trimmed_dir}/${read1}_val_1.fq.gz" \
+        in2="${trimmed_dir}/${read2}_val_2.fq.gz" \
+        out1="${normalised_dir}/${read1}_normalised.fq.gz" \
+        out2="${normalised_dir}/${read2}_normalised.fq.gz" \
         outt="${normalised_dir}/excluded_reads.fq.gz" \
         hist="${normalised_dir}/input_kmer_depth.hist" \
         histout="${normalised_dir}/output_kmer_depth.hist" \
@@ -87,11 +87,11 @@ function run_bbmerge () {
 
             echo "[SAGAWE:INFO] - Running BBMerge with Trimmed-Normalised Reads"
             bbmerge.sh \
-            in1="${normalised_dir}/${read1/.fq.gz/_normalised.fq.gz}" \
-            in2="${normalised_dir}/${read2/.fq.gz/_normalised.fq.gz}" \
-            out="${merged_dir}/${read1/r1.fq.gz/normalised_merged.fq.gz}" \
-            outu1="${merged_dir}/${read1/.fq.gz/_normalised_unmerged.fq.gz}" \
-            outu2="${merged_dir}/${read2/.fq.gz/_normalised_unmerged.fq.gz}" \
+            in1="${normalised_dir}/${read1}_normalised.fq.gz" \
+            in2="${normalised_dir}/${read2}_normalised.fq.gz" \
+            out="${merged_dir}/normalised_merged.fq.gz" \
+            outu1="${merged_dir}/${read1}_normalised_unmerged.fq.gz" \
+            outu2="${merged_dir}/${read2}_normalised_unmerged.fq.gz" \
             minoverlap=10 ziplevel=9 2>&1 | tee "${merged_dir}/sag_awe_bbmerge.log"
         fi
     else
@@ -104,11 +104,11 @@ function run_bbmerge () {
 
             echo "[SAGAWE:INFO] - Running BBMerge with Trimmed Reads"
             bbmerge.sh \
-            in1="${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
-            in2="${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
-            out="${merged_dir}/${read1/r1.fq.gz/merged.fq.gz}" \
-            outu1="${merged_dir}/${read1/.fq.gz/_unmerged.fq.gz}" \
-            outu2="${merged_dir}/${read2/.fq.gz/_unmerged.fq.gz}" \
+            in1="${trimmed_dir}/${read1}_val_1.fq.gz" \
+            in2="${trimmed_dir}/${read2}_val_2.fq.gz" \
+            out="${merged_dir}/merged.fq.gz" \
+            outu1="${merged_dir}/${read1}_unmerged.fq.gz" \
+            outu2="${merged_dir}/${read2}_unmerged.fq.gz" \
             minoverlap=10 ziplevel=9 2>&1 | tee "${merged_dir}/sag_awe_bbmerge.log"
         fi
     fi
@@ -139,9 +139,9 @@ function run_assembly_spades {
             mkdir -p "${assembly_dir}"
 
             spades.py --sc --careful -t "$THREADS" \
-            --pe1-m "${merged_dir}/${read1/r1.fq.gz/normalised_merged.fq.gz}" \
-            --pe1-1 "${merged_dir}/${read1/.fq.gz/_normalised_unmerged.fq.gz}" \
-            --pe1-2 "${merged_dir}/${read2/.fq.gz/_normalised_unmerged.fq.gz}" \
+            --pe1-m "${merged_dir}/normalised_merged.fq.gz" \
+            --pe1-1 "${merged_dir}/${read1}_normalised_unmerged.fq.gz" \
+            --pe1-2 "${merged_dir}/${read2}_normalised_unmerged.fq.gz" \
             -o "$assembly_dir"
          fi
     elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
@@ -156,9 +156,9 @@ function run_assembly_spades {
             mkdir -p "${assembly_dir}"
 
             spades.py --sc --careful -t "$THREADS" \
-            --pe1-m "${merged_dir}/${read1/r1.fq.gz/merged.fq.gz}" \
-            --pe1-1 "${merged_dir}/${read1/.fq.gz/_unmerged.fq.gz}" \
-            --pe1-2 "${merged_dir}/${read2/.fq.gz/_unmerged.fq.gz}" \
+            --pe1-m "${merged_dir}/merged.fq.gz" \
+            --pe1-1 "${merged_dir}/${read1}_unmerged.fq.gz" \
+            --pe1-2 "${merged_dir}/${read2}_unmerged.fq.gz" \
             -o "$assembly_dir"
         fi
     elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
@@ -172,8 +172,8 @@ function run_assembly_spades {
             mkdir -p "${assembly_dir}"
 
             spades.py --sc --careful -t "$THREADS" \
-            --pe1-1 "${normalised_dir}/${read1/.fq.gz/_normalised.fq.gz}" \
-            --pe1-2 "${normalised_dir}/${read2/.fq.gz/_normalised.fq.gz}" \
+            --pe1-1 "${normalised_dir}/${read1}_normalised.fq.gz" \
+            --pe1-2 "${normalised_dir}/${read2}_normalised.fq.gz" \
             -o "$assembly_dir"
         fi
     else
@@ -187,8 +187,8 @@ function run_assembly_spades {
             mkdir -p "${assembly_dir}"
 
             spades.py --sc --careful -t "$THREADS" \
-            --pe1-1 "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
-            --pe1-2 "${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
+            --pe1-1 "${trimmed_dir}/${read1}_val_1.fq.gz" \
+            --pe1-2 "${trimmed_dir}/${read2}_val_2.fq.gz" \
             --pe1-s "${trimmed_dir}/unpaired_all.fq.gz" \
             -o "$assembly_dir"
         fi
