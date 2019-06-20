@@ -71,8 +71,8 @@ function run_bbmerge () {
     read1="$(basename ${READ1%%.*})"
     read2="$(basename ${READ2%%.*})"
 
-    if [ ! -f "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" ] ; then
-        echo "[SAGAWE:WARN] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting"
+    if [ ! -f "${trimmed_dir}/${read1}_val_1.fq.gz" ] ; then
+        echo "[SAGAWE:ERROR] - Trimming Has Not Been Run. Please re-run with the -t option. Stopping"
         exit 1
     fi
 
@@ -122,8 +122,8 @@ function run_assembly_spades {
     read1="$(basename ${READ1%%.*})"
     read2="$(basename ${READ2%%.*})"
 
-    if [ ! -f "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" ] ; then
-        echo "[SAGAWE:WARN] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting"
+    if [ ! -f "${trimmed_dir}/${read1}_val_1.fq.gz" ] ; then
+        echo "[SAGAWE:ERROR] - Trimming Has Not Been Run. Please re-run with the -t option. Stopping"
         exit 1
     fi
 
@@ -211,7 +211,7 @@ function report_quast () {
     assembly_type="${1}"
 
     if [[ ! -f "${assembly_dir}/${assembly_type}/${ASSEMBLY}" ]] ; then
-         echo "[SAGAWE:WARN] - ${assembly_type}/${ASSEMBLY} does not exist. Please run this script again with the -s and correct -t -n -m options."
+         echo "[SAGAWE:ERROR] - ${assembly_type}/${ASSEMBLY} does not exist. Please run this script again with the -s and correct -t -n -m options."
          exit 1
     fi
 
@@ -267,7 +267,7 @@ function report_cegma () {
     cegma_dir="$( cd "${OUTDIR}" && pwd )/reports/cegma/${assembly_type}"
 
     if [ ! -f "${assembly_dir}/${assembly_type}/${ASSEMBLY}" ] ; then
-        echo -e "[SAGAWE:ERROR] - SPAdes ${ASSEMBLY} cannot be found. Aborting."
+        echo -e "[SAGAWE:ERROR] - SPAdes ${ASSEMBLY} cannot be found. Stopping."
         exit 1
     else
         mkdir -p "$cegma_dir"
@@ -524,7 +524,7 @@ while getopts ":f:r:o:tnmsqScb:B:T:pMh" FLAG; do
         o)
             OUTDIR="${OPTARG}"
             if [[ "${OPTARG}" =~ ^- ]] ; then
-                echo "[SAGAWE:WARN] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
+                echo "[SAGAWE:ERROR] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
                 exit 1
             fi
 	    mkdir -p "${OUTDIR}"
@@ -532,7 +532,7 @@ while getopts ":f:r:o:tnmsqScb:B:T:pMh" FLAG; do
             ;;
         t)
             if [[ "${OUTDIR}" == "false" ]] ; then
-                echo "[SAGAWE:WARN] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
+                echo "[SAGAWE:ERROR] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
                 exit 1
             fi
             run_trim_galore
@@ -600,17 +600,17 @@ fi
 shift $((OPTIND - 1))
 
 if [[ "${R_FLAG}" == "false" ]]; then
-    echo "[SAGAWE:WARN] - Paired Read 2 Missing. Please Indicate -r <r2.fq|r2.fq.gz>" >&2
+    echo "[SAGAWE:ERROR] - Paired Read 2 Missing. Please Indicate -r <r2.fq|r2.fq.gz>" >&2
     exit 1
 fi
 
 if [[ "${F_FLAG}" == "false" ]]; then
-    echo "[SAGAWE:WARN] - Paired Read 1 Missing. Please Indicate -f <r1.fq|r1.fq.gz>" >&2
+    echo "[SAGAWE:ERROR] - Paired Read 1 Missing. Please Indicate -f <r1.fq|r1.fq.gz>" >&2
     exit 1
 fi
 
 if [[ "${OUTDIR}" == "false" ]]; then
-    echo "[SAGAWE:WARN] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
+    echo "[SAGAWE:ERROR] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
     exit 1
 fi
 
