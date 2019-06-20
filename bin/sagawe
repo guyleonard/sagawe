@@ -228,8 +228,8 @@ function report_quast () {
         echo "[SAGAWE:INFO] - Running QUAST on ${assembly_type} Assembly with ${ASSEMBLY} and Mapping Trimmed Reads"
         quast.py -o "${quast_dir}" -t "${THREADS}" --glimmer \
         --min-contig 100 --k-mer-stats --rna-finding --eukaryote \
-        -1 "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
-        -2 "${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
+        -1 "${trimmed_dir}/${read1}_val_1.fq.gz" \
+        -2 "${trimmed_dir}/${read2}_val_2.fq.gz" \
         ${QUAST_SCAFFOLDS} "${assembly_dir}/${assembly_type}/${ASSEMBLY}" 2>&1 | tee "${quast_dir}/sag_awe_quast.log"
     fi
 }
@@ -306,8 +306,8 @@ function report_blobtools_mapping () {
 
     echo "[SAGAWE:INFO] - Mapping Trimmed Paired Reads to ${ASSEMBLY}"
     bwa mem -t "$THREADS" "${mapping_dir}/${ASSEMBLY}" \
-    "${trimmed_dir}/${read1/.fq.gz/_val_1.fq.gz}" \
-    "${trimmed_dir}/${read2/.fq.gz/_val_2.fq.gz}" \
+    "${trimmed_dir}/${read1}_val_1.fq.gz" \
+    "${trimmed_dir}/${read2}_val_2.fq.gz" \
     > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
 
     echo "[SAGAWE:INFO] - Mapping Trimmed Un-Paired Reads to ${ASSEMBLY}"
@@ -328,8 +328,12 @@ function report_blobtools_mapping () {
     "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam" \
     "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam"
 
-    echo "[SAGAWE:INFO] - Indexing Bam"
-    samtools index "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
+    echo "[SAGAWE:INFO] - Sorting Merged BAM File"
+    samtools sort -@ "${THREADS}" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" \
+    "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
+
+    echo "[SAGAWE:INFO] - Indexing Sorted Bam"
+    samtools index "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam"
 
     rm "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
     rm "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
@@ -373,7 +377,7 @@ function report_blobtools_output {
     blobtools create -i "${blast_dir}/${ASSEMBLY}" \
     --nodes "${NCBI_TAX}/nodes.dmp" --names "${NCBI_TAX}/names.dmp" \
     -t "${blast_dir}/${ASSEMBLY/.fasta/}_vs_$(basename "${NCBI_DB}")_1e-10.megablast" \
-    -b "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" \
+    -b "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" \
     -o "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
 
     echo "[SAGAWE:INFO] - Running BlobTools View - Phylum"
@@ -408,12 +412,12 @@ function report_preseq () {
     preseq_dir="$( cd "${OUTDIR}" && pwd )/reports/preseq/${assembly_type}"
     blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/mapping"
 
-    if [[ -f "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" ]] ; then
+    if [[ -f "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" ]] ; then
         echo "[SAGAWE:INFO] - Running Preseq on ${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
         mkdir -p "${preseq_dir}"
-        preseq lc_extrap -o "${preseq_dir}/yield.txt" -B -P "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
-        bam2mr -o "${preseq_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.mr" "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
-        preseq gc_extrap -o "${preseq_dir}/coverage_curve.txt" "${preseq_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.mr"
+        preseq lc_extrap -B -o "${preseq_dir}/yield.txt" "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam"
+        #bam2mr -o "${preseq_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.mr" "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam"
+        #preseq gc_extrap -o "${preseq_dir}/coverage_curve.txt" "${preseq_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.mr"
     else
         echo "[SAGAWE:WARN] - Not running Preseq: ${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam does not exist!"
     fi
@@ -617,4 +621,3 @@ fi
 output_dir="$( cd "${OUTDIR}" && pwd )"
 echo -e "Date Finished:\t$(date +%Y-%m-%d-%R)" >> "${output_dir}/sag_awe.log"
 exit 0
-
