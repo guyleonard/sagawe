@@ -258,7 +258,7 @@ function report_busco_v3 () {
 
         lineage_name="$(basename "${lineage}")"
         run_BUSCO.py -i "${assembly_dir}/${assembly_type}/${ASSEMBLY}" \
-        -c 24 -o "${lineage_name}" -m genome \
+        -c "${THREADS}" -o "${lineage_name}" -m genome \
         -l "${lineage}" 2>&1 | tee "${busco_dir}/sag_awe_busco.log"
 
         mv "run_${lineage_name}" "${busco_dir}"
@@ -416,25 +416,6 @@ function report_blobtools_output {
     --rank "superkingdom" --format "svg" --out "${image_dir}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
 }
 
-function report_preseq () {
-    assembly_type="${1}"
-    preseq_dir="$( cd "${OUTDIR}" && pwd )/reports/preseq/${assembly_type}"
-    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/mapping"
-
-    if [[ -f "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" ]] ; then
-        echo "[SAGAWE:INFO] - Running Preseq on ${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
-        mkdir -p "${preseq_dir}"
-        preseq lc_extrap -B -o "${preseq_dir}/yield.txt" "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam"
-        bam2mr -o "${preseq_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.mr" \
-        "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" > "${preseq_dir}/temp.out" 2>&1
-        rm "${preseq_dir}/temp.out"
-        preseq gc_extrap -o "${preseq_dir}/coverage_curve.txt" "${preseq_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.mr"
-        pigz -9 "${preseq_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.mr"
-    else
-        echo "[SAGAWE:WARN] - Not running Preseq: ${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam does not exist!"
-    fi
-}
-
 function report_kat () {
     trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
     kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/"
@@ -489,12 +470,11 @@ function help_message () {
     echo -e "Optional Parameters:"
     echo -e "\t-S\tUse scaffolds.fasta instead of contigs.fasta"
     echo -e "Reports/Stats:"
-    echo -e "\t-k\t Run KAT Analysis (run to inform QUAST)"
+    echo -e "\t-k\tRun KAT Analysis (run to inform QUAST)"
     echo -e "\t-q\tRun QUAST Analysis"
     echo -e "\t-c\tRun CEGMA Analysis"
     echo -e "\t-b </path/to/db1,/path/to/db2,...>\tRun BUSCO with Multiple Lineages"
     echo -e "\t-B </path/to/blast/db,/path/to/taxdump>\tRun Blobtools"
-    echo -e "\t-p\tRun preseq Analysis (must run blobtools first)"
     echo -e "\t-M\tRun MultiQC Analysis"
     echo -e "Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s"
     exit 1
@@ -544,7 +524,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts ":f:r:o:tnmskqScb:B:T:pMh" FLAG; do
+while getopts ":f:r:o:tnmskqScb:B:T:Mh" FLAG; do
     case "${FLAG}" in
         f)
             READ1="${OPTARG}"
@@ -611,10 +591,6 @@ while getopts ":f:r:o:tnmskqScb:B:T:pMh" FLAG; do
             fi
             assembly_type=$(get_assembly_type)
             report_blobtools "${assembly_type}"
-            ;;
-        p)
-            assembly_type=$(get_assembly_type)
-            report_preseq "${assembly_type}"
             ;;
         M)
             report_multiqc
