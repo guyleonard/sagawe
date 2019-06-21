@@ -416,6 +416,25 @@ function report_blobtools_output {
     --rank "superkingdom" --format "svg" --out "${image_dir}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
 }
 
+function report_qualimap () {
+    assembly_type="${1}"
+    qualimap_dir="$( cd "${OUTDIR}" && pwd )/reports/qualimap/${assembly_type}"
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/mapping"
+
+    if [[ -f "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" ]] ; then
+        echo "[SAGAWE:INFO] - Running Qualimap on ${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam"
+
+        mkdir -p "${qualimap_dir}"
+
+        qualimap bamqc -nt "${THREADS}"\
+        -bam "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" \
+        -outdir "${qualimap_dir}" \
+        -outformat pdf
+    else
+        echo "[SAGAWE:WARN] - Not Running Qualimap: ${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam does not exist!"
+    fi
+}
+
 function report_kat () {
     trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
     kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/"
@@ -524,7 +543,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts ":f:r:o:tnmskqScb:B:T:Mh" FLAG; do
+while getopts ":f:r:o:tnmskqScb:B:T:QMh" FLAG; do
     case "${FLAG}" in
         f)
             READ1="${OPTARG}"
@@ -591,6 +610,10 @@ while getopts ":f:r:o:tnmskqScb:B:T:Mh" FLAG; do
             fi
             assembly_type=$(get_assembly_type)
             report_blobtools "${assembly_type}"
+            ;;
+        Q)
+	    assembly_type=$(get_assembly_type)
+            report_qualimap "${assembly_type}"
             ;;
         M)
             report_multiqc
