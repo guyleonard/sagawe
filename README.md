@@ -69,7 +69,6 @@ You may like to ask your local friendly bioinformatician / sys-admin to install 
   * AUGUSTUS
   * bamtools
   * HMMER
-* Preseq
 * KAT
 * MultiQC
 
@@ -86,7 +85,6 @@ You may like to try and install many of the dependencies via 'conda'. YMMV.
     conda install -c bioconda blast # installs blast
     conda install -c bioconda blobtools # installs blobtools, samtools
     conda install -c bioconda busco # installs augustus, bamtools, blast, busco, hmmer
-    conda install -c bioconda preseq # installs preseq
     conda install -c bioconda kat # installs kat
     conda install -c bioconda multiqc # installs multiqc
 
