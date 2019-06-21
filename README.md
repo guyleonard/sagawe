@@ -43,19 +43,19 @@ We suggest using all three options -t, -n and -m to produce the 'best' assembly,
     Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s
 
 ## Install Dependencies
-The following programs will need to be installed and be accessible from your PATH. Ihave only tested this on Ubuntu Linux, it should work in other -nix environments. You will also need to make sure that the environment variables for BLAST, CEGMA & AUGUSTUS are set correctly. This script does not check for them and may fail without warning.
+The following programs will need to be installed, and be accessible from your PATH. The script has been tested on Ubuntu Linux Xenial, however it should work in other -nix environments. You will also need to make sure that the relevant environment variables for BLAST, CEGMA & AUGUSTUS are set correctly. This script does not check for dependencies and may fail without warning. Trim Galore! and SPAdes are the minimal required toolset you will need to start.
 
-Below is a brief list of the bioinformatic tools that you will need, some have their own dependencies. You may need to ask your friendly bioinformatician / sys admin to install them for you in exchange for some beer or chocolate! :p Or try to install them yourself with conda.
+You may like to ask your local friendly bioinformatician / sys-admin to install the following programs for you in exchange for some beer or chocolate! :p Or you may try to install them yourself with conda.
 
 ### Assembly
-* Trim_Galore!
+* Trim_Galore! (required)
   * cutadapt
   * FastQC
   * pigz
 * bbtools
   * bbmerge
   * bbnorm
-* SPAdes
+* SPAdes (required)
 
 ### Reporting
 * QUAST v4 or v5
@@ -70,6 +70,7 @@ Below is a brief list of the bioinformatic tools that you will need, some have t
   * bamtools
   * HMMER
 * Preseq
+* KAT
 * MultiQC
 
 ### Legacy
@@ -86,6 +87,7 @@ You may like to try and install many of the dependencies via 'conda'. YMMV.
     conda install -c bioconda blobtools # installs blobtools, samtools
     conda install -c bioconda busco # installs augustus, bamtools, blast, busco, hmmer
     conda install -c bioconda preseq # installs preseq
+    conda install -c bioconda kat # installs kat
     conda install -c bioconda multiqc # installs multiqc
 
 You will also need:
