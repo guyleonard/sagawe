@@ -424,8 +424,6 @@ function report_qualimap () {
     if [[ -f "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" ]] ; then
         echo "[SAGAWE:INFO] - Running Qualimap on ${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam"
 
-        mkdir -p "${qualimap_dir}"
-
         qualimap bamqc -nt "${THREADS}"\
         -bam "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" \
         -outdir "${qualimap_dir}" \
