@@ -99,7 +99,7 @@ You will also need:
   * Environment variable BLASTDB should be exported
     * export BLASTDB=/path/to/taxdb
 
-NB - CEGMA is no longer supported and does not have a conda install and is included for legacy, please use BUSCO.
+NB - CEGMA is no longer supported and does not have a conda install and is included for legacy purposes only, please use BUSCO.
 
 ## Citation
 This work was initially designed during the making of [in prep]. The original scripts are available as a pre-release with the below DOI [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.192677.svg)](https://doi.org/10.5281/zenodo.192677).
