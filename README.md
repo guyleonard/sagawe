@@ -20,27 +20,31 @@ We suggest using all three options -t, -n and -m to produce the 'best' assembly,
 * Grey lines indicate future additions.
 
 ## Example Usage / Help
-    Single Amplified Genome Assembly Workflow Example (SAG-AWE)
-      Options are positional, i.e. they are run sequentially, e.g. -S must come before -q, -t before -n, etc.
-    Input Options (required):
-      -f <r1.fq|r1.fq.gz>  Read Library Pair 1
-      -r <r2.fq|r2.fq.gz>  Read Library Pair 2
-    Output Options (required):
-      -o <output_dir>  Output Directory
-    Program Parameters:
-      -t  Run Trim Galore!
-      -n  Run Normalisation (bbnorm)
-      -m  Run Read Merging (bbmerge)
-      -s  Run Assembly
-    Optional Parameters:
-      -S  Use scaffolds.fasta instead of contigs.fasta
-    Reports/Stats:
-      -q  Run Quast
-      -c  Run CEGMA
-      -b </path/to/db1,/path/to/db2,...>  Run BUSCO with Multiple Lineages
-      -B </path/to/blast/db,/path/to/taxdump>  Run Blobtools with NCBI BLAST db
-      -M  Run MultiQC
-    Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s
+```
+Single Amplified Genome Assembly Workflow Example (SAG-AWE)
+  Options are positional, i.e. they are run sequentially, e.g. -S must come before -q.
+Input Options (required):
+  -f <r1.fq|r1.fq.gz> Read Library Pair 1
+  -r <r2.fq|r2.fq.gz> Read Library Pair 2
+Output Options (required):
+  -o <output_dir> Output Directory
+Program Parameters:
+  -t  Run Trim Galore!
+  -n  Run Normalisation
+  -m  Run Read Merging
+  -s  Run Assembly
+Optional Parameters:
+  -S  Use scaffolds.fasta instead of contigs.fasta
+Reports/Stats:
+  -k  Run KAT Analysis (run to inform QUAST)
+  -q  Run QUAST Analysis
+  -c  Run CEGMA Analysis
+  -b </path/to/db1,/path/to/db2,...>  Run BUSCO with Multiple Lineages
+  -B </path/to/blast/db,/path/to/taxdump> Run Blobtools
+  -Q  Run Qualimap Analysis
+  -M  Run MultiQC Analysis
+Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s
+```
 
 ## Install Dependencies
 The following programs will need to be installed, and be accessible from your PATH. The script has been tested on Ubuntu Linux Xenial, however it should work in other -nix environments. You will also need to make sure that the relevant environment variables for BLAST, CEGMA & AUGUSTUS are set correctly. This script does not check for dependencies and may fail without warning. Trim Galore! and SPAdes are the minimal required toolset you will need to start.
@@ -78,28 +82,28 @@ You may like to ask your local friendly bioinformatician / sys-admin to install 
 You may like to try and install many of the dependencies via 'conda'. YMMV.
 
     conda install -c bioconda trim-galore # installs Trim_Galore!, cutadapt, FastQC
-    conda install -c agbiome bbtools # installs bbtools, samtools
-    conda install -c bioconda spades # installs spades
-    conda install -c bioconda quast # installs quast, blast, glimmer
-    conda install -c bioconda bwa # installs bwa
-    conda install -c bioconda blast # installs blast
-    conda install -c bioconda blobtools # installs blobtools, samtools
-    conda install -c bioconda busco # installs augustus, bamtools, blast, busco, hmmer
-    conda install -c bioconda kat # installs kat
-    conda install -c bioconda multiqc # installs multiqc
+    conda install -c agbiome bbtools      # installs bbtools, samtools
+    conda install -c bioconda spades      # installs spades
+    conda install -c bioconda quast       # installs quast, blast, glimmer
+    conda install -c bioconda bwa         # installs bwa
+    conda install -c bioconda blast       # installs blast
+    conda install -c bioconda blobtools   # installs blobtools, samtools
+    conda install -c bioconda busco       # installs augustus, bamtools, blast, busco, hmmer
+    conda install -c bioconda kat         # installs kat
+    conda install -c bioconda multiqc     # installs multiqc
 
 You will also need:
 * [BUSCO Lineage Datasets](https://busco.ezlab.org)
 * NCBI 'nt' Database
-  * wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/nt.??.tar.gz .
+  * wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/nt.??.tar.gz
 * NCBI 'taxdump' Database
-  * wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz .
+  * wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
 * NCBI 'taxdb' Database
   * wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/taxdb.tar.gz
-  * Environment variable BLASTDB should be exported
+  * Environment variable BLASTDB should be exported to the correct path
     * export BLASTDB=/path/to/taxdb
 
-NB - CEGMA is no longer supported and does not have a conda install and is included for legacy purposes only, please use BUSCO.
+NB - CEGMA is no longer supported and does not have a conda install, it is included for legacy purposes only, please use BUSCO.
 
 ## Citation
 This work was initially designed during the making of [in prep]. The original scripts are available as a pre-release with the below DOI [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.192677.svg)](https://doi.org/10.5281/zenodo.192677).
