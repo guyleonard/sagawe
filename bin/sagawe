@@ -442,7 +442,7 @@ function report_kat () {
     read1="$(basename ${READ1%%.*})"
     read2="$(basename ${READ2%%.*})"
 
-    kat hist -o "${kat_dir}"/kat.hist -t "${THREADS}" \
+    kat hist -o "${kat_dir}"/kat.hist -d -t "${THREADS}" \
     "${trimmed_dir}/${read1}_val_1.fq.gz" \
     "${trimmed_dir}/${read2}_val_2.fq.gz" \
     "${trimmed_dir}/unpaired_all.fq.gz"
