@@ -448,6 +448,10 @@ function report_kat () {
     "${trimmed_dir}/unpaired_all.fq.gz"
 }
 
+function report_smudgeplot () {
+
+}
+
 function report_multiqc () {
     multiqc_dir="$( cd "${OUTDIR}" && pwd )/reports/multiqc"
     multiqc -f -z -o "${multiqc_dir}" "${OUTDIR}"
@@ -542,7 +546,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts ":f:r:o:tnmskqScb:B:T:QMh" FLAG; do
+while getopts ":f:r:o:tnmskqScb:B:T:QpMh" FLAG; do
     case "${FLAG}" in
         f)
             READ1="${OPTARG}"
@@ -611,8 +615,12 @@ while getopts ":f:r:o:tnmskqScb:B:T:QMh" FLAG; do
             report_blobtools "${assembly_type}"
             ;;
         Q)
-	    assembly_type=$(get_assembly_type)
+	        assembly_type=$(get_assembly_type)
             report_qualimap "${assembly_type}"
+            ;;
+        p)
+            assembly_type=$(get_assembly_type)
+            report_smudgeplot "${assembly_type}"
             ;;
         M)
             report_multiqc
