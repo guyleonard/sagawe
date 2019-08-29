@@ -463,10 +463,10 @@ function report_smudgeplot () {
     
     jellyfish dump -c -L $L -U $U "${kat_dir}kat.hist-hash.jf27" > "${smudge_dir}extracted_kmers" 2>&1 | tee -a "${smudge_dir}sag_awe_smudgeplots.log"
     
-    smudgeplot.py hetkmers "${smudge_dir}extracted_kmers" > "${smudge_dir}extracted_kmers" 2>&1 | tee -a "${smudge_dir}sag_awe_smudgeplots.log"
+    smudgeplot.py hetkmers "${smudge_dir}extracted_kmers" > "${smudge_dir}extracted_kmers"
     mv kmerpairs_coverages.tsv kmerpairs_sequences.tsv smudgeplot_warnings.txt "${smudge_dir}"
 
-    smudgeplot.py plot "${smudge_dir}kmerpairs_coverages.tsv" > "${smudge_dir}extracted_kmers" 2>&1 | tee -a "${smudge_dir}sag_awe_smudgeplots.log"
+    smudgeplot.py plot "${smudge_dir}kmerpairs_coverages.tsv" > "${smudge_dir}extracted_kmers"
     mv smudgeplot* "${smudge_dir}"
 }
 
