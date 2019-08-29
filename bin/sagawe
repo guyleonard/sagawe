@@ -455,13 +455,13 @@ function report_smudgeplot () {
 
     mkdir -p "${smudge_dir}"
 
-    sed -e '1,6d' < "${kat_dir}\/kat.hist" > "${kat_dir}\/kat.hist_temp"
+    sed -e '1,6d' < "${kat_dir}kat.hist" > "${kat_dir}kat.hist_temp"
     L=$(smudgeplot.py cutoff kat.hist_temp L)
     U=$(smudgeplot.py cutoff kat.hist_temp U)
     echo "$L $U"
-    jellyfish dump -c -L $L -U $U "${kat_dir}\/kat.hist-hash.jf27" > "{$smudge_dir}\/extracted_kmers"
-    smudgeplot.py hetkmers "{$smudge_dir}\/extracted_kmers"
-    smudgeplot.py plot "{$smudge_dir}\/kmerpairs_coverages.tsv"
+    jellyfish dump -c -L $L -U $U "${kat_dir}kat.hist-hash.jf27" > "{$smudge_dir}extracted_kmers"
+    smudgeplot.py hetkmers "{$smudge_dir}extracted_kmers"
+    smudgeplot.py plot "{$smudge_dir}kmerpairs_coverages.tsv"
 }
 
 function report_multiqc () {
