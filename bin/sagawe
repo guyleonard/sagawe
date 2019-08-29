@@ -470,7 +470,7 @@ function report_smudgeplot () {
     
     smudgeplot.py hetkmers "${smudge_dir}extracted_kmers"
     mv kmerpairs_coverages.tsv kmerpairs_sequences.tsv "${smudge_dir}"
-    pigz -9 "${smudge_dir}extracted_kmers"
+    pigz -9 -f "${smudge_dir}extracted_kmers"
 
     smudgeplot.py plot "${smudge_dir}kmerpairs_coverages.tsv"
     mv smudgeplot* "${smudge_dir}"
@@ -522,6 +522,7 @@ function help_message () {
     echo -e "\t-c\tRun CEGMA Analysis"
     echo -e "\t-b </path/to/db1,/path/to/db2,...>\tRun BUSCO with Multiple Lineages"
     echo -e "\t-B </path/to/blast/db,/path/to/taxdump>\tRun Blobtools"
+    echo -e "\t-p\tRun Smudge Plots (requires -k and Jellyfish)"
     echo -e "\t-Q\tRun Qualimap Analysis"
     echo -e "\t-M\tRun MultiQC Analysis"
     echo -e "Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s"
