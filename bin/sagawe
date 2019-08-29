@@ -515,6 +515,7 @@ function help_message () {
     echo -e "\t-m\tRun Read Merging"
     echo -e "\t-s\tRun Assembly"
     echo -e "Optional Parameters:"
+    echo -e "\t-C\tUse to turn off Single-Cell mode in SPAdes"
     echo -e "\t-S\tUse scaffolds.fasta instead of contigs.fasta"
     echo -e "Reports/Stats:"
     echo -e "\t-k\tRun KAT Analysis (run to inform QUAST)"
@@ -525,7 +526,7 @@ function help_message () {
     echo -e "\t-p\tRun Smudge Plots (requires -k and Jellyfish)"
     echo -e "\t-Q\tRun Qualimap Analysis"
     echo -e "\t-M\tRun MultiQC Analysis"
-    echo -e "Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s"
+    echo -e "Example: sagawe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s"
     exit 1
 }
 

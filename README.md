@@ -10,14 +10,15 @@ Depending on the options you select, there are four paths to assembling your dat
 * T (green) - Trimmed
 * TN (blue) - Trimmed and Normalised
 * TM (yellow) - Trimmed and Merged
-* TNM (blue+red=purple) - Trimmed, Normalised and Merged
+* TNM (purple) - Trimmed, Normalised and Merged
 
 We suggest using all three options -t, -n and -m to produce the 'best' assembly, however your library prep/design and sequencing results may work better with different options. You can run the workflow with different options in the same output directory if you wish to make comparisons. 
 
 ![SAGAWE](https://github.com/guyleonard/sagawe/blob/master/images/SAGAWE.svg)
 
-* Dotted lines indicate reports read by MultiQC
-* Grey lines indicate future additions.
+* Red arrows indicate data requirements from previous steps
+* Dotted arrows indicate reports read by MultiQC
+* Grey arrows indicate future additions.
 
 ## Example Usage / Help
 ```
@@ -34,6 +35,7 @@ Program Parameters:
   -m  Run Read Merging
   -s  Run Assembly
 Optional Parameters:
+  -C  Use to turn off Single-Cell mode in SPAdes 
   -S  Use scaffolds.fasta instead of contigs.fasta
 Reports/Stats:
   -k  Run KAT Analysis (run to inform QUAST)
@@ -44,8 +46,10 @@ Reports/Stats:
   -p  Run Smudge Plots (requires -k and Jellyfish)
   -Q  Run Qualimap Analysis
   -M  Run MultiQC Analysis
-Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s
+
+Example: bin/sagawe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s
 ```
+The *-C* mode allows you to turn off "single-cell" mode in SPAdes, this may be useful for some analyses.
 
 ## Install Dependencies
 The following programs will need to be installed, and be accessible from your PATH. The script has been tested on Ubuntu Linux Xenial, however it should work in other -nix environments. You will also need to make sure that the relevant environment variables for BLAST, CEGMA & AUGUSTUS are set correctly. This script does not check for dependencies and may fail without warning. Trim Galore! and SPAdes are the minimal required toolset you will need to start.
