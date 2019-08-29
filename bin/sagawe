@@ -40,7 +40,7 @@ function run_normalisation () {
 	echo "[SAGAWE:ERROR] - You Must Specifiy Input Reads with -f and -r"
 	exit 1
     elif [ ! -f "${trimmed_dir}/${read1}_val_1.fq.gz" ] ; then
-        echo "[SAGAWE:ERROR] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting."
+        echo "[SAGAWE:ERRR] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting."
         exit 1
     fi
 
@@ -449,7 +449,19 @@ function report_kat () {
 }
 
 function report_smudgeplot () {
+    assembly_type="${1}"
+    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/"
+    smudge_dir="$( cd "${OUTDIR}" && pwd )/reports/smudgeplot/"
 
+    mkdir -p "${smudge_dir}"
+
+    sed -e '1,6d' < "${kat_dir}\/kat.hist" > "${kat_dir}\/kat.hist_temp"
+    L=$(smudgeplot.py cutoff kat.hist_temp L)
+    U=$(smudgeplot.py cutoff kat.hist_temp U)
+    echo "$L $U"
+    jellyfish dump -c -L $L -U $U "${kat_dir}\/kat.hist-hash.jf27" > "{$smudge_dir}\/extracted_kmers"
+    smudgeplot.py hetkmers "{$smudge_dir}\/extracted_kmers"
+    smudgeplot.py plot "{$smudge_dir}\/kmerpairs_coverages.tsv"
 }
 
 function report_multiqc () {
