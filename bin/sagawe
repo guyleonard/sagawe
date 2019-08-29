@@ -453,6 +453,11 @@ function report_smudgeplot () {
     kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/"
     smudge_dir="$( cd "${OUTDIR}" && pwd )/reports/smudgeplot/"
 
+    if [[ ! -f "${kat_dir}kat.hist-hash.jf27" ]] ; then
+        echo "You need to run KAT with the -k option first!"
+        exit 1
+    fi
+
     mkdir -p "${smudge_dir}"
 
     sed -e '1,6d' < "${kat_dir}kat.hist" > "${kat_dir}kat.hist_temp"
@@ -464,10 +469,13 @@ function report_smudgeplot () {
     jellyfish dump -c -L $L -U $U "${kat_dir}kat.hist-hash.jf27" > "${smudge_dir}extracted_kmers"
     
     smudgeplot.py hetkmers "${smudge_dir}extracted_kmers"
-    mv kmerpairs_coverages.tsv kmerpairs_sequences.tsv smudgeplot_warnings.txt "${smudge_dir}"
+    mv kmerpairs_coverages.tsv kmerpairs_sequences.tsv "${smudge_dir}"
+    pigz -9 "${smudge_dir}extracted_kmers"
 
     smudgeplot.py plot "${smudge_dir}kmerpairs_coverages.tsv"
     mv smudgeplot* "${smudge_dir}"
+
+    rm "${kat_dir}kat.hist-hash.jf27"
 }
 
 function report_multiqc () {
