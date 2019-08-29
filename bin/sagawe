@@ -138,7 +138,7 @@ function run_assembly_spades {
             echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Normalised-Merged Reads"
             mkdir -p "${assembly_dir}"
 
-            spades.py --sc --careful -t "$THREADS" \
+            spades.py ${SC} --careful -t "$THREADS" \
             --pe1-m "${merged_dir}/normalised_merged.fq.gz" \
             --pe1-1 "${merged_dir}/${read1}_normalised_unmerged.fq.gz" \
             --pe1-2 "${merged_dir}/${read2}_normalised_unmerged.fq.gz" \
@@ -155,7 +155,7 @@ function run_assembly_spades {
             echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Merged Reads"
             mkdir -p "${assembly_dir}"
 
-            spades.py --sc --careful -t "$THREADS" \
+            spades.py ${SC} --careful -t "$THREADS" \
             --pe1-m "${merged_dir}/merged.fq.gz" \
             --pe1-1 "${merged_dir}/${read1}_unmerged.fq.gz" \
             --pe1-2 "${merged_dir}/${read2}_unmerged.fq.gz" \
@@ -171,7 +171,7 @@ function run_assembly_spades {
             echo "[SAGAWE:INFO] - Running Assembly with Trimmed-Normalised Reads"
             mkdir -p "${assembly_dir}"
 
-            spades.py --sc --careful -t "$THREADS" \
+            spades.py ${SC} --careful -t "$THREADS" \
             --pe1-1 "${normalised_dir}/${read1}_normalised.fq.gz" \
             --pe1-2 "${normalised_dir}/${read2}_normalised.fq.gz" \
             -o "$assembly_dir"
@@ -186,7 +186,7 @@ function run_assembly_spades {
             echo "[SAGAWE:INFO] - Running Assembly with Trimmed Reads"
             mkdir -p "${assembly_dir}"
 
-            spades.py --sc --careful -t "$THREADS" \
+            spades.py ${SC} --careful -t "$THREADS" \
             --pe1-1 "${trimmed_dir}/${read1}_val_1.fq.gz" \
             --pe1-2 "${trimmed_dir}/${read2}_val_2.fq.gz" \
             --pe1-s "${trimmed_dir}/unpaired_all.fq.gz" \
@@ -562,6 +562,7 @@ QUAST_SCAFFOLDS=""
 R_FLAG="false"
 READ1=""
 READ2=""
+SC="--sc"
 THREADS=$(cores)
 TAXDB=""
 
@@ -589,7 +590,7 @@ while getopts ":f:r:o:tnmskqScb:B:T:QpMh" FLAG; do
                 echo "[SAGAWE:ERROR] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
                 exit 1
             fi
-	    mkdir -p "${OUTDIR}"
+	        mkdir -p "${OUTDIR}"
             cite_log "${OUTDIR}"
             ;;
         t)
@@ -606,6 +607,10 @@ while getopts ":f:r:o:tnmskqScb:B:T:QpMh" FLAG; do
         m)
             run_bbmerge
             MERGED="true"
+            ;;
+        C)
+            SC=""
+            echo "[SAGAWE:WARN] - Turning Off Single-Cell Mode" >&2
             ;;
         s)
             run_assembly_spades
@@ -636,7 +641,7 @@ while getopts ":f:r:o:tnmskqScb:B:T:QpMh" FLAG; do
             NCBI_TAX=$(echo "${paths}" | cut -f 2 -d ',')
             if [[ ! -f "${NCBI_TAX}/nodes.dmp" || ! -f "${NCBI_TAX}/names.dmp" ]] ; then
                 echo "[SAGAWE:ERROR] - nodes.dmp or names.dmp Not Found at Location: ${NCBI_TAX}. Please Correct."
-		exit 1
+		        exit 1
             fi
             assembly_type=$(get_assembly_type)
             report_blobtools "${assembly_type}"
