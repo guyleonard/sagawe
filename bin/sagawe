@@ -459,14 +459,14 @@ function report_smudgeplot () {
 
     L=$(smudgeplot.py cutoff ${kat_dir}kat.hist_temp L)
     U=$(smudgeplot.py cutoff ${kat_dir}kat.hist_temp U)
-    echo "$L $U"
+    echo "$L $U" > "${smudge_dir}sag_awe_smudgeplots.log"
     
-    jellyfish dump -c -L $L -U $U "${kat_dir}kat.hist-hash.jf27" > "${smudge_dir}extracted_kmers"
+    jellyfish dump -c -L $L -U $U "${kat_dir}kat.hist-hash.jf27" > "${smudge_dir}extracted_kmers" 2>&1 | tee -a "${smudge_dir}sag_awe_smudgeplots.log"
     
-    smudgeplot.py hetkmers "${smudge_dir}extracted_kmers"
+    smudgeplot.py hetkmers "${smudge_dir}extracted_kmers" > "${smudge_dir}extracted_kmers" 2>&1 | tee -a "${smudge_dir}sag_awe_smudgeplots.log"
     mv kmerpairs_coverages.tsv kmerpairs_sequences.tsv smudgeplot_warnings.txt "${smudge_dir}"
 
-    smudgeplot.py plot "${smudge_dir}kmerpairs_coverages.tsv"
+    smudgeplot.py plot "${smudge_dir}kmerpairs_coverages.tsv" > "${smudge_dir}extracted_kmers" 2>&1 | tee -a "${smudge_dir}sag_awe_smudgeplots.log"
 }
 
 function report_multiqc () {
