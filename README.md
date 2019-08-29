@@ -41,6 +41,7 @@ Reports/Stats:
   -c  Run CEGMA Analysis
   -b </path/to/db1,/path/to/db2,...>  Run BUSCO with Multiple Lineages
   -B </path/to/blast/db,/path/to/taxdump> Run Blobtools
+  -p  Run Smudge Plots (requires -k and Jellyfish)
   -Q  Run Qualimap Analysis
   -M  Run MultiQC Analysis
 Example: sag_awe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s
@@ -74,6 +75,8 @@ You may like to ask your local friendly bioinformatician / sys-admin to install 
   * bamtools
   * HMMER
 * KAT
+* Smudgeplots
+  * Jellyfish
 * MultiQC
 
 ### Legacy
@@ -90,6 +93,7 @@ You may like to try and install many of the dependencies via 'conda'. YMMV.
     conda install -c bioconda blobtools   # installs blobtools, samtools
     conda install -c bioconda busco       # installs augustus, bamtools, blast, busco, hmmer
     conda install -c bioconda kat         # installs kat
+    conda install -c bioconda jellyfish   # installs jellyfish
     conda install -c bioconda multiqc     # installs multiqc
 
 You will also need:
