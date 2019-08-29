@@ -463,8 +463,8 @@ function report_smudgeplot () {
     
     jellyfish dump -c -L $L -U $U "${kat_dir}kat.hist-hash.jf27" > "${smudge_dir}extracted_kmers"
     
-    smudgeplot.py hetkmers "{$smudge_dir}extracted_kmers"
-    smudgeplot.py plot "{$smudge_dir}kmerpairs_coverages.tsv"
+    smudgeplot.py hetkmers "${smudge_dir}extracted_kmers"
+    smudgeplot.py plot "${smudge_dir}kmerpairs_coverages.tsv"
 }
 
 function report_multiqc () {
