@@ -467,6 +467,7 @@ function report_smudgeplot () {
     mv kmerpairs_coverages.tsv kmerpairs_sequences.tsv smudgeplot_warnings.txt "${smudge_dir}"
 
     smudgeplot.py plot "${smudge_dir}kmerpairs_coverages.tsv" > "${smudge_dir}extracted_kmers" 2>&1 | tee -a "${smudge_dir}sag_awe_smudgeplots.log"
+    mv smudgeplot* "${smudge_dir}"
 }
 
 function report_multiqc () {
