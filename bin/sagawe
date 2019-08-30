@@ -478,6 +478,22 @@ function report_smudgeplot () {
     rm "${kat_dir}kat.hist-hash.jf27"
 }
 
+function report_genomescope () {
+    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/"
+    gs_dir="$( cd "${OUTDIR}" && pwd )/reports/genomescope/"
+
+    if [[ ! -f "${kat_dir}kat.hist" ]] ; then
+        echo "You need to run KAT with the -k option first!"
+        exit 1
+    fi
+
+    mkdir -p "${gs_dir}"
+
+    sed -e '1,6d' < "${kat_dir}kat.hist" > "${kat_dir}kat.hist_temp"
+
+    genomescope.R -i "${kat_dir}kat.hist_temp" -o "${gs_dir}" -k 27
+}
+
 function report_multiqc () {
     multiqc_dir="$( cd "${OUTDIR}" && pwd )/reports/multiqc"
     multiqc -f -z -o "${multiqc_dir}" "${OUTDIR}"
@@ -575,7 +591,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts ":f:r:o:tnmskqScb:B:T:QpMh" FLAG; do
+while getopts ":f:r:o:tnmskgqScb:B:T:QpMh" FLAG; do
     case "${FLAG}" in
         f)
             READ1="${OPTARG}"
@@ -618,6 +634,9 @@ while getopts ":f:r:o:tnmskqScb:B:T:QpMh" FLAG; do
             ;;
         k)
             report_kat
+            ;;
+        g)
+            report_genomescope
             ;;
         q)
             assembly_type=$(get_assembly_type)
