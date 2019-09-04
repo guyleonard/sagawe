@@ -539,6 +539,7 @@ function help_message () {
     echo -e "\t-c\tRun CEGMA Analysis"
     echo -e "\t-b </path/to/db1,/path/to/db2,...>\tRun BUSCO with Multiple Lineages"
     echo -e "\t-B </path/to/blast/db,/path/to/taxdump>\tRun Blobtools"
+    echo -e "\t-g\tRun GenomeScope (requires -k)"
     echo -e "\t-p\tRun Smudge Plots (requires -k and Jellyfish)"
     echo -e "\t-Q\tRun Qualimap Analysis"
     echo -e "\t-M\tRun MultiQC Analysis"

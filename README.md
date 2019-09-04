@@ -43,6 +43,7 @@ Reports/Stats:
   -c  Run CEGMA Analysis
   -b </path/to/db1,/path/to/db2,...>  Run BUSCO with Multiple Lineages
   -B </path/to/blast/db,/path/to/taxdump> Run Blobtools
+  -g  Run GenomeScope (requires -k)
   -p  Run Smudge Plots (requires -k and Jellyfish)
   -Q  Run Qualimap Analysis
   -M  Run MultiQC Analysis
@@ -79,6 +80,7 @@ You may like to ask your local friendly bioinformatician / sys-admin to install 
   * bamtools
   * HMMER
 * KAT
+* Genomescope
 * Smudgeplots
   * Jellyfish
 * MultiQC
@@ -110,6 +112,8 @@ You will also need:
   * wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/taxdb.tar.gz
   * Environment variable BLASTDB should be exported to the correct path
     * export BLASTDB=/path/to/taxdb
+* [GenomeScope](https://github.com/tbenavi1/genomescope2.0)
+* [SmudgePlot](https://github.com/KamilSJaron/smudgeplot)
 
 NB - CEGMA is no longer supported and does not have a conda install, it is included for legacy purposes only, please use BUSCO.
 
