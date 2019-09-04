@@ -14,7 +14,9 @@ Depending on the options you select, there are four paths to assembling your dat
 
 We suggest using all three options -t, -n and -m to produce the 'best' assembly, however your library prep/design and sequencing results may work better with different options. You can run the workflow with different options in the same output directory if you wish to make comparisons. 
 
+<p align="center">
 ![SAGAWE](https://github.com/guyleonard/sagawe/blob/master/images/SAGAWE.svg)
+</p>
 
 * Red arrows indicate data requirements from previous steps
 * Dotted arrows indicate reports read by MultiQC
