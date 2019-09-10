@@ -206,7 +206,7 @@ function report_quast () {
     blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/mapping"
 
     kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/"
-    genome_size=""
+    genome_size=''
 
     read1="$(basename ${READ1%%.*})"
     read2="$(basename ${READ2%%.*})"
@@ -222,6 +222,11 @@ function report_quast () {
         gs=$(grep -Po '"est_genome_size": \d+,' "${kat_dir}/kat.hist.dist_analysis.json")
         genome_size="--est-ref-size ${gs//[!0-9]/}"
         echo "[SAGAWE:INFO] - Retrieved Estimated Genome Size from KAT: ${gs//[!0-9]/}"
+
+        if [[ ${gs//[!0-9]/} -eq '0' ]] ; then
+            echo "[SAGAWE:WARN] - Estimated Genome Size Ignored"
+            genome_size=''
+        fi
     fi
 
     quast_dir="${quast_dir}/${assembly_type}"
