@@ -496,7 +496,7 @@ function report_genomescope () {
 
     sed -e '1,6d' < "${kat_dir}kat.hist" > "${kat_dir}kat.hist_temp"
 
-    genomescope.R -i "${kat_dir}kat.hist_temp" -o "${gs_dir}" -k 27
+    genomescope.R "${kat_dir}kat.hist_temp" 27 150 "${gs_dir}"
 }
 
 function report_multiqc () {
