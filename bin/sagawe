@@ -406,7 +406,7 @@ function report_blobtools_output {
 
     echo "[SAGAWE:INFO] - Running BlobTools Plot PNG - Phylum"
     blobtools plot -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
-    --rank "phylum" --out "${table_dir}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
+    --rank "phylum" --out "${image_dir}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
 
     echo "[SAGAWE:INFO] - Running BlobTools Plot PNG - Phylum"
     blobtools plot -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
@@ -414,7 +414,7 @@ function report_blobtools_output {
 
     echo "[SAGAWE:INFO] - Running BlobTools Plot SVG - Phylum"
     blobtools plot -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
-    --rank "phylum" --format "svg" --out "${table_dir}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
+    --rank "phylum" --format "svg" --out "${image_dir}/" 2>&1 | tee -a "$blobtools_dir/${assembly_type}/sag_awe_blobtools.log"
 
     echo "[SAGAWE:INFO] - Running BlobTools Plot SVG - Phylum"
     blobtools plot -i "${blobtools_dir}/${assembly_type}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
