@@ -234,13 +234,13 @@ function report_quast () {
     if [[ -f "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" ]] ; then
         echo "[SAGAWE:INFO] - Running QUAST on ${assembly_type} Assembly with ${ASSEMBLY} and Mapped Trimmed Reads"
         quast.py -o "${quast_dir}" -t "${THREADS}" --glimmer \
-        --min-contig 100 --k-mer-stats --rna-finding --eukaryote \
+        --min-contig "${LIMIT}" --k-mer-stats --rna-finding --eukaryote \
         --bam "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" \
         ${QUAST_SCAFFOLDS} ${genome_size} "${assembly_dir}/${ASSEMBLY}" 2>&1 | tee "${quast_dir}/sag_awe_quast.log"
     else
         echo "[SAGAWE:INFO] - Running QUAST on ${assembly_type} Assembly with ${ASSEMBLY} and Mapping Trimmed Reads"
         quast.py -o "${quast_dir}" -t "${THREADS}" --glimmer \
-        --min-contig 100 --k-mer-stats --rna-finding --eukaryote \
+        --min-contig "${LIMIT}" --k-mer-stats --rna-finding --eukaryote \
         -1 "${trimmed_dir}/${read1}_val_1.fq.gz" \
         -2 "${trimmed_dir}/${read2}_val_2.fq.gz" \
         ${QUAST_SCAFFOLDS} ${genome_size} "${assembly_dir}/${ASSEMBLY}" 2>&1 | tee "${quast_dir}/sag_awe_quast.log"
@@ -585,7 +585,7 @@ ARGS=$@
 ASSEMBLY="contigs.fasta"
 BUSCO_LINEAGES=''
 F_FLAG="false"
-LIMIT=''
+LIMIT='500'
 MERGED="false"
 NCBI_DB=''
 NCBI_TAX=''
