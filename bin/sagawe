@@ -436,9 +436,8 @@ function report_qualimap () {
 }
 
 function report_kat () {
-    assembly_type="${1}"
     trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
-    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/${assembly_type}"
+    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat"
 
     mkdir -p "${kat_dir}"
 
@@ -452,9 +451,8 @@ function report_kat () {
 }
 
 function report_smudgeplot () {
-    assembly_type="${1}"
-    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/${assembly_type}"
-    smudge_dir="$( cd "${OUTDIR}" && pwd )/reports/smudgeplot/${assembly_type}"
+    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/"
+    smudge_dir="$( cd "${OUTDIR}" && pwd )/reports/smudgeplot"
 
     if [[ ! -f "${kat_dir}kat.hist-hash.jf27" ]] ; then
         echo "You need to run KAT with the -k option first!"
@@ -482,9 +480,8 @@ function report_smudgeplot () {
 }
 
 function report_genomescope () {
-    assembly_type="${1}"
-    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/${assembly_type}"
-    gs_dir="$( cd "${OUTDIR}" && pwd )/reports/genomescope/${assembly_type}"
+    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/"
+    gs_dir="$( cd "${OUTDIR}" && pwd )/reports/genomescope/"
 
     if [[ ! -f "${kat_dir}kat.hist" ]] ; then
         echo "You need to run KAT with the -k option first!"
@@ -500,7 +497,7 @@ function report_genomescope () {
 
 function report_multiqc () {
     assembly_type="${1}"
-    multiqc_dir="$( cd "${OUTDIR}" && pwd )/reports/multiqc/${assembly_type}/${LIMIT_DIR}"
+    multiqc_dir="$( cd "${OUTDIR}" && pwd )/reports/multiqc/${assembly_type}/"
     multiqc -f -z -o "${multiqc_dir}" "${OUTDIR}"
 }
 
