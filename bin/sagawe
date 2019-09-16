@@ -444,60 +444,72 @@ function report_kat () {
     read1="$(basename ${READ1%%.*})"
     read2="$(basename ${READ2%%.*})"
 
-    kat hist -o "${kat_dir}"/kat.hist -d -t "${THREADS}" \
-    "${trimmed_dir}/${read1}_val_1.fq.gz" \
-    "${trimmed_dir}/${read2}_val_2.fq.gz" \
-    "${trimmed_dir}/unpaired_all.fq.gz"
+    if [[ -f "${kat_dir}/kat.hist-hash.jf27" ]] ; then
+        echo "[SAGAWE:WARN] - KAT Previously Run, Skipping."
+    else
+        echo "[SAGAWE:INFO] - Running KAT on Trimmed Reads"
+        kat hist -o "${kat_dir}"/kat.hist -d -t "${THREADS}" \
+        "${trimmed_dir}/${read1}_val_1.fq.gz" \
+        "${trimmed_dir}/${read2}_val_2.fq.gz" \
+        "${trimmed_dir}/unpaired_all.fq.gz"
+    fi
 }
 
 function report_smudgeplot () {
-    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/"
+    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat"
     smudge_dir="$( cd "${OUTDIR}" && pwd )/reports/smudgeplot"
 
-    if [[ ! -f "${kat_dir}kat.hist-hash.jf27" ]] ; then
-        echo "You need to run KAT with the -k option first!"
+    if [[ ! -f "${kat_dir}/kat.hist-hash.jf27" ]] ; then
+        echo "[SAGAWE:ERRR] - You need to run KAT with the -k option first!"
         exit 1
     fi
 
     mkdir -p "${smudge_dir}"
 
-    sed -e '1,6d' < "${kat_dir}kat.hist" > "${kat_dir}kat.hist_temp"
+    sed -e '1,6d' < "${kat_dir}/kat.hist" > "${kat_dir}kat.hist_temp"
 
+    echo "[SAGAWE:INFO] - Getting upper and lowe Kmer Cutoffs"
     L=$(smudgeplot.py cutoff ${kat_dir}kat.hist_temp L)
     U=$(smudgeplot.py cutoff ${kat_dir}kat.hist_temp U)
     echo "$L $U" > "${smudge_dir}sag_awe_smudgeplots.log"
     
-    jellyfish dump -c -L $L -U $U "${kat_dir}kat.hist-hash.jf27" > "${smudge_dir}extracted_kmers"
+    echo "[SAGAWE:INFO] - Dumping Kmer Counts Using Jellyfish"
+    jellyfish dump -c -L $L -U $U "${kat_dir}/kat.hist-hash.jf27" > "${smudge_dir}/extracted_kmers"
     
+    echo "[SAGAWE:INFO] - Running SmudgePlot hetkmers on ${smudge_dir}/extracted_kmers"
     smudgeplot.py hetkmers "${smudge_dir}extracted_kmers"
+    echo "[SAGAWE:INFO] - Tidying Up Smudge Plot"
     mv kmerpairs_coverages.tsv kmerpairs_sequences.tsv "${smudge_dir}"
     pigz -9 -f "${smudge_dir}extracted_kmers"
 
-    smudgeplot.py plot "${smudge_dir}kmerpairs_coverages.tsv"
+    echo "[SAGAWE:INFO] - Running SmudgePlot plot on ${smudge_dir}/kmerpairs_coverages.tsv"
+    smudgeplot.py plot "${smudge_dir}/kmerpairs_coverages.tsv"
     mv smudgeplot* "${smudge_dir}"
 
-    rm "${kat_dir}kat.hist-hash.jf27"
+    #rm "${kat_dir}kat.hist-hash.jf27"
 }
 
 function report_genomescope () {
-    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/"
-    gs_dir="$( cd "${OUTDIR}" && pwd )/reports/genomescope/"
+    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat"
+    gs_dir="$( cd "${OUTDIR}" && pwd )/reports/genomescope"
 
-    if [[ ! -f "${kat_dir}kat.hist" ]] ; then
-        echo "You need to run KAT with the -k option first!"
+    if [[ ! -f "${kat_dir}/kat.hist" ]] ; then
+        echo "[SAGAWE:ERR] - You need to run KAT with the -k option first!"
         exit 1
     fi
 
     mkdir -p "${gs_dir}"
 
-    sed -e '1,6d' < "${kat_dir}kat.hist" > "${kat_dir}kat.hist_temp"
+    sed -e '1,6d' < "${kat_dir}/kat.hist" > "${kat_dir}kat.hist_temp"
 
-    genomescope.R "${kat_dir}kat.hist_temp" 27 150 "${gs_dir}"
+    echo "[SAGAWE:INFO] - Running GenomeScope on KAT kmer histogram"
+    genomescope.R "${kat_dir}/kat.hist_temp" 27 150 "${gs_dir}"
 }
 
 function report_multiqc () {
     assembly_type="${1}"
-    multiqc_dir="$( cd "${OUTDIR}" && pwd )/reports/multiqc/${assembly_type}/"
+    multiqc_dir="$( cd "${OUTDIR}" && pwd )/reports/multiqc/${assembly_type}"
+    echo "[SAGAWE:INFO] - Running MultiQC on ${OUTDIR}/${assembly_type}"
     multiqc -f -z -o "${multiqc_dir}" "${OUTDIR}"
 }
 
