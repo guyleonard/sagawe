@@ -207,7 +207,7 @@ function report_quast () {
     quast_dir="$( cd "${OUTDIR}" && pwd )/reports/quast/${assembly_type}/${LIMIT_DIR}"
     blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/${LIMIT_DIR}/mapping"
 
-    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/${assembly_type}"
+    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/"
     genome_size=''
 
     read1="$(basename ${READ1%%.*})"
