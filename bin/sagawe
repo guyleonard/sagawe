@@ -531,7 +531,7 @@ function help_message () {
     echo -e "\t-r <r2.fq|r2.fq.gz>\tRead Library Pair 2"
     echo -e "Output Options (required):"
     echo -e "\t-o <output_dir>\tOutput Directory"
-    echo -e "Program Parameters:"
+    echo -e "Run Program:"
     echo -e "\t-t\tRun Trim Galore!"
     echo -e "\t-n\tRun Normalisation"
     echo -e "\t-m\tRun Read Merging"
@@ -539,14 +539,15 @@ function help_message () {
     echo -e "Optional Parameters:"
     echo -e "\t-C\tUse to turn off Single-Cell mode in SPAdes"
     echo -e "\t-S\tUse scaffolds.fasta instead of contigs.fasta"
+    echo -e "\t-L <int>\tLimit contigs or scaffolds in reports to >= <int>bp"
     echo -e "Reports/Stats:"
     echo -e "\t-k\tRun KAT Analysis (run to inform QUAST)"
     echo -e "\t-q\tRun QUAST Analysis"
-    echo -e "\t-c\tRun CEGMA Analysis"
+    echo -e "\t-c\tRun CEGMA Analysis (legacy, use -b)"
     echo -e "\t-b </path/to/db1,/path/to/db2,...>\tRun BUSCO with Multiple Lineages"
     echo -e "\t-B </path/to/blast/db,/path/to/taxdump>\tRun Blobtools"
-    echo -e "\t-g\tRun GenomeScope (requires -k)"
-    echo -e "\t-p\tRun Smudge Plots (requires -k and Jellyfish)"
+    echo -e "\t-g\tRun GenomeScope (requires previous -k)"
+    echo -e "\t-p\tRun Smudge Plots (requires previous -k)"
     echo -e "\t-Q\tRun Qualimap Analysis"
     echo -e "\t-M\tRun MultiQC Analysis"
     echo -e "Example: sagawe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s"
@@ -574,21 +575,22 @@ function cite_log () {
 #
 ARGS=$@
 ASSEMBLY="contigs.fasta"
-BUSCO_LINEAGES=""
+BUSCO_LINEAGES=''
 F_FLAG="false"
+LIMIT=''
 MERGED="false"
-NCBI_DB=""
-NCBI_TAX=""
+NCBI_DB=''
+NCBI_TAX=''
 NORMALISED="false"
 NUMARGS=$#
 OUTDIR="false"
 QUAST_SCAFFOLDS=""
 R_FLAG="false"
-READ1=""
-READ2=""
+READ1=''
+READ2=''
 SC="--sc"
+TAXDB=''
 THREADS=$(cores)
-TAXDB=""
 
 if [ "${NUMARGS}" -eq 0 ]; then
     help_message
@@ -598,7 +600,7 @@ fi
 #
 # Getopts Workflow
 #
-while getopts ":f:r:o:tnmskgqScb:B:T:QpMh" FLAG; do
+while getopts ":f:r:o:tnmCskgqSL:cb:B:T:QpMh" FLAG; do
     case "${FLAG}" in
         f)
             READ1="${OPTARG}"
@@ -640,9 +642,11 @@ while getopts ":f:r:o:tnmskgqScb:B:T:QpMh" FLAG; do
             run_assembly_spades
             ;;
         k)
+            assembly_type=$(get_assembly_type)
             report_kat
             ;;
         g)
+            assembly_type=$(get_assembly_type)
             report_genomescope
             ;;
         q)
@@ -653,6 +657,9 @@ while getopts ":f:r:o:tnmskgqScb:B:T:QpMh" FLAG; do
             ASSEMBLY="scaffolds.fasta"
             QUAST_SCAFFOLDS="-s"
             ;;
+        L)
+            LIMIT="${OPTARG}"
+            ;;  
         c)
             assembly_type=$(get_assembly_type)
             report_cegma "${assembly_type}"
@@ -682,6 +689,7 @@ while getopts ":f:r:o:tnmskgqScb:B:T:QpMh" FLAG; do
             report_smudgeplot "${assembly_type}"
             ;;
         M)
+            assembly_type=$(get_assembly_type)
             report_multiqc
             ;;
         h)
@@ -701,12 +709,12 @@ fi
 shift $((OPTIND - 1))
 
 if [[ "${R_FLAG}" == "false" ]]; then
-    echo "[SAGAWE:ERROR] - Paired Read 2 Missing. Please Indicate -r <r2.fq|r2.fq.gz>" >&2
+    echo "[SAGAWE:ERROR] - Paired Read #2 Missing. Please Indicate -r <r2.fq|r2.fq.gz>" >&2
     exit 1
 fi
 
 if [[ "${F_FLAG}" == "false" ]]; then
-    echo "[SAGAWE:ERROR] - Paired Read 1 Missing. Please Indicate -f <r1.fq|r1.fq.gz>" >&2
+    echo "[SAGAWE:ERROR] - Paired Read #1 Missing. Please Indicate -f <r1.fq|r1.fq.gz>" >&2
     exit 1
 fi
 
