@@ -527,7 +527,7 @@ function make_limited_file () {
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly/${assembly_type}"
 
     echo "[SAGAWE:INFO] - Generating Reduced Assembly"
-    seqtk seq -L ${LIMIT} ${assembly_dir}$/${ASSEMBLY} > ${assembly_dir}/ge\_${ASSEMBLY/.fasta/\_${LIMIT}\.fasta}
+    seqtk seq -L "${LIMIT}" "${assembly_dir}/${ASSEMBLY}" > "${assembly_dir}/${ASSEMBLY/.fasta/ge\_${LIMIT}\.fasta}"
 
 }
 
