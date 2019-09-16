@@ -643,11 +643,11 @@ while getopts ":f:r:o:tnmCskgqSL:cb:B:T:QpMh" FLAG; do
             ;;
         k)
             assembly_type=$(get_assembly_type)
-            report_kat
+            report_kat "${assembly_type}"
             ;;
         g)
             assembly_type=$(get_assembly_type)
-            report_genomescope
+            report_genomescope "${assembly_type}"
             ;;
         q)
             assembly_type=$(get_assembly_type)
@@ -690,7 +690,7 @@ while getopts ":f:r:o:tnmCskgqSL:cb:B:T:QpMh" FLAG; do
             ;;
         M)
             assembly_type=$(get_assembly_type)
-            report_multiqc
+            report_multiqc "${assembly_type}"
             ;;
         h)
             help_message
