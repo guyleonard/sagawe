@@ -204,7 +204,7 @@ function report_quast () {
     trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly/${assembly_type}"
 
-    quast_dir="$( cd "${OUTDIR}" && pwd )/reports/quast/${assembly_type}"
+    quast_dir="$( cd "${OUTDIR}" && pwd )/reports/quast/${assembly_type}/${LIMIT_DIR}"
     blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/mapping"
 
     kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/${assembly_type}"
@@ -586,6 +586,7 @@ ASSEMBLY="contigs.fasta"
 BUSCO_LINEAGES=''
 F_FLAG="false"
 LIMIT='500'
+LIMIT_DIR=''
 MERGED="false"
 NCBI_DB=''
 NCBI_TAX=''
@@ -671,6 +672,7 @@ while getopts ":f:r:o:tnmCskgqSL:cb:B:T:QpMh" FLAG; do
             assembly_type=$(get_assembly_type)
             make_limited_file "${assembly_type}"
             ASSEMBLY="${ASSEMBLY/.fasta/\_ge\_${LIMIT}\.fasta}"
+            LIMIT_DIR="ge\_${LIMIT}"
             ;;  
         c)
             assembly_type=$(get_assembly_type)
