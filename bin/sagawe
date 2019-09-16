@@ -199,21 +199,21 @@ function run_assembly_spades {
 # Report Functions
 #
 function report_quast () {
-    trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
-    assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly"
+    assembly_type="${1}"
 
-    quast_dir="$( cd "${OUTDIR}" && pwd )/reports/quast"
+    trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
+    assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly/${assembly_type}"
+
+    quast_dir="$( cd "${OUTDIR}" && pwd )/reports/quast/${assembly_type}"
     blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/mapping"
 
-    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/"
+    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/${assembly_type}"
     genome_size=''
 
     read1="$(basename ${READ1%%.*})"
-    read2="$(basename ${READ2%%.*})"
+    read2="$(basename ${READ2%%.*})"  
 
-    assembly_type="${1}"
-
-    if [[ ! -f "${assembly_dir}/${assembly_type}/${ASSEMBLY}" ]] ; then
+    if [[ ! -f "${assembly_dir}/${ASSEMBLY}" ]] ; then
          echo "[SAGAWE:ERROR] - ${assembly_type}/${ASSEMBLY} does not exist. Please run this script again with the -s and correct -t -n -m options."
          exit 1
     fi
@@ -224,12 +224,11 @@ function report_quast () {
         echo "[SAGAWE:INFO] - Retrieved Estimated Genome Size from KAT: ${gs//[!0-9]/}"
 
         if [[ ${gs//[!0-9]/} -eq '0' ]] ; then
-            echo "[SAGAWE:WARN] - Estimated Genome Size Ignored"
+            echo "[SAGAWE:WARN] - Estimated Genome Size Missing or Zero"
             genome_size=''
         fi
     fi
 
-    quast_dir="${quast_dir}/${assembly_type}"
     mkdir -p "${quast_dir}"
 
     if [[ -f "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" ]] ; then
@@ -237,14 +236,14 @@ function report_quast () {
         quast.py -o "${quast_dir}" -t "${THREADS}" --glimmer \
         --min-contig 100 --k-mer-stats --rna-finding --eukaryote \
         --bam "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" \
-        ${QUAST_SCAFFOLDS} ${genome_size} "${assembly_dir}/${assembly_type}/${ASSEMBLY}" 2>&1 | tee "${quast_dir}/sag_awe_quast.log"
+        ${QUAST_SCAFFOLDS} ${genome_size} "${assembly_dir}/${ASSEMBLY}" 2>&1 | tee "${quast_dir}/sag_awe_quast.log"
     else
         echo "[SAGAWE:INFO] - Running QUAST on ${assembly_type} Assembly with ${ASSEMBLY} and Mapping Trimmed Reads"
         quast.py -o "${quast_dir}" -t "${THREADS}" --glimmer \
         --min-contig 100 --k-mer-stats --rna-finding --eukaryote \
         -1 "${trimmed_dir}/${read1}_val_1.fq.gz" \
         -2 "${trimmed_dir}/${read2}_val_2.fq.gz" \
-        ${QUAST_SCAFFOLDS} ${genome_size} "${assembly_dir}/${assembly_type}/${ASSEMBLY}" 2>&1 | tee "${quast_dir}/sag_awe_quast.log"
+        ${QUAST_SCAFFOLDS} ${genome_size} "${assembly_dir}/${ASSEMBLY}" 2>&1 | tee "${quast_dir}/sag_awe_quast.log"
     fi
 }
 
@@ -523,6 +522,14 @@ function get_assembly_type () {
     echo "${assembly_type}"
 }
 
+function make_limited_file () {
+    assembly_type="${1}"
+    assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly/${assembly_type}"
+
+    seqtk -L ${LIMIT} ${assembly_dir}$/${ASSEMBLY} > ${assembly_dir}$/{ASSEMBLY/.fasta/\_ge${LIMIT}\.fasta}
+
+}
+
 function help_message () {
     echo -e "Single Amplified Genome Assembly Workflow Example (SAG-AWE)"
     echo -e "\tOptions are positional, i.e. they are run sequentially, e.g. -S must come before -q."
@@ -658,7 +665,8 @@ while getopts ":f:r:o:tnmCskgqSL:cb:B:T:QpMh" FLAG; do
             QUAST_SCAFFOLDS="-s"
             ;;
         L)
-            LIMIT="${OPTARG}"
+            LIMIT="ge\_${OPTARG}"
+            make_limited_file "${assembly_type}"
             ;;  
         c)
             assembly_type=$(get_assembly_type)
