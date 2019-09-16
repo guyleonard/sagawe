@@ -668,6 +668,7 @@ while getopts ":f:r:o:tnmCskgqSL:cb:B:T:QpMh" FLAG; do
         L)
             LIMIT="${OPTARG}"
             echo "[SAGAWE:INFO] - Limit supplied as ${LIMIT}bp"
+            assembly_type=$(get_assembly_type)
             make_limited_file "${assembly_type}"
             ;;  
         c)
