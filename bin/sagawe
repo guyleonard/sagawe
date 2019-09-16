@@ -205,7 +205,7 @@ function report_quast () {
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly/${assembly_type}"
 
     quast_dir="$( cd "${OUTDIR}" && pwd )/reports/quast/${assembly_type}/${LIMIT_DIR}"
-    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/mapping"
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/${LIMIT_DIR}/mapping"
 
     kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/${assembly_type}"
     genome_size=''
@@ -250,7 +250,7 @@ function report_quast () {
 function report_busco_v3 () {
     assembly_type="${1}"
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly/${assembly_type}"
-    busco_dir="$( cd "${OUTDIR}" && pwd )/reports/busco/${assembly_type}"
+    busco_dir="$( cd "${OUTDIR}" && pwd )/reports/busco/${assembly_type}/${LIMIT_DIR}"
 
     busco_dir="${busco_dir}"
     mkdir -p "${busco_dir}/summaries"
@@ -275,7 +275,7 @@ function report_cegma () {
     assembly_type="${1}"
 
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly/${assembly_type}"
-    cegma_dir="$( cd "${OUTDIR}" && pwd )/reports/cegma/${assembly_type}"
+    cegma_dir="$( cd "${OUTDIR}" && pwd )/reports/cegma/${assembly_type}/${LIMIT_DIR}"
 
     if [ ! -f "${assembly_dir}/${assembly_type}/${ASSEMBLY}" ] ; then
         echo -e "[SAGAWE:ERROR] - SPAdes ${ASSEMBLY} cannot be found. Stopping."
@@ -302,7 +302,7 @@ function report_blobtools_mapping () {
     assembly_type="${1}"
     trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly/${assembly_type}"
-    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}"
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/${LIMIT_DIR}"
 
     
 
@@ -354,7 +354,7 @@ function report_blobtools_mapping () {
 function report_blobtools_blast {
     assembly_type="${1}"
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly/${assembly_type}"
-    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}"
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/${LIMIT_DIR}"
 
     blast_dir="${blobtools_dir}/blast"
     mkdir -p "${blast_dir}"
@@ -375,7 +375,7 @@ function report_blobtools_blast {
 
 function report_blobtools_output {
     assembly_type="${1}"
-    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}"
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/${LIMIT_DIR}"
     
     mapping_dir="${blobtools_dir}/mapping"
     blast_dir="${blobtools_dir}/blast"
@@ -420,8 +420,8 @@ function report_blobtools_output {
 
 function report_qualimap () {
     assembly_type="${1}"
-    qualimap_dir="$( cd "${OUTDIR}" && pwd )/reports/qualimap/${assembly_type}"
-    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/mapping"
+    qualimap_dir="$( cd "${OUTDIR}" && pwd )/reports/qualimap/${assembly_type}/${LIMIT_DIR}"
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/${LIMIT_DIR}/mapping"
 
     if [[ -f "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" ]] ; then
         echo "[SAGAWE:INFO] - Running Qualimap on ${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam"
@@ -500,7 +500,7 @@ function report_genomescope () {
 
 function report_multiqc () {
     assembly_type="${1}"
-    multiqc_dir="$( cd "${OUTDIR}" && pwd )/reports/multiqc/${assembly_type}"
+    multiqc_dir="$( cd "${OUTDIR}" && pwd )/reports/multiqc/${assembly_type}/${LIMIT_DIR}"
     multiqc -f -z -o "${multiqc_dir}" "${OUTDIR}"
 }
 
