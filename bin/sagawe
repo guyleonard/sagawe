@@ -586,7 +586,7 @@ ASSEMBLY="contigs.fasta"
 BUSCO_LINEAGES=''
 F_FLAG="false"
 LIMIT='500'
-LIMIT_DIR=''
+LIMIT_DIR='all'
 MERGED="false"
 NCBI_DB=''
 NCBI_TAX=''
@@ -672,7 +672,7 @@ while getopts ":f:r:o:tnmCskgqSL:cb:B:T:QpMh" FLAG; do
             assembly_type=$(get_assembly_type)
             make_limited_file "${assembly_type}"
             ASSEMBLY="${ASSEMBLY/.fasta/\_ge\_${LIMIT}\.fasta}"
-            LIMIT_DIR="ge\_${LIMIT}"
+            LIMIT_DIR="ge_${LIMIT}"
             ;;  
         c)
             assembly_type=$(get_assembly_type)
