@@ -207,7 +207,7 @@ function report_quast () {
     quast_dir="$( cd "${OUTDIR}" && pwd )/reports/quast/${assembly_type}/${LIMIT_DIR}"
     blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/${LIMIT_DIR}/mapping"
 
-    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat/"
+    kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat"
     genome_size=''
 
     read1="$(basename ${READ1%%.*})"
@@ -304,51 +304,54 @@ function report_blobtools_mapping () {
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly/${assembly_type}"
     blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/${LIMIT_DIR}"
 
-    
-
     read1="$(basename ${READ1%%.*})"
     read2="$(basename ${READ2%%.*})"
 
     mapping_dir="${blobtools_dir}/mapping"
-    mkdir -p "${mapping_dir}"
-    ln -s "${assembly_dir}/${ASSEMBLY}" "${mapping_dir}/${ASSEMBLY}"
+    
+    if [[ -f "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" ]] ; then
+        echo ""
+    else
+        mkdir -p "${mapping_dir}"
+        ln -s "${assembly_dir}/${ASSEMBLY}" "${mapping_dir}/${ASSEMBLY}"
 
-    echo "[SAGAWE:INFO] - Indexing $assembly_type Assembly with ${ASSEMBLY}"
-    bwa index -a bwtsw "${mapping_dir}/${ASSEMBLY}" 2>&1 | tee "${mapping_dir}/bwa.log"
+        echo "[SAGAWE:INFO] - Indexing $assembly_type Assembly with ${ASSEMBLY}"
+        bwa index -a bwtsw "${mapping_dir}/${ASSEMBLY}" 2>&1 | tee "${mapping_dir}/bwa.log"
 
-    echo "[SAGAWE:INFO] - Mapping Trimmed Paired Reads to ${ASSEMBLY}"
-    bwa mem -t "$THREADS" "${mapping_dir}/${ASSEMBLY}" \
-    "${trimmed_dir}/${read1}_val_1.fq.gz" \
-    "${trimmed_dir}/${read2}_val_2.fq.gz" \
-    > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
+        echo "[SAGAWE:INFO] - Mapping Trimmed Paired Reads to ${ASSEMBLY}"
+        bwa mem -t "$THREADS" "${mapping_dir}/${ASSEMBLY}" \
+        "${trimmed_dir}/${read1}_val_1.fq.gz" \
+        "${trimmed_dir}/${read2}_val_2.fq.gz" \
+        > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
 
-    echo "[SAGAWE:INFO] - Mapping Trimmed Un-Paired Reads to ${ASSEMBLY}"
-    bwa mem -t "$THREADS" "${mapping_dir}/${ASSEMBLY}" \
-    "${trimmed_dir}/unpaired_all.fq.gz" \
-    > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
+        echo "[SAGAWE:INFO] - Mapping Trimmed Un-Paired Reads to ${ASSEMBLY}"
+        bwa mem -t "$THREADS" "${mapping_dir}/${ASSEMBLY}" \
+        "${trimmed_dir}/unpaired_all.fq.gz" \
+        > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
 
-    echo "[SAGAWE:INFO] - Sorting Paired SAM File and Converting to BAM"
-    samtools sort -@ "$THREADS" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam" \
-    "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
+        echo "[SAGAWE:INFO] - Sorting Paired SAM File and Converting to BAM"
+        samtools sort -@ "$THREADS" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam" \
+        "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
 
-    echo "[SAGAWE:INFO] - Sorting Un-Paired SAM Files and Converting to BAM"
-    samtools sort -@ "$THREADS" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam" \
-    "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
+        echo "[SAGAWE:INFO] - Sorting Un-Paired SAM Files and Converting to BAM"
+        samtools sort -@ "$THREADS" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam" \
+        "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
 
-    echo "[SAGAWE:INFO] - Merging BAM Files"
-    samtools merge -@ "$THREADS" -f "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" \
-    "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam" \
-    "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam"
+        echo "[SAGAWE:INFO] - Merging BAM Files"
+        samtools merge -@ "$THREADS" -f "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" \
+        "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam" \
+        "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam"
 
-    echo "[SAGAWE:INFO] - Sorting Merged BAM File"
-    samtools sort -@ "${THREADS}" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" \
-    "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
+        echo "[SAGAWE:INFO] - Sorting Merged BAM File"
+        samtools sort -@ "${THREADS}" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" \
+        "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
 
-    echo "[SAGAWE:INFO] - Indexing Sorted Bam"
-    samtools index "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam"
+        echo "[SAGAWE:INFO] - Indexing Sorted Bam"
+        samtools index "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam"
 
-    rm "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
-    rm "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
+        rm "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
+        rm "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
+    fi
 }
 
 function report_blobtools_blast {
@@ -452,6 +455,17 @@ function report_kat () {
         "${trimmed_dir}/${read1}_val_1.fq.gz" \
         "${trimmed_dir}/${read2}_val_2.fq.gz" \
         "${trimmed_dir}/unpaired_all.fq.gz"
+    fi
+
+    if [[ -f "${kat_dir}/kat.hist.dist_analysis.json" ]] ; then
+        gs=$(grep -Po '"est_genome_size": \d+,' "${kat_dir}/kat.hist.dist_analysis.json")
+        genome_size="--est-ref-size ${gs//[!0-9]/}"
+        echo "[SAGAWE:INFO] - Retrieved Estimated Genome Size from KAT: ${gs//[!0-9]/}"
+
+        if [[ ${gs//[!0-9]/} -eq '0' ]] ; then
+            echo "[SAGAWE:WARN] - Estimated Genome Size Missing or Zero"
+            genome_size=''
+        fi
     fi
 }
 
