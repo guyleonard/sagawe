@@ -57,7 +57,7 @@ The *-C* mode allows you to turn off "single-cell" mode in SPAdes, this may be u
 ## Install Dependencies
 The following programs will need to be installed, and be accessible from your PATH. The script has been tested on Ubuntu Linux Xenial, however it should work in other -nix environments. You will also need to make sure that the relevant environment variables for BLAST, CEGMA & AUGUSTUS are set correctly. This script does not check for dependencies and may fail without warning. Trim Galore! and SPAdes are the minimal required toolset you will need to start.
 
-You may like to ask your local friendly bioinformatician / sys-admin to install the following programs for you in exchange for some beer or chocolate! :p Or you may try to install them yourself with conda.
+You may like to ask your local friendly bioinformatician / sys-admin to install the following programs for you in exchange for some beer or chocolate! :p Or you may try to install them yourself with conda as below.
 
 ### Assembly
 * Trim_Galore! (required)
@@ -89,13 +89,9 @@ You may like to ask your local friendly bioinformatician / sys-admin to install 
 
 ### Legacy
 * CEGMA
+  * CEGMA is no longer supported and does not have a conda install, it is included as an option for legacy purposes only, please use BUSCO.
 
-You may like to try and install many of the dependencies via 'conda'. YMMV, the order below seemed to work for me, however it will give you warnings whilst solving the environment but in the end it should figure it out...
-
-    conda create --name sags python=2.7
-    conda activate sags
-    conda install -c bioconda multiqc jellyfish kat blast busco blobtools bwa quast spades trim-galore bbmap
-
+### Databases and Variables
 You will also need:
 * [BUSCO Lineage Datasets](https://busco.ezlab.org)
 * NCBI 'nt' Database
@@ -104,12 +100,35 @@ You will also need:
   * wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
 * NCBI 'taxdb' Database
   * wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/taxdb.tar.gz
-  * Environment variable BLASTDB should be exported to the correct path
-    * export BLASTDB=/path/to/taxdb
-* [GenomeScope](https://github.com/tbenavi1/genomescope2.0)
-* [SmudgePlot](https://github.com/KamilSJaron/smudgeplot)
+* Environment Variables
+    * export BLASTDB=/your/path/to/taxdb
+    * export AUGUSTUS_CONFIG_PATH=/your/path/to/augustus/config
+* [GenomeScope](https://github.com/tbenavi1/genomescope2.0) - Manual Install Only
+* [SmudgePlot](https://github.com/KamilSJaron/smudgeplot) - Manual Install Only with Python 2
 
-NB - CEGMA is no longer supported and does not have a conda install, it is included for legacy purposes only, please use BUSCO.
+## Install Dependencies with Conda
+The order below seemed to work for me, however it will give you warnings whilst solving the environment and some programs cannot be installed in these configurations.
+
+    # Python 2.7
+    # Broken Augustus = Broken BUSCO v2
+    # No smudgeplot
+    conda create --name sags python=2.7
+    conda activate sags
+    conda install -c bioconda multiqc jellyfish kat blast busco blobtools bwa quast spades trim-galore bbmap
+    export AUGUSTUS_CONFIG_PATH=/your/path/to/miniconda/envs/sags/config/
+    export BLASTDB=/your/path/to/taxdb
+
+    # Pythong 3.7
+    # No blobtools or multiqc
+    conda create --name sags_p3 python=3.7
+    conda activate sags_p3
+    conda install busco, quast, jellyfish, kat, blast, bwa, spades, trim-galore, smudgeplot, qualimap
+    export AUGUSTUS_CONFIG_PATH=/your/path/to/miniconda/envs/sags/config/
+    export BLASTDB=/your/path/to/taxdb
+    # you will need to edit the BUSCO config file with the correct paths
+    # /your/path/to/miniconda3/envs/sags_p3/config/config.ini
+
+
 
 ## Citation
 This work was initially designed during the making of [in prep]. The original scripts are available as a pre-release with the below DOI [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.192677.svg)](https://doi.org/10.5281/zenodo.192677).
