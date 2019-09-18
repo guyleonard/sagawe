@@ -477,11 +477,12 @@ function report_smudgeplot () {
         exit 1
     fi
 
+    echo "[SAGAWE:INFO] - Running Smudge Plot"
     mkdir -p "${smudge_dir}"
 
     sed -e '1,6d' < "${kat_dir}/kat.hist" > "${kat_dir}kat.hist_temp"
 
-    echo "[SAGAWE:INFO] - Getting upper and lowe Kmer Cutoffs"
+    echo "[SAGAWE:INFO] - Getting upper and lower Kmer Cutoffs"
     L=$(smudgeplot.py cutoff ${kat_dir}kat.hist_temp L)
     U=$(smudgeplot.py cutoff ${kat_dir}kat.hist_temp U)
     echo "$L $U" > "${smudge_dir}sag_awe_smudgeplots.log"
@@ -490,10 +491,10 @@ function report_smudgeplot () {
     jellyfish dump -c -L $L -U $U "${kat_dir}/kat.hist-hash.jf27" > "${smudge_dir}/extracted_kmers"
     
     echo "[SAGAWE:INFO] - Running SmudgePlot hetkmers on ${smudge_dir}/extracted_kmers"
-    smudgeplot.py hetkmers "${smudge_dir}extracted_kmers"
+    smudgeplot.py hetkmers "${smudge_dir}/extracted_kmers"
     echo "[SAGAWE:INFO] - Tidying Up Smudge Plot"
     mv kmerpairs_coverages.tsv kmerpairs_sequences.tsv "${smudge_dir}"
-    pigz -9 -f "${smudge_dir}extracted_kmers"
+    pigz -9 -f "${smudge_dir}/extracted_kmers"
 
     echo "[SAGAWE:INFO] - Running SmudgePlot plot on ${smudge_dir}/kmerpairs_coverages.tsv"
     smudgeplot.py plot "${smudge_dir}/kmerpairs_coverages.tsv"
