@@ -64,7 +64,7 @@ You may like to ask your local friendly bioinformatician / sys-admin to install 
   * cutadapt
   * FastQC
   * pigz
-* bbtools
+* bbmap
   * bbmerge
   * bbnorm
 * SPAdes (required)
@@ -90,19 +90,11 @@ You may like to ask your local friendly bioinformatician / sys-admin to install 
 ### Legacy
 * CEGMA
 
-You may like to try and install many of the dependencies via 'conda'. YMMV.
+You may like to try and install many of the dependencies via 'conda'. YMMV, the order below seemed to work for me, however it will give you warnings whilst solving the environment but in the end it should figure it out...
 
-    conda install -c bioconda trim-galore # installs Trim_Galore!, cutadapt, FastQC
-    conda install -c agbiome bbtools      # installs bbtools, samtools
-    conda install -c bioconda spades      # installs spades
-    conda install -c bioconda quast       # installs quast, blast, glimmer
-    conda install -c bioconda bwa         # installs bwa
-    conda install -c bioconda blast       # installs blast
-    conda install -c bioconda blobtools   # installs blobtools, samtools
-    conda install -c bioconda busco       # installs augustus, bamtools, blast, busco, hmmer
-    conda install -c bioconda kat         # installs kat
-    conda install -c bioconda jellyfish   # installs jellyfish
-    conda install -c bioconda multiqc     # installs multiqc
+    conda create --name sags python=2.7
+    conda activate sags
+    conda install -c bioconda multiqc jellyfish kat blast busco blobtools bwa quast spades trim-galore bbmap
 
 You will also need:
 * [BUSCO Lineage Datasets](https://busco.ezlab.org)
