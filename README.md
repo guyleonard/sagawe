@@ -109,7 +109,7 @@ You will also need:
 ## Install Dependencies with Conda
 The order below seemed to work for me, however it will give you warnings whilst solving the environment and some programs cannot be installed in these configurations.
 
-    # Python 2.7
+### Python 2.7
     # Broken Augustus = Broken BUSCO v2
     # No smudgeplot
     conda create --name sags python=2.7
@@ -118,11 +118,12 @@ The order below seemed to work for me, however it will give you warnings whilst 
     export AUGUSTUS_CONFIG_PATH=/your/path/to/miniconda/envs/sags/config/
     export BLASTDB=/your/path/to/taxdb
 
-    # Pythong 3.7
+### Python 3.7
     # No blobtools or multiqc
     conda create --name sags_p3 python=3.7
     conda activate sags_p3
     conda install busco, quast, jellyfish, kat, blast, bwa, spades, trim-galore, smudgeplot, qualimap
+    pip install multiqc --local
     export AUGUSTUS_CONFIG_PATH=/your/path/to/miniconda/envs/sags/config/
     export BLASTDB=/your/path/to/taxdb
     # you will need to edit the BUSCO config file with the correct paths
