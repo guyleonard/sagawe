@@ -204,8 +204,8 @@ function report_quast () {
     trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly/${assembly_type}"
 
-    quast_dir="$( cd "${OUTDIR}" && pwd )/reports/quast/${assembly_type}/${LIMIT_DIR}"
-    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/${LIMIT_DIR}/mapping"
+    quast_dir="$( cd "${OUTDIR}" && pwd )/reports/${assembly_type}/${LIMIT_DIR}/quast"
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/${assembly_type}/${LIMIT_DIR}/blobtools/mapping"
 
     kat_dir="$( cd "${OUTDIR}" && pwd )/reports/kat"
     genome_size=''
@@ -249,8 +249,9 @@ function report_quast () {
 
 function report_busco_v3 () {
     assembly_type="${1}"
+
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly/${assembly_type}"
-    busco_dir="$( cd "${OUTDIR}" && pwd )/reports/busco/${assembly_type}/${LIMIT_DIR}"
+    busco_dir="$( cd "${OUTDIR}" && pwd )/reports/${assembly_type}/${LIMIT_DIR}/busco"
 
     busco_dir="${busco_dir}"
     mkdir -p "${busco_dir}/summaries"
@@ -275,16 +276,15 @@ function report_cegma () {
     assembly_type="${1}"
 
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly/${assembly_type}"
-    cegma_dir="$( cd "${OUTDIR}" && pwd )/reports/cegma/${assembly_type}/${LIMIT_DIR}"
+    cegma_dir="$( cd "${OUTDIR}" && pwd )/reports/${assembly_type}/${LIMIT_DIR}/cegma"
 
-    if [ ! -f "${assembly_dir}/${assembly_type}/${ASSEMBLY}" ] ; then
-        echo -e "[SAGAWE:ERROR] - SPAdes ${ASSEMBLY} cannot be found. Stopping."
-        exit 1
+    if [ ! -f "${assembly_dir}/${ASSEMBLY}" ] ; then
+        echo -e "[SAGAWE:ERROR] - SPAdes ${ASSEMBLY} cannot be found. Skipping."
     else
         mkdir -p "$cegma_dir"
 
         echo "[SAGAWE:INFO] - Running CEGMA on ${assembly_type} with ${ASSEMBLY}"
-        cegma -T "${THREADS}" -g "${assembly_dir}/${assembly_type}/${ASSEMBLY}" -o "${cegma_dir}/cegma" 2>&1 | tee "${cegma_dir}/sag_awe_cegma.log"
+        cegma -T "${THREADS}" -g "${assembly_dir}/${ASSEMBLY}" -o "${cegma_dir}/cegma" 2>&1 | tee "${cegma_dir}/sag_awe_cegma.log"
 
         mv "${cegma_dir}/cegma."* "${cegma_dir}"
     fi
@@ -302,7 +302,8 @@ function report_blobtools_mapping () {
     assembly_type="${1}"
     trimmed_dir="$( cd "${OUTDIR}" && pwd )/trimmed"
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly/${assembly_type}"
-    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/${LIMIT_DIR}"
+
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/${assembly_type}/${LIMIT_DIR}/blobtools"
 
     read1="$(basename ${READ1%%.*})"
     read2="$(basename ${READ2%%.*})"
@@ -310,35 +311,35 @@ function report_blobtools_mapping () {
     mapping_dir="${blobtools_dir}/mapping"
     
     if [[ -f "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" ]] ; then
-        echo "[SAGAWE:INFO] - BAM File Crated Previously, Next!"
+        echo "[SAGAWE:INFO] - BAM File Created Previously, Next!"
     else
         mkdir -p "${mapping_dir}"
         ln -s "${assembly_dir}/${ASSEMBLY}" "${mapping_dir}/${ASSEMBLY}"
 
-        echo "[SAGAWE:INFO] - Indexing $assembly_type Assembly with ${ASSEMBLY}"
-        bwa index -a bwtsw "${mapping_dir}/${ASSEMBLY}" 2>&1 | tee "${mapping_dir}/bwa.log"
+        echo "[SAGAWE:INFO] - Indexing ${assembly_type} Assembly with ${ASSEMBLY}"
+        bwa index -a bwtsw "${mapping_dir}/${ASSEMBLY}" 2>&1 | tee "${mapping_dir}/sag_awe_bwa.log"
 
         echo "[SAGAWE:INFO] - Mapping Trimmed Paired Reads to ${ASSEMBLY}"
-        bwa mem -t "$THREADS" "${mapping_dir}/${ASSEMBLY}" \
+        bwa mem -t "${THREADS}" "${mapping_dir}/${ASSEMBLY}" \
         "${trimmed_dir}/${read1}_val_1.fq.gz" \
         "${trimmed_dir}/${read2}_val_2.fq.gz" \
         > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
 
         echo "[SAGAWE:INFO] - Mapping Trimmed Un-Paired Reads to ${ASSEMBLY}"
-        bwa mem -t "$THREADS" "${mapping_dir}/${ASSEMBLY}" \
+        bwa mem -t "${THREADS}" "${mapping_dir}/${ASSEMBLY}" \
         "${trimmed_dir}/unpaired_all.fq.gz" \
         > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
 
         echo "[SAGAWE:INFO] - Sorting Paired SAM File and Converting to BAM"
-        samtools sort -@ "$THREADS" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam" \
+        samtools sort -@ "${THREADS}" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam" \
         "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
 
         echo "[SAGAWE:INFO] - Sorting Un-Paired SAM Files and Converting to BAM"
-        samtools sort -@ "$THREADS" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam" \
+        samtools sort -@ "${THREADS}" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam" \
         "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
 
         echo "[SAGAWE:INFO] - Merging BAM Files"
-        samtools merge -@ "$THREADS" -f "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" \
+        samtools merge -@ "${THREADS}" -f "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" \
         "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam" \
         "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam"
 
@@ -346,7 +347,7 @@ function report_blobtools_mapping () {
         samtools sort -@ "${THREADS}" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" \
         "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
 
-        echo "[SAGAWE:INFO] - Indexing Sorted Bam"
+        echo "[SAGAWE:INFO] - Indexing Merged Sorted Bam"
         samtools index "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam"
 
         rm "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
@@ -357,14 +358,15 @@ function report_blobtools_mapping () {
 function report_blobtools_blast {
     assembly_type="${1}"
     assembly_dir="$( cd "${OUTDIR}" && pwd )/assembly/${assembly_type}"
-    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/${LIMIT_DIR}"
+
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/${assembly_type}/${LIMIT_DIR}/blobtools"
 
     blast_dir="${blobtools_dir}/blast"
     if [ -f "${blast_dir}/${ASSEMBLY/.fasta/}_vs_$(basename "${NCBI_DB}")_1e-10.megablast" ]; then
-        echo "[SAGAWE:WARN] - megaBLAST has already been run! Skipping"
+        echo "[SAGAWE:WARN] - megaBLAST has already been run! Skipping."
     else
         mkdir -p "${blast_dir}"
-        ln -s "${assembly_dir}/$ASSEMBLY" "${blast_dir}/${ASSEMBLY}"
+        ln -s "${assembly_dir}/${ASSEMBLY}" "${blast_dir}/${ASSEMBLY}"
         echo "[SAGAWE:INFO] - Running megaBLAST on $assembly_type Assembly with ${ASSEMBLY}"
 
         blastn -task megablast -query "${blast_dir}/${ASSEMBLY}" -db "${NCBI_DB}" \
@@ -377,7 +379,7 @@ function report_blobtools_blast {
 
 function report_blobtools_output {
     assembly_type="${1}"
-    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/${LIMIT_DIR}"
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/${assembly_type}/${LIMIT_DIR}/blobtools"
     
     mapping_dir="${blobtools_dir}/mapping"
     blast_dir="${blobtools_dir}/blast"
@@ -407,7 +409,7 @@ function report_blobtools_output {
     blobtools plot -i "${blobtools_dir}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
     --rank "phylum" --out "${image_dir}/" 2>&1 | tee -a "$blobtools_dir/sag_awe_blobtools.log"
 
-    echo "[SAGAWE:INFO] - Running BlobTools Plot PNG - Phylum"
+    echo "[SAGAWE:INFO] - Running BlobTools Plot PNG - Super Kingdom"
     blobtools plot -i "${blobtools_dir}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
     --rank "superkingdom" --out "${image_dir}/" 2>&1 | tee -a "$blobtools_dir/sag_awe_blobtools.log"
 
@@ -415,15 +417,16 @@ function report_blobtools_output {
     blobtools plot -i "${blobtools_dir}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
     --rank "phylum" --format "svg" --out "${image_dir}/" 2>&1 | tee -a "$blobtools_dir/sag_awe_blobtools.log"
 
-    echo "[SAGAWE:INFO] - Running BlobTools Plot SVG - Phylum"
+    echo "[SAGAWE:INFO] - Running BlobTools Plot SVG - Super Kingdom"
     blobtools plot -i "${blobtools_dir}/${ASSEMBLY/.fasta/}_vs_nt_1e-10_megablast_blobtools.blobDB.json" \
     --rank "superkingdom" --format "svg" --out "${image_dir}/" 2>&1 | tee -a "$blobtools_dir/sag_awe_blobtools.log"
 }
 
 function report_qualimap () {
     assembly_type="${1}"
-    qualimap_dir="$( cd "${OUTDIR}" && pwd )/reports/qualimap/${assembly_type}/${LIMIT_DIR}"
-    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/blobtools/${assembly_type}/${LIMIT_DIR}/mapping"
+
+    qualimap_dir="$( cd "${OUTDIR}" && pwd )/reports/${assembly_type}/${LIMIT_DIR}/qualimap"
+    blobtools_dir="$( cd "${OUTDIR}" && pwd )/reports/${assembly_type}/${LIMIT_DIR}/blobtools/mapping"
 
     if [[ -f "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" ]] ; then
         echo "[SAGAWE:INFO] - Running Qualimap on ${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam"
@@ -458,12 +461,9 @@ function report_kat () {
 
     if [[ -f "${kat_dir}/kat.hist.dist_analysis.json" ]] ; then
         gs=$(grep -Po '"est_genome_size": \d+,' "${kat_dir}/kat.hist.dist_analysis.json")
-        genome_size="--est-ref-size ${gs//[!0-9]/}"
         echo "[SAGAWE:INFO] - Retrieved Estimated Genome Size from KAT: ${gs//[!0-9]/}"
-
         if [[ ${gs//[!0-9]/} -eq '0' ]] ; then
             echo "[SAGAWE:WARN] - Estimated Genome Size Missing or Zero"
-            genome_size=''
         fi
     fi
 }
@@ -473,34 +473,34 @@ function report_smudgeplot () {
     smudge_dir="$( cd "${OUTDIR}" && pwd )/reports/smudgeplot"
 
     if [[ ! -f "${kat_dir}/kat.hist-hash.jf27" ]] ; then
-        echo "[SAGAWE:ERRR] - You need to run KAT with the -k option first!"
-        exit 1
+        echo "[SAGAWE:ERRR] - You need to run KAT with the -k option first! Skipping."
+    else 
+        echo "[SAGAWE:INFO] - Running Smudge Plot"
+        mkdir -p "${smudge_dir}"
+
+        sed -e '1,6d' < "${kat_dir}/kat.hist" > "${kat_dir}/kat.hist_temp"
+
+        echo "[SAGAWE:INFO] - Getting upper and lower Kmer Cutoffs"
+        L=$(smudgeplot.py cutoff ${kat_dir}/kat.hist_temp L)
+        U=$(smudgeplot.py cutoff ${kat_dir}/kat.hist_temp U)
+        echo "$L $U" > "${smudge_dir}/sag_awe_smudgeplots.log"
+        
+        echo "[SAGAWE:INFO] - Dumping Kmer Counts Using Jellyfish"
+        jellyfish dump -c -L $L -U $U "${kat_dir}/kat.hist-hash.jf27" > "${smudge_dir}/extracted_kmers"
+        
+        echo "[SAGAWE:INFO] - Running Smudge Plot hetkmers on ${smudge_dir}/extracted_kmers"
+        smudgeplot.py hetkmers "${smudge_dir}/extracted_kmers"
+
+        echo "[SAGAWE:INFO] - Tidying Up Smudge Plot"
+        mv kmerpairs_coverages.tsv kmerpairs_sequences.tsv "${smudge_dir}"
+        pigz -9 -f "${smudge_dir}/extracted_kmers"
+
+        echo "[SAGAWE:INFO] - Running Smudge Plot plot on ${smudge_dir}/kmerpairs_coverages.tsv"
+        smudgeplot.py plot "${smudge_dir}/kmerpairs_coverages.tsv"
+        mv smudgeplot* "${smudge_dir}"
+
+        #rm "${kat_dir}kat.hist-hash.jf27"
     fi
-
-    echo "[SAGAWE:INFO] - Running Smudge Plot"
-    mkdir -p "${smudge_dir}"
-
-    sed -e '1,6d' < "${kat_dir}/kat.hist" > "${kat_dir}kat.hist_temp"
-
-    echo "[SAGAWE:INFO] - Getting upper and lower Kmer Cutoffs"
-    L=$(smudgeplot.py cutoff ${kat_dir}kat.hist_temp L)
-    U=$(smudgeplot.py cutoff ${kat_dir}kat.hist_temp U)
-    echo "$L $U" > "${smudge_dir}sag_awe_smudgeplots.log"
-    
-    echo "[SAGAWE:INFO] - Dumping Kmer Counts Using Jellyfish"
-    jellyfish dump -c -L $L -U $U "${kat_dir}/kat.hist-hash.jf27" > "${smudge_dir}/extracted_kmers"
-    
-    echo "[SAGAWE:INFO] - Running SmudgePlot hetkmers on ${smudge_dir}/extracted_kmers"
-    smudgeplot.py hetkmers "${smudge_dir}/extracted_kmers"
-    echo "[SAGAWE:INFO] - Tidying Up Smudge Plot"
-    mv kmerpairs_coverages.tsv kmerpairs_sequences.tsv "${smudge_dir}"
-    pigz -9 -f "${smudge_dir}/extracted_kmers"
-
-    echo "[SAGAWE:INFO] - Running SmudgePlot plot on ${smudge_dir}/kmerpairs_coverages.tsv"
-    smudgeplot.py plot "${smudge_dir}/kmerpairs_coverages.tsv"
-    mv smudgeplot* "${smudge_dir}"
-
-    #rm "${kat_dir}kat.hist-hash.jf27"
 }
 
 function report_genomescope () {
@@ -508,21 +508,21 @@ function report_genomescope () {
     gs_dir="$( cd "${OUTDIR}" && pwd )/reports/genomescope"
 
     if [[ ! -f "${kat_dir}/kat.hist" ]] ; then
-        echo "[SAGAWE:ERR] - You need to run KAT with the -k option first!"
-        exit 1
+        echo "[SAGAWE:ERR] - You need to run KAT with the -k option first! Skipping."
+    else
+        mkdir -p "${gs_dir}"
+
+        sed -e '1,6d' < "${kat_dir}/kat.hist" > "${kat_dir}/kat.hist_temp"
+
+        echo "[SAGAWE:INFO] - Running GenomeScope on KAT kmer histogram."
+        genomescope.R "${kat_dir}/kat.hist_temp" 27 150 "${gs_dir}"
     fi
-
-    mkdir -p "${gs_dir}"
-
-    sed -e '1,6d' < "${kat_dir}/kat.hist" > "${kat_dir}kat.hist_temp"
-
-    echo "[SAGAWE:INFO] - Running GenomeScope on KAT kmer histogram"
-    genomescope.R "${kat_dir}/kat.hist_temp" 27 150 "${gs_dir}"
 }
 
 function report_multiqc () {
     assembly_type="${1}"
     multiqc_dir="$( cd "${OUTDIR}" && pwd )/reports/multiqc/${assembly_type}"
+    
     echo "[SAGAWE:INFO] - Running MultiQC on ${OUTDIR}/${assembly_type}"
     multiqc -f -z -o "${multiqc_dir}" "${OUTDIR}"
 }
