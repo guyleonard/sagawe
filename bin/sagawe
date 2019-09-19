@@ -594,7 +594,7 @@ function cores () {
 
 function cite_log () {
     output_dir="$( cd "${OUTDIR}" && pwd )"
-    echo -e "Single Amplified Genome Assembly Workflow" > "${output_dir}/sag_awe.log"
+    echo -e "Single Amplified Genome Assembly Workflow" >> "${output_dir}/sag_awe.log"
     echo -e "Please cite:\thttps://github.com/guyleonard/sagawe\n" >> "${output_dir}/sag_awe.log"
     echo -e "Output Dir:\t${output_dir}" >> "${output_dir}/sag_awe.log"
     echo -e "Date Started:\t$(date +%Y-%m-%d-%R)" >> "${output_dir}/sag_awe.log"
@@ -649,9 +649,15 @@ while getopts ":f:r:o:tnmCskgqSL:cb:B:T:QpMh" FLAG; do
             if [[ "${OPTARG}" =~ ^- ]] ; then
                 echo "[SAGAWE:ERROR] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
                 exit 1
+            elif [[ -f "${OUTDIR}" ]] ; then
+                output_dir="$( cd "${OUTDIR}" && pwd )"
+                echo -e "\nRestarted Analysis..." >> "${output_dir}/sag_awe.log"
+                echo -e "Date Restarted:\t$(date +%Y-%m-%d-%R)" >> "${output_dir}/sag_awe.log"
+                echo -e "Command:\t${0} ${ARGS}" >> "${output_dir}/sag_awe.log"
+            else
+                mkdir -p "${OUTDIR}"
+                cite_log "${OUTDIR}"
             fi
-	        mkdir -p "${OUTDIR}"
-            cite_log "${OUTDIR}"
             ;;
         t)
             if [[ "${OUTDIR}" == "false" ]] ; then
