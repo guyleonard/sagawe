@@ -39,20 +39,23 @@ Program Parameters:
 Optional Parameters:
   -C  Use to turn off Single-Cell mode in SPAdes 
   -S  Use scaffolds.fasta instead of contigs.fasta
-Reports/Stats:
+  -L <int>  Limit contigs or scaffolds in reports to >= <int>bp
+General Reports:
   -k  Run KAT Analysis (run to inform QUAST)
-  -q  Run QUAST Analysis
-  -c  Run CEGMA Analysis
-  -b </path/to/db1,/path/to/db2,...>  Run BUSCO with Multiple Lineages
-  -B </path/to/blast/db,/path/to/taxdump> Run Blobtools
   -g  Run GenomeScope (requires -k)
-  -p  Run Smudge Plots (requires -k and Jellyfish)
-  -Q  Run Qualimap Analysis
+  -p  Run Smudge Plots (requires -k)
+Contig/Scaffold Specific Reports:
+  -B </path/to/blast/db,/path/to/taxdump>  Run Blobtools
+  -q  Run QUAST Analysis (can use -k and -B results)
+  -Q  Run Qualimap Analysis (requires -B)
+  -b </path/to/db1,/path/to/db2,...>  Run BUSCO with Multiple Lineages
   -M  Run MultiQC Analysis
+Legacy Reports:
+  -c  Run CEGMA Analysis
 
-Example: bin/sagawe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s
+Example: bin/sagawe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s -q
 ```
-The *-C* mode allows you to turn off "single-cell" mode in SPAdes, this may be useful for some analyses.
+The *-C* mode allows you to turn off "single-cell" mode in SPAdes, this may be useful for some analyses. All other programs run with defaults.
 
 ## Install Dependencies
 The following programs will need to be installed, and be accessible from your PATH. The script has been tested on Ubuntu Linux Xenial, however it should work in other -nix environments. You will also need to make sure that the relevant environment variables for BLAST, CEGMA & AUGUSTUS are set correctly. This script does not check for dependencies and may fail without warning. Trim Galore! and SPAdes are the minimal required toolset you will need to start.

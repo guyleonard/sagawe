@@ -37,8 +37,8 @@ function run_normalisation () {
     read2="$(basename ${READ2%%.*})"
 
     if [[ "${READ1}" == "" || "${READ2}" == "" ]] ; then
-	echo "[SAGAWE:ERROR] - You Must Specifiy Input Reads with -f and -r"
-	exit 1
+    	echo "[SAGAWE:ERROR] - You Must Specifiy Input Reads with -f and -r"
+    	exit 1
     elif [ ! -f "${trimmed_dir}/${read1}_val_1.fq.gz" ] ; then
         echo "[SAGAWE:ERRR] - Trimming Has Not Been Run. Please re-run with the -t option. Quiting."
         exit 1
@@ -522,7 +522,7 @@ function report_genomescope () {
 function report_multiqc () {
     assembly_type="${1}"
     multiqc_dir="$( cd "${OUTDIR}" && pwd )/reports/multiqc/${assembly_type}"
-    
+
     echo "[SAGAWE:INFO] - Running MultiQC on ${OUTDIR}/${assembly_type}"
     multiqc -f -z -o "${multiqc_dir}" "${OUTDIR}"
 }
@@ -571,17 +571,19 @@ function help_message () {
     echo -e "\t-C\tUse to turn off Single-Cell mode in SPAdes"
     echo -e "\t-S\tUse scaffolds.fasta instead of contigs.fasta"
     echo -e "\t-L <int>\tLimit contigs or scaffolds in reports to >= <int>bp"
-    echo -e "Reports/Stats:"
+    echo -e "General Reports:"
     echo -e "\t-k\tRun KAT Analysis (run to inform QUAST)"
-    echo -e "\t-q\tRun QUAST Analysis"
-    echo -e "\t-c\tRun CEGMA Analysis (legacy, use -b)"
-    echo -e "\t-b </path/to/db1,/path/to/db2,...>\tRun BUSCO with Multiple Lineages"
-    echo -e "\t-B </path/to/blast/db,/path/to/taxdump>\tRun Blobtools"
     echo -e "\t-g\tRun GenomeScope (requires previous -k)"
     echo -e "\t-p\tRun Smudge Plots (requires previous -k)"
+    echo -e "Contig/Scaffold Specific Reports:"
+    echo -e "\t-B </path/to/blast/db,/path/to/taxdump>\tRun Blobtools"
+    echo -e "\t-q\tRun QUAST Analysis"
     echo -e "\t-Q\tRun Qualimap Analysis"
+    echo -e "\t-b </path/to/db1,/path/to/db2,...>\tRun BUSCO with Multiple Lineages"
     echo -e "\t-M\tRun MultiQC Analysis"
-    echo -e "Example: sagawe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s"
+    echo -e "Legacy Reports:"
+    echo -e "\t-c\tRun CEGMA Analysis (legacy, use -b)"
+    echo -e "Example: sagawe -f read1.fq.gz -r read2.fq.gz -o results -t -n -m -s -q"
     exit 1
 }
 
