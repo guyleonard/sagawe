@@ -15,7 +15,7 @@ function run_trim_galore () {
         mkdir -p "${fastqc_dir}"
 
         echo "[SAGAWE:INFO] - Running Trim Galore! on Raw Reads"
-        trim_galore -q 20 --fastqc --'gzip' --length 50 --paired --retain_unpaired \
+        trim_galore -q 20 --fastqc --'gzip' --length 50 --paired --retain_unpaired --cores 4 \
         "${READ1}" "${READ2}" -o "${trimmed_dir}" 2>&1 | tee "${trimmed_dir}/sag_awe_trim_galore.log"
 
         read1="$(basename ${READ1%%.*})"
@@ -369,10 +369,15 @@ function report_blobtools_blast {
         ln -s "${assembly_dir}/${ASSEMBLY}" "${blast_dir}/${ASSEMBLY}"
         echo "[SAGAWE:INFO] - Running megaBLAST on $assembly_type Assembly with ${ASSEMBLY}"
 
-        blastn -task megablast -query "${blast_dir}/${ASSEMBLY}" -db "${NCBI_DB}" \
-        -evalue 1e-10 -num_threads "${THREADS}" \
-        -outfmt '6 qseqid staxids bitscore std sscinames sskingdoms stitle' \
-        -culling_limit 5 -out "${blast_dir}/${ASSEMBLY/.fasta/}_vs_$(basename "${NCBI_DB}")_1e-10.megablast" \
+        blastn -task megablast \
+        -query "${blast_dir}/${ASSEMBLY}" \
+        -db "${NCBI_DB}" \
+        -outfmt '6 qseqid staxids bitscore std' \
+        -max_target_seqs 1 \
+        -max_hsps 1 \
+        -num_threads "${THREADS}" \
+        -evalue 1e-10 \
+        -out "${blast_dir}/${ASSEMBLY/.fasta/}_vs_$(basename "${NCBI_DB}")_1e-10.megablast" \
         2>&1 | tee "${blast_dir}/sag_awe_blast.log"
     fi
 }
@@ -661,7 +666,7 @@ while getopts ":f:r:o:tnmCskgqSL:cb:B:T:QpMh" FLAG; do
             ;;
         t)
             if [[ "${OUTDIR}" == "false" ]] ; then
-                echo "[SAGAWE:ERROR] - Output Directory Missing. Please Indicate -o <dir_name>" >&2
+                echo "[SAGAWE:ERROR] - Output Directory Missing. Please Indicate -o <dir_name>"
                 exit 1
             fi
             run_trim_galore
@@ -676,7 +681,7 @@ while getopts ":f:r:o:tnmCskgqSL:cb:B:T:QpMh" FLAG; do
             ;;
         C)
             SC=""
-            echo "[SAGAWE:WARN] - Turning Off Single-Cell Mode" >&2
+            echo "[SAGAWE:WARN] - Turning Off Single-Cell Mode"
             ;;
         s)
             run_assembly_spades
