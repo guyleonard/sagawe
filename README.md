@@ -125,7 +125,7 @@ The order below seemed to work for me, however it will give you warnings whilst 
     # No blobtools or multiqc
     conda create --name sags_p3 python=3.7
     conda activate sags_p3
-    conda install busco, quast, jellyfish, kat, blast, bwa, spades, trim-galore, smudgeplot, qualimap
+    conda install -c bioconda busco quast jellyfish kat blast bwa spades trim-galore smudgeplot qualimap
     pip install multiqc --local
     export AUGUSTUS_CONFIG_PATH=/your/path/to/miniconda/envs/sags/config/
     export BLASTDB=/your/path/to/taxdb
