@@ -122,10 +122,10 @@ The order below seemed to work for me, however conda will give you warnings whil
     export AUGUSTUS_CONFIG_PATH=/your/path/to/miniconda/envs/sags/config/
     export BLASTDB=/your/path/to/taxdb
 
-### Python 3.7
+### Python 3.6
     # No blobtools available and multiqc from pip
     
-    conda create --name sags_p3 python=3.7
+    conda create --name sags_p3 python=3.6
     conda activate sags_p3
     conda install -c bioconda busco quast jellyfish kat blast bwa spades trim-galore smudgeplot qualimap
     pip install multiqc --local
