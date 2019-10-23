@@ -110,22 +110,24 @@ You will also need:
 * [SmudgePlot](https://github.com/KamilSJaron/smudgeplot) - Manual Install Only with Python 2
 
 ## Install Dependencies with Conda
-The order below seemed to work for me, however it will give you warnings whilst solving the environment and some programs cannot be installed in these configurations.
+The order below seemed to work for me, however conda will give you warnings whilst solving the environment and some programs cannot be installed in these configurations, and it will take a while to install...
 
 ### Python 2.7
     # Broken Augustus = Broken BUSCO v2
     # No smudgeplot
+    
     conda create --name sags python=2.7
     conda activate sags
     conda install -c bioconda multiqc jellyfish kat blast busco blobtools bwa quast spades trim-galore bbmap
     export AUGUSTUS_CONFIG_PATH=/your/path/to/miniconda/envs/sags/config/
     export BLASTDB=/your/path/to/taxdb
 
-### Python 3.7
-    # No blobtools or multiqc
-    conda create --name sags_p3 python=3.7
+### Python 3.6
+    # No blobtools available and multiqc from pip
+    
+    conda create --name sags_p3 python=3.6
     conda activate sags_p3
-    conda install busco, quast, jellyfish, kat, blast, bwa, spades, trim-galore, smudgeplot, qualimap
+    conda install -c bioconda busco quast jellyfish kat blast bwa spades trim-galore smudgeplot qualimap
     pip install multiqc --local
     export AUGUSTUS_CONFIG_PATH=/your/path/to/miniconda/envs/sags/config/
     export BLASTDB=/your/path/to/taxdb
