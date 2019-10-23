@@ -323,20 +323,18 @@ function report_blobtools_mapping () {
         bwa mem -t "${THREADS}" "${mapping_dir}/${ASSEMBLY}" \
         "${trimmed_dir}/${read1}_val_1.fq.gz" \
         "${trimmed_dir}/${read2}_val_2.fq.gz" \
-        > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
+        | tee >(samtools flagstat - > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.flagstat") \
+        | samtools sort -O BAM \
+        | tee "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam" \
+        | samtools index - "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam.bai"
 
         echo "[SAGAWE:INFO] - Mapping Trimmed Un-Paired Reads to ${ASSEMBLY}"
         bwa mem -t "${THREADS}" "${mapping_dir}/${ASSEMBLY}" \
         "${trimmed_dir}/unpaired_all.fq.gz" \
-        > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
-
-        echo "[SAGAWE:INFO] - Sorting Paired SAM File and Converting to BAM"
-        samtools sort -@ "${THREADS}" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.bam" \
-        "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
-
-        echo "[SAGAWE:INFO] - Sorting Un-Paired SAM Files and Converting to BAM"
-        samtools sort -@ "${THREADS}" -o "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam" \
-        "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
+        | tee >(samtools flagstat - > "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.flagstat") \
+        | samtools sort -O BAM \
+        | tee "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam" \
+        | samtools index - "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.bam.bai"
 
         echo "[SAGAWE:INFO] - Merging BAM Files"
         samtools merge -@ "${THREADS}" -f "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" \
@@ -349,9 +347,6 @@ function report_blobtools_mapping () {
 
         echo "[SAGAWE:INFO] - Indexing Merged Sorted Bam"
         samtools index "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam"
-
-        rm "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_paired_reads.sam"
-        rm "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_unpaired_reads.sam"
     fi
 }
 
