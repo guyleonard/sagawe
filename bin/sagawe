@@ -142,6 +142,7 @@ function run_assembly_spades {
             --pe1-m "${merged_dir}/normalised_merged.fq.gz" \
             --pe1-1 "${merged_dir}/${read1}_normalised_unmerged.fq.gz" \
             --pe1-2 "${merged_dir}/${read2}_normalised_unmerged.fq.gz" \
+            --pe1-s "${trimmed_dir}/unpaired_all.fq.gz" \
             -o "$assembly_dir"
          fi
     elif [[ "${MERGED}" == "true" && "${NORMALISED}" == "false" ]] ; then
@@ -159,6 +160,7 @@ function run_assembly_spades {
             --pe1-m "${merged_dir}/merged.fq.gz" \
             --pe1-1 "${merged_dir}/${read1}_unmerged.fq.gz" \
             --pe1-2 "${merged_dir}/${read2}_unmerged.fq.gz" \
+            --pe1-s "${trimmed_dir}/unpaired_all.fq.gz" \
             -o "$assembly_dir"
         fi
     elif [[ "${MERGED}" == "false" && "${NORMALISED}" == "true" ]] ; then
@@ -174,6 +176,7 @@ function run_assembly_spades {
             spades.py ${SC} --careful -t "$THREADS" \
             --pe1-1 "${normalised_dir}/${read1}_normalised.fq.gz" \
             --pe1-2 "${normalised_dir}/${read2}_normalised.fq.gz" \
+            --pe1-s "${trimmed_dir}/unpaired_all.fq.gz" \
             -o "$assembly_dir"
         fi
     else
