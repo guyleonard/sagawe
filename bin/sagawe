@@ -234,11 +234,11 @@ function report_quast () {
 
     mkdir -p "${quast_dir}"
 
-    if [[ -f "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" ]] ; then
+    if [[ -f "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" ]] ; then
         echo "[SAGAWE:INFO] - Running QUAST on ${assembly_type} Assembly with ${ASSEMBLY} and Mapped Trimmed Reads"
         quast.py -o "${quast_dir}" -t "${THREADS}" --glimmer \
         --min-contig "${LIMIT}" --k-mer-stats --rna-finding --eukaryote \
-        --bam "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam" \
+        --bam "${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam" \
         ${QUAST_SCAFFOLDS} ${genome_size} "${assembly_dir}/${ASSEMBLY}" 2>&1 | tee "${quast_dir}/sag_awe_quast.log"
     else
         echo "[SAGAWE:INFO] - Running QUAST on ${assembly_type} Assembly with ${ASSEMBLY} and Mapping Trimmed Reads"
@@ -350,6 +350,8 @@ function report_blobtools_mapping () {
 
         echo "[SAGAWE:INFO] - Indexing Merged Sorted Bam"
         samtools index "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam"
+
+        rm "${mapping_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam"
     fi
 }
 
@@ -439,7 +441,7 @@ function report_qualimap () {
         -outdir "${qualimap_dir}" \
         -outformat pdf
     else
-        echo "[SAGAWE:WARN] - Not Running Qualimap: ${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads.bam does not exist!"
+        echo "[SAGAWE:WARN] - Not Running Qualimap: ${blobtools_dir}/${ASSEMBLY/.fasta/}_mapped_all_reads_sorted.bam does not exist!"
     fi
 }
 
